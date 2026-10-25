@@ -1,0 +1,23 @@
+# Traceability Matrix
+
+**Status:** PROPOSED / INITIAL REGISTER  
+This matrix will become complete as requirements, UI, APIs, schema, and tests are authored. Do not interpret blank or `OPEN` links as completed design.
+
+| Requirement | User story | Use case | UI | API | Database | Tests | Phase |
+|---|---|---|---|---|---|---|---|
+| REQ-AUTH-001 Register/sign in | US-AUTH-001 (planned) | UC-AUTH-001 (planned) | UI-AUTH-001 (planned) | API-AUTH-001 (planned) | DB-USER-001 (verify existing schema) | TEST-AUTH-001 (planned) | PHASE-01 |
+| REQ-TRX-001 Record expense quickly | US-TRX-001 (planned) | UC-TRX-001 (planned) | UI-TRX-001 (planned) | API-TRX-001 (proposed) | DB-TRX-001 (proposed) | TEST-TRX-001 (planned) | PHASE-02 |
+| REQ-TRX-002 Record income | US-TRX-002 (planned) | UC-TRX-002 (planned) | UI-TRX-002 (planned) | API-TRX-002 (proposed) | DB-TRX-001 (proposed) | TEST-TRX-002 (planned) | PHASE-02 |
+| REQ-CAT-001 Use and manage categories | US-CAT-001 (planned) | UC-CAT-001 (planned) | UI-CAT-001 (planned) | API-CAT-001 (proposed) | DB-CAT-001 (verify existing schema) | TEST-CAT-001 (planned) | PHASE-02 |
+| REQ-BUD-001 Plan monthly budget | US-BUD-001 (planned) | UC-BUD-001 (planned) | UI-BUD-001 (planned) | API-BUD-001 (proposed) | DB-BUD-001 (proposed) | TEST-BUD-001 (planned) | PHASE-03 |
+| REQ-DASH-001 View monthly summary | US-DASH-001 (planned) | UC-DASH-001 (planned) | UI-DASH-001 (planned) | API-DASH-001 (proposed) | Derived from transaction/budget data | TEST-DASH-001 (planned) | PHASE-03 |
+| REQ-INS-001 View spending habits | US-INS-001 (planned) | UC-INS-001 (planned) | UI-INS-001 (planned) | API-INS-001 (proposed) | Derived from transactions | TEST-INS-001 (planned) | PHASE-04 |
+| REQ-REF-001 Monthly reflection | US-REF-001 (planned) | UC-REF-001 (planned) | UI-REF-001 (planned) | API-REF-001 (proposed) | DB-REF-001 (proposed) | TEST-REF-001 (planned) | PHASE-04 |
+| FUT-LEND-001 Track money lent | Not in MVP | Not in MVP | Not in MVP | Not in MVP | Not in MVP | Not in MVP | Future |
+
+## Rules
+
+- Replace planned IDs only after the canonical story/use-case register is authored.
+- Every approved story must map to at least one acceptance test.
+- A story that spans frontend and backend must identify both sets of tasks and its integration check.
+- Update this file whenever a requirement or contract changes.

@@ -1,0 +1,998 @@
+openapi: 3.1.0
+info:
+  title: Divido API
+  version: 1.0.0-proposed
+  description: >
+    Proposed API contract for Divido. This specification is not frozen.
+    Confirm all routes, fields, security, status codes, and schemas against
+    approved product decisions and the current Spring Boot implementation.
+servers:
+  - url: http://localhost:8080
+    description: Local development proposal; confirm actual port and base URL.
+tags:
+  - name: Health
+  - name: Authentication
+  - name: Profile
+  - name: Categories
+  - name: Income Sources
+  - name: Transactions
+  - name: Budgets
+  - name: Dashboard
+  - name: Insights
+  - name: Reflections
+paths:
+  /api/v1/health:
+    get:
+      tags: [Health]
+      summary: Application health
+      security: []
+      responses:
+        '200':
+          description: Health response; verify exact existing response shape in source.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/v1/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register an account (proposed)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Sign in (proposed)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated user; session cookie is set separately.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current session user
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Sign out
+      responses:
+        '204':
+          description: Session invalidated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/profile:
+    get:
+      tags: [Profile]
+      summary: Read current profile
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+    patch:
+      tags: [Profile]
+      summary: Update current profile/preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/categories:
+    get:
+      tags: [Categories]
+      summary: List available categories
+      parameters:
+        - $ref: '#/components/parameters/IncludeInactive'
+        - $ref: '#/components/parameters/GroupFilter'
+      responses:
+        '200':
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+    post:
+      tags: [Categories]
+      summary: Create a custom category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreate'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/categories/{categoryId}:
+    patch:
+      tags: [Categories]
+      summary: Update an allowed category field
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpdate'
+      responses:
+        '200':
+          description: Updated category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/categories/{categoryId}/deactivate:
+    post:
+      tags: [Categories]
+      summary: Deactivate a category (optional)
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '204':
+          description: Category deactivated
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/income-sources:
+    get:
+      tags: [Income Sources]
+      summary: List income sources
+      responses:
+        '200':
+          description: Income sources
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IncomeSource'
+    post:
+      tags: [Income Sources]
+      summary: Create an income source
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncomeSourceCreate'
+      responses:
+        '201':
+          description: Income source created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncomeSource'
+  /api/v1/income-sources/{sourceId}:
+    patch:
+      tags: [Income Sources]
+      summary: Update an income source
+      parameters:
+        - $ref: '#/components/parameters/SourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncomeSourceUpdate'
+      responses:
+        '200':
+          description: Updated income source
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncomeSource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/income-sources/{sourceId}/deactivate:
+    post:
+      tags: [Income Sources]
+      summary: Deactivate an income source (optional)
+      parameters:
+        - $ref: '#/components/parameters/SourceId'
+      responses:
+        '204':
+          description: Income source deactivated
+  /api/v1/transactions:
+    get:
+      tags: [Transactions]
+      summary: List the current user's transactions
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/TransactionType'
+        - name: from
+          in: query
+          description: Inclusive date-only lower bound
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: Inclusive date-only upper bound
+          schema:
+            type: string
+            format: date
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: incomeSourceId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Paged transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Transactions]
+      summary: Create an income or expense entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionCreate'
+      responses:
+        '201':
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/transactions/{transactionId}:
+    parameters:
+      - $ref: '#/components/parameters/TransactionId'
+    get:
+      tags: [Transactions]
+      summary: Read an owned transaction
+      responses:
+        '200':
+          description: Transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Transactions]
+      summary: Update an owned transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionUpdate'
+      responses:
+        '200':
+          description: Updated transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Transactions]
+      summary: Soft-delete an owned transaction (if approved)
+      responses:
+        '204':
+          description: Transaction marked deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/transactions/{transactionId}/restore:
+    post:
+      tags: [Transactions]
+      summary: Restore a soft-deleted transaction (optional)
+      parameters:
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          description: Restored transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/budgets/{month}:
+    parameters:
+      - name: month
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+    get:
+      tags: [Budgets]
+      summary: Read a monthly plan
+      responses:
+        '200':
+          description: Monthly plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyBudget'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Budgets]
+      summary: Create or replace a monthly plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonthlyBudgetInput'
+      responses:
+        '200':
+          description: Stored monthly plan (upsert status must be finalized)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyBudget'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Read monthly dashboard
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+            pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+      responses:
+        '200':
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+  /api/v1/insights:
+    get:
+      tags: [Insights]
+      summary: List approved spending insights (if included in MVP)
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Insights
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightsResponse'
+  /api/v1/reflections/{month}:
+    parameters:
+      - name: month
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+    get:
+      tags: [Reflections]
+      summary: Read a monthly reflection (if included in MVP)
+      responses:
+        '200':
+          description: Reflection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reflection'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Reflections]
+      summary: Create or update a monthly reflection (if included in MVP)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReflectionInput'
+      responses:
+        '200':
+          description: Saved reflection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reflection'
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: SESSION
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    IncludeInactive:
+      name: includeInactive
+      in: query
+      schema:
+        type: boolean
+        default: false
+    GroupFilter:
+      name: group
+      in: query
+      schema:
+        $ref: '#/components/schemas/KakeiboGroup'
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SourceId:
+      name: sourceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TransactionId:
+      name: transactionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Missing or invalid session
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Resource not found or not visible to current user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Conflict:
+      description: Domain conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    ApiError:
+      type: object
+      required: [status, code, message]
+      properties:
+        status:
+          type: integer
+        code:
+          type: string
+        message:
+          type: string
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: string
+        requestId:
+          type: string
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    AuthUser:
+      type: object
+      required: [id, email, onboardingComplete]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        onboardingComplete:
+          type: boolean
+    AuthUserResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: '#/components/schemas/AuthUser'
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: [string, 'null']
+        locale:
+          type: string
+          default: en
+        currency:
+          type: string
+          default: LKR
+        timeZone:
+          type: string
+          default: Asia/Colombo
+        onboardingComplete:
+          type: boolean
+    ProfileUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        locale:
+          type: string
+        currency:
+          type: string
+        timeZone:
+          type: string
+      additionalProperties: false
+    KakeiboGroup:
+      type: string
+      enum: [NEEDS, WANTS, CULTURE, UNEXPECTED]
+    Category:
+      type: object
+      required: [id, name, group, isDefault, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        group:
+          $ref: '#/components/schemas/KakeiboGroup'
+        isDefault:
+          type: boolean
+        active:
+          type: boolean
+    CategoryCreate:
+      type: object
+      required: [name, group]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        group:
+          $ref: '#/components/schemas/KakeiboGroup'
+      additionalProperties: false
+    CategoryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        group:
+          $ref: '#/components/schemas/KakeiboGroup'
+      additionalProperties: false
+    IncomeSource:
+      type: object
+      required: [id, name, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        active:
+          type: boolean
+    IncomeSourceCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+      additionalProperties: false
+    IncomeSourceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+      additionalProperties: false
+    TransactionType:
+      type: string
+      enum: [INCOME, EXPENSE]
+    Transaction:
+      type: object
+      required: [id, type, amount, date]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        amount:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+        date:
+          type: string
+          format: date
+        category:
+          oneOf:
+            - $ref: '#/components/schemas/TransactionCategory'
+            - type: 'null'
+        incomeSource:
+          oneOf:
+            - $ref: '#/components/schemas/IncomeSourceRef'
+            - type: 'null'
+        description:
+          type: [string, 'null']
+        paymentMethod:
+          type: [string, 'null']
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TransactionCategory:
+      type: object
+      required: [id, name, group]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        group:
+          $ref: '#/components/schemas/KakeiboGroup'
+    IncomeSourceRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    TransactionCreate:
+      type: object
+      required: [type, amount, date]
+      properties:
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        amount:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+        date:
+          type: string
+          format: date
+        categoryId:
+          type: string
+          format: uuid
+        incomeSourceId:
+          type: string
+          format: uuid
+        description:
+          type: string
+          maxLength: 500
+        paymentMethod:
+          type: string
+      additionalProperties: false
+    TransactionUpdate:
+      type: object
+      properties:
+        amount:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+        date:
+          type: string
+          format: date
+        categoryId:
+          type: string
+          format: uuid
+        incomeSourceId:
+          type: string
+          format: uuid
+        description:
+          type: string
+          maxLength: 500
+        paymentMethod:
+          type: string
+      additionalProperties: false
+    TransactionPage:
+      type: object
+      required: [items, page, size, totalItems, totalPages]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+    MonthlyBudget:
+      type: object
+      required: [month, plannedIncome, savingsTarget, allocations]
+      properties:
+        month:
+          type: string
+          pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+        plannedIncome:
+          type: string
+        savingsTarget:
+          type: string
+        allocations:
+          type: object
+          required: [NEEDS, WANTS, CULTURE, UNEXPECTED]
+          properties:
+            NEEDS:
+              type: string
+            WANTS:
+              type: string
+            CULTURE:
+              type: string
+            UNEXPECTED:
+              type: string
+        allocationTotal:
+          type: string
+        plannedTotal:
+          type: string
+        overAllocationAmount:
+          type: string
+    MonthlyBudgetInput:
+      type: object
+      required: [plannedIncome, savingsTarget, allocations]
+      properties:
+        plannedIncome:
+          type: string
+        savingsTarget:
+          type: string
+        allocations:
+          type: object
+          required: [NEEDS, WANTS, CULTURE, UNEXPECTED]
+          properties:
+            NEEDS:
+              type: string
+            WANTS:
+              type: string
+            CULTURE:
+              type: string
+            UNEXPECTED:
+              type: string
+      additionalProperties: false
+    Dashboard:
+      type: object
+      required: [month]
+      properties:
+        month:
+          type: string
+        plannedIncome:
+          type: [string, 'null']
+        recordedIncome:
+          type: string
+        savingsTarget:
+          type: [string, 'null']
+        groups:
+          type: array
+          items:
+            type: object
+            required: [group, budget, spent, remaining]
+            properties:
+              group:
+                $ref: '#/components/schemas/KakeiboGroup'
+              budget:
+                type: [string, 'null']
+              spent:
+                type: string
+              remaining:
+                type: [string, 'null']
+        recentTransactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        insightPreview:
+          oneOf:
+            - type: object
+              additionalProperties: true
+            - type: 'null'
+    InsightsResponse:
+      type: object
+      required: [from, to, items, insufficientHistory]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, type, title, description]
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              group:
+                $ref: '#/components/schemas/KakeiboGroup'
+              evidence:
+                type: object
+                additionalProperties: true
+        insufficientHistory:
+          type: boolean
+    Reflection:
+      type: object
+      required: [month, answers]
+      properties:
+        month:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReflectionAnswer'
+        updatedAt:
+          type: string
+          format: date-time
+    ReflectionAnswer:
+      type: object
+      required: [questionId, answer]
+      properties:
+        questionId:
+          type: string
+        answer:
+          type: string
+          maxLength: 5000
+    ReflectionInput:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReflectionAnswer'
+      additionalProperties: false
+security:
+  - sessionCookie: []
