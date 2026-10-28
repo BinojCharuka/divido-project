@@ -23,6 +23,26 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  servlet:
+    session:
+      # Idle timeout; Tomcat applies it in whole minutes.
+      timeout: ${SESSION_TIMEOUT:30m}
+      tracking-modes: cookie
+      cookie:
+        # The name is not set here: CookieSettings uses __Host-DIVIDO_SESSION when
+        # secure is true and DIVIDO_SESSION otherwise. Domain must stay unset.
+        path: /
+        http-only: true
+        # Keep true wherever the API is served over HTTPS. Set false only for local HTTP.
+        secure: ${SESSION_COOKIE_SECURE:true}
+        # Also applied to the CSRF cookie. "none" requires secure: true.
+        same-site: ${SESSION_COOKIE_SAME_SITE:lax}
+
+divido:
+  cors:
+    # Comma-separated exact frontend origins allowed to make credentialed requests,
+    # e.g. http://localhost:3000. Empty means no cross-origin access.
+    allowed-origins: ${DIVIDO_CORS_ALLOWED_ORIGINS:}
 
 management:
   endpoints:

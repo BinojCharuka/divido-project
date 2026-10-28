@@ -45,7 +45,8 @@ Phase 01 ([plan](../10-phases/PHASE-01-foundation-auth.md)) is **not complete**,
 
 | Task | Status | Evidence |
 |---|---|---|
-| DIV-005 — Backend registration endpoint | In progress: registration implementation, security regression tests and documentation are committed on branch `feature/div-005-registration` (commit `90fa318834f9e1f0932e9ee10c090209704930ae`), approved for commit by the project owner after code review. Not yet merged into `main` or released. Login and sessions are out of scope (DIV-006). | Decisions `DEC-021` to `DEC-026` in the [decision log](decision-log.md) |
+| DIV-005 — Backend registration endpoint | Implemented and merged into `main` via PR #4 (squash commit `5b84174`, 2026-10-28). Not released. | [PR #4](https://github.com/KasunHerath-dev/divido/pull/4); decisions `DEC-021` to `DEC-026` in the [decision log](decision-log.md) |
+| DIV-006 — Backend authentication (login, sessions, logout, CSRF) | In progress: implemented with integration tests on branch `feature/div-006-authentication`, with the DIV-006A security-review fixes (header-only masked CSRF tokens, `__Host-` cookies, strict CORS origins); committed and open for review in a pull request. Not yet merged or released. Session, cookie and CSRF settings (`DEC-027`) were approved by the project owner on 2026-10-28. Frontend UI is out of scope. | [Authentication API](../05-api/authentication-api.md); `DEC-025` and `DEC-027` in the [decision log](decision-log.md) |
 
 ## Rules
 

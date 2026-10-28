@@ -3,6 +3,7 @@ package com.divido.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.divido.CsrfSupport;
 import com.divido.TestcontainersConfiguration;
 import com.jayway.jsonpath.JsonPath;
 import java.nio.charset.StandardCharsets;
@@ -76,7 +77,8 @@ class AuthRegistrationIntegrationTest {
 	void invalidBasicCredentialsDoNotBlockRegistration() {
 		String invalidBasic = "Basic " + Base64.getEncoder()
 				.encodeToString("user:arbitrary-password".getBytes(StandardCharsets.UTF_8));
-		var result = mvc.post().uri("/api/v1/auth/register").header(HttpHeaders.AUTHORIZATION, invalidBasic)
+		var result = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/register"))
+				.header(HttpHeaders.AUTHORIZATION, invalidBasic)
 				.contentType(MediaType.APPLICATION_JSON).content(body("basic@example.com", PASSWORD, "Basic Header"))
 				.exchange();
 
@@ -119,6 +121,39 @@ class AuthRegistrationIntegrationTest {
 		assertThat(result).bodyJson().extractingPath("$.user.id").isNotEqualTo(clientId.toString());
 		assertThat(jdbc.queryForObject("SELECT count(*) FROM app_users WHERE id = ?", Integer.class, clientId))
 				.isZero();
+	}
+
+	@Test
+	void registrationRequiresACsrfToken() {
+		var result = mvc.post().uri("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON)
+				.content(body("nocsrf@example.com", PASSWORD, "No Token")).exchange();
+
+		assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
+		assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("CSRF_INVALID");
+		assertThat(userCount()).isZero();
+	}
+
+	@Test
+	void registrationRejectsAMismatchedCsrfToken() {
+		CsrfSupport csrf = CsrfSupport.fetch(mvc);
+		var result = mvc.post().uri("/api/v1/auth/register").header(csrf.headerName(), "not-the-cookie-token")
+				.cookie(csrf.cookie())
+				.contentType(MediaType.APPLICATION_JSON).content(body("badcsrf@example.com", PASSWORD, "Bad Token"))
+				.exchange();
+
+		assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
+		assertThat(result).bodyJson().extractingPath("$.code").isEqualTo("CSRF_INVALID");
+		assertThat(userCount()).isZero();
+	}
+
+	/** DEC-025: registration creates the account only; it never signs the user in. */
+	@Test
+	void registrationDoesNotCreateASession() {
+		var result = register(body("nosession@example.com", PASSWORD, "No Session"));
+
+		assertThat(result).hasStatus(HttpStatus.CREATED);
+		assertThat(result.getRequest().getSession(false)).isNull();
+		assertThat(result.getResponse().getHeaders(HttpHeaders.SET_COOKIE)).noneMatch(c -> c.contains("DIVIDO_SESSION"));
 	}
 
 	@ParameterizedTest(name = "{0}")
@@ -227,7 +262,8 @@ class AuthRegistrationIntegrationTest {
 	}
 
 	private MvcTestResult register(String json) {
-		return mvc.post().uri("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(json).exchange();
+		return CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/register"))
+				.contentType(MediaType.APPLICATION_JSON).content(json).exchange();
 	}
 
 	private void insertDirectly(String email) {

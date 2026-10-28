@@ -8,13 +8,22 @@ info:
     approved product decisions and the current Spring Boot implementation.
 
 
-    Interim authentication (current implementation, not the target design):
-    protected routes are configured for HTTP Basic, but no application user
-    lookup exists yet, so no account can sign in and protected routes return
-    401. The intended design remains the server-side session cookie declared
-    in the global `security` section (DEC-015, DEC-024). That scheme is not
-    implemented yet. Registration does not create a session (DEC-025).
-    Unknown request fields are ignored (DEC-026).
+    Authentication (implemented in DIV-006): a server-side session identified
+    by the HttpOnly `__Host-DIVIDO_SESSION` cookie, declared in the global `security`
+    section (DEC-015). Only POST /api/v1/auth/login creates the session;
+    registration does not sign the user in (DEC-025). HTTP Basic is not
+    accepted and no `WWW-Authenticate` challenge is sent.
+
+
+    CSRF: every POST, PUT, PATCH and DELETE request, including register and
+    login, must send the masked token from GET /api/v1/auth/csrf in the
+    `X-XSRF-TOKEN` header. The token is read only from that header, never from
+    a `_csrf` parameter. The browser sends the HttpOnly `__Host-XSRF-TOKEN`
+    cookie set by the same endpoint. A missing or wrong token gets 403
+    `CSRF_INVALID`. With local plain-HTTP settings both cookie names drop the
+    `__Host-` prefix. Cookie and CSRF
+    details are in authentication-api.md (DEC-027, approved). Unknown request
+    fields are ignored (DEC-026).
 servers:
   - url: http://localhost:8080
     description: Local development proposal; confirm actual port and base URL.
@@ -55,10 +64,12 @@ paths:
       summary: Register an account (implemented in DIV-005; contract proposed)
       description: >
         Public; no credentials required, and an Authorization header is ignored.
-        Creates the account only. It does not create a session or sign the user
-        in; whether registration should sign the user in is deferred to DIV-006
-        (DEC-025).
+        Requires a CSRF token. Creates the account only: it does not create a
+        session or sign the user in (DEC-025, approved). The client should then
+        send the user to sign in.
       security: []
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
       requestBody:
         required: true
         content:
@@ -80,13 +91,23 @@ paths:
           description: >
             `VALIDATION_ERROR` with `fieldErrors` keyed by `email`, `password` or
             `displayName`; or `MALFORMED_REQUEST` when the body is not readable JSON.
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
         '409':
           $ref: '#/components/responses/RegistrationConflict'
   /api/v1/auth/login:
     post:
       tags: [Authentication]
-      summary: Sign in (proposed)
+      summary: Sign in (implemented in DIV-006; contract proposed)
+      description: >
+        Public; requires a CSRF token. The email is normalized exactly as at
+        registration (DEC-023). On success the server creates a new session
+        (rotating any existing session ID) and clears the pre-login CSRF token,
+        so the client must call GET /api/v1/auth/csrf again before its next
+        state-changing request.
       security: []
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
       requestBody:
         required: true
         content:
@@ -95,21 +116,36 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Authenticated user; session cookie is set separately.
+          description: >
+            Signed in. The session ID is only in the HttpOnly cookie, never in the
+            body. `onboardingComplete` is always `false` until onboarding exists.
           headers:
             Set-Cookie:
+              description: >
+                `__Host-DIVIDO_SESSION=<id>; Path=/; Secure; HttpOnly; SameSite=Lax`,
+                plus an expired `__Host-XSRF-TOKEN` cookie when the request carried one.
               schema:
                 type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthUserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          description: >
+            `VALIDATION_ERROR` with `fieldErrors` keyed by `email` or `password`;
+            or `MALFORMED_REQUEST` when the body is not readable JSON.
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/InvalidCredentials'
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
   /api/v1/auth/me:
     get:
       tags: [Authentication]
-      summary: Get current session user
+      summary: Get current session user (implemented in DIV-006; contract proposed)
+      description: >
+        The user is taken from the session only; request parameters, headers and
+        bodies are never used to identify the user. No CSRF token is needed.
       responses:
         '200':
           description: Current user
@@ -122,12 +158,50 @@ paths:
   /api/v1/auth/logout:
     post:
       tags: [Authentication]
-      summary: Sign out
+      summary: Sign out (implemented in DIV-006; contract proposed)
+      description: >
+        Requires a session and a CSRF token. Invalidates the server-side session
+        and expires the session and CSRF cookies.
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
       responses:
         '204':
-          description: Session invalidated
+          description: Session invalidated. No body.
+          headers:
+            Set-Cookie:
+              description: >
+                `__Host-DIVIDO_SESSION=; Path=/; Max-Age=0; Expires=<past>; Secure; HttpOnly; SameSite=Lax`
+                and an expired `__Host-XSRF-TOKEN` cookie with the same attributes.
+              schema:
+                type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
+  /api/v1/auth/csrf:
+    get:
+      tags: [Authentication]
+      summary: Get a CSRF token (implemented in DIV-006; contract proposed)
+      description: >
+        Public. Returns a masked CSRF token and, if the request has no CSRF
+        cookie, sets `__Host-XSRF-TOKEN` (`Path=/; Secure; HttpOnly;
+        SameSite=Lax`) holding the raw token. The masked value changes on every
+        call; each one is valid for the current cookie. Does not create a
+        session. Send the token in the `X-XSRF-TOKEN` header on every
+        state-changing request.
+      security: []
+      responses:
+        '200':
+          description: Current CSRF token. Not cacheable.
+          headers:
+            Set-Cookie:
+              description: '`__Host-XSRF-TOKEN=<raw token>; Path=/; Secure; HttpOnly; SameSite=Lax` when newly issued.'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsrfTokenResponse'
   /api/v1/profile:
     get:
       tags: [Profile]
@@ -528,8 +602,22 @@ components:
     sessionCookie:
       type: apiKey
       in: cookie
-      name: SESSION
+      name: __Host-DIVIDO_SESSION
+      description: >
+        Server-side session cookie set by POST /api/v1/auth/login. HttpOnly,
+        Secure, SameSite=Lax, Path=/, no Domain; idle timeout 30 minutes by
+        default. Named `DIVIDO_SESSION` with local plain-HTTP settings.
   parameters:
+    XsrfToken:
+      name: X-XSRF-TOKEN
+      in: header
+      required: true
+      description: >
+        Masked CSRF token from GET /api/v1/auth/csrf. Required on every POST,
+        PUT, PATCH and DELETE request, together with the CSRF cookie the browser
+        holds. Only this header is checked; a `_csrf` parameter is ignored.
+      schema:
+        type: string
     Page:
       name: page
       in: query
@@ -585,11 +673,39 @@ components:
           schema:
             $ref: '#/components/schemas/ApiError'
     Unauthorized:
-      description: Missing or invalid session
+      description: >
+        No valid session: none was sent, or it expired or was signed out.
+        `UNAUTHENTICATED`; no `WWW-Authenticate` header is sent.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiError'
+          example:
+            status: 401
+            code: UNAUTHENTICATED
+            message: Please sign in to continue.
+    InvalidCredentials:
+      description: >
+        Unknown email and wrong password get the same response, so neither is
+        revealed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            status: 401
+            code: INVALID_CREDENTIALS
+            message: The email or password is incorrect.
+    CsrfInvalid:
+      description: The CSRF token is missing or does not match the cookie.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            status: 403
+            code: CSRF_INVALID
+            message: Your request could not be verified. Refresh the page and try again.
     NotFound:
       description: Resource not found or not visible to current user
       content:
@@ -628,7 +744,8 @@ components:
           description: >
             Stable machine-readable code. Known codes are listed in
             api-conventions.md (VALIDATION_ERROR, MALFORMED_REQUEST,
-            REGISTRATION_CONFLICT).
+            REGISTRATION_CONFLICT, INVALID_CREDENTIALS, UNAUTHENTICATED,
+            CSRF_INVALID, FORBIDDEN).
         message:
           type: string
         fieldErrors:
@@ -672,14 +789,35 @@ components:
             character (U+0000), which the database cannot store.
     LoginRequest:
       type: object
+      description: Unknown properties are ignored (DEC-026).
+      additionalProperties: true
       required: [email, password]
       properties:
         email:
           type: string
           format: email
+          maxLength: 255
+          description: >
+            Trimmed and lower-cased (Locale.ROOT) exactly as at registration
+            (DEC-023). Must be a valid email address.
         password:
           type: string
           format: password
+          description: >
+            Must not be blank. Never trimmed. A password over 72 UTF-8 bytes
+            cannot match any account and gets the neutral 401.
+    CsrfTokenResponse:
+      type: object
+      required: [headerName, token]
+      properties:
+        headerName:
+          type: string
+          description: Always `X-XSRF-TOKEN`.
+        token:
+          type: string
+          description: >
+            Masked token (XOR with fresh random bytes, Base64url). Differs on
+            every call and never equals the raw cookie value.
     AuthUser:
       type: object
       required: [id, email, onboardingComplete]

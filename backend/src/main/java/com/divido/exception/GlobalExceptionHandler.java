@@ -4,6 +4,7 @@ import com.divido.dto.ApiError;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,6 +42,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleDuplicateEmail(DuplicateEmailException ex) {
         return error(HttpStatus.CONFLICT, "REGISTRATION_CONFLICT",
                 "We couldn't create an account with these details.");
+    }
+
+    /** Unknown email and wrong password get the same response, so neither is revealed. */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
+        return error(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "The email or password is incorrect.");
     }
 
     private static ResponseEntity<ApiError> validationError(Map<String, String> fieldErrors) {

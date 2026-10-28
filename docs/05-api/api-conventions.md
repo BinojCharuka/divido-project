@@ -12,13 +12,13 @@
 
 ## 2. Authentication and cookies
 
-- Protected endpoints use the approved server-side session cookie.
-- Browser requests must use the credential mode required by the selected deployment topology.
-- State-changing requests must include the approved CSRF token/header.
-- Exact cookie name, CSRF header name, session expiry, SameSite and CORS rules must be confirmed in security configuration.
-- Authentication endpoints and health endpoints are public only as explicitly configured.
+Implemented in DIV-006 (`DEC-015`; settings are `DEC-027`, approved). Details and the frontend call order are in the [Authentication API](authentication-api.md).
 
-**Interim authentication (current implementation, not the target):** protected routes are configured for HTTP Basic, but no application user lookup exists yet, so no account can sign in and every protected route returns `401`. The intended design remains the server-side session cookie described above (`DEC-015`, `DEC-024`). CSRF, CORS and session behaviour must be resolved as part of the approved authentication design in DIV-006. Do not infer them from the target architecture or from the interim configuration. See [Security architecture — current implementation](../04-architecture/security-architecture.md#10-current-implementation-interim-not-the-target-design).
+- Protected endpoints use the server-side session cookie `__Host-DIVIDO_SESSION` (HttpOnly, Secure, SameSite=Lax, Path=/, no Domain), set only by `POST /api/v1/auth/login`. With local plain-HTTP settings it is named `DIVIDO_SESSION`. HTTP Basic is not accepted.
+- Browser requests must send cookies: `credentials: "include"` for a cross-origin API, or same-origin requests through a proxy. Cross-origin access requires the page origin in the backend's exact allowlist (`DIVIDO_CORS_ALLOWED_ORIGINS`); none is allowed by default.
+- Every `POST`, `PUT`, `PATCH` and `DELETE` request must send the masked token from `GET /api/v1/auth/csrf` in the `X-XSRF-TOKEN` header; the browser sends the HttpOnly CSRF cookie. Only the header is checked, never a `_csrf` parameter. This includes public requests such as registration and sign-in.
+- Public routes: `GET /api/v1/auth/csrf`, `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `/api/v1/health`, `/actuator/health` and `/error`. Everything else requires a session.
+- Sessions expire after 30 minutes without a request (configurable). An expired or signed-out session gets `401 UNAUTHENTICATED`.
 
 ## 3. Request/response format
 
@@ -88,8 +88,12 @@ Known error codes:
 | `VALIDATION_ERROR` | 400 | One or more fields failed validation; details are in `fieldErrors`. | Implemented (registration) |
 | `MALFORMED_REQUEST` | 400 | The request body could not be read, for example invalid JSON. | Implemented (registration) |
 | `REGISTRATION_CONFLICT` | 409 | Registration could not complete because the normalized email is already registered. The message is deliberately neutral (`DEC-022`). | Implemented (registration) |
+| `INVALID_CREDENTIALS` | 401 | Sign-in failed. Unknown email and wrong password get the same response. | Implemented (sign-in) |
+| `UNAUTHENTICATED` | 401 | A protected route was called without a valid session (none, expired, signed out). | Implemented (all protected routes) |
+| `CSRF_INVALID` | 403 | The `X-XSRF-TOKEN` header is missing, malformed, or does not match the CSRF cookie. | Implemented (all state-changing requests) |
+| `FORBIDDEN` | 403 | Signed in but not permitted. No current route produces it. | Implemented (security error handler) |
 
-Responses produced by the framework rather than the API, such as `401` on protected routes, do not use this envelope yet. Their exact body has not been verified in a real servlet container.
+The `401` and `403` responses produced by the security filters use this envelope too, and no `WWW-Authenticate` header is sent. Other framework errors, such as `405` or `415`, still use the framework's default body.
 
 ## 7. Proposed status codes
 
@@ -129,7 +133,7 @@ Use one consistent safe policy for resources that exist but belong to another us
 ## 10. Open decisions before freeze
 
 - Exact base URL per environment.
-- Session cookie/CSRF details and CORS topology.
+- Production CORS origins and deployment topology (same-origin proxy or separate origins).
 - Decimal scale/max and whether money is represented as strings in all endpoints.
 - Pagination response format and max page size.
 - Exact error schema/status mapping.
