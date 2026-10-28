@@ -36,8 +36,8 @@ Phase 00 ([plan](../10-phases/PHASE-00-planning.md)) is **in progress**. Its exi
 |---|---|---|
 | DIV-001 — Repository baseline audit | Complete | Audit report supplied to the project owner (not stored in the repository) |
 | DIV-002 — Read-only shared database and Flyway verification | Complete | Verification report supplied to the project owner (not stored in the repository) |
-| DIV-003 — Isolated backend Testcontainers test baseline | Implemented and verified on branch `feature/div-003-test-baseline` (commit `cb8fa2b`); **PR #1 open, not merged into `main` (as of 2026-10-28)** | [PR #1](https://github.com/KasunHerath-dev/divido/pull/1) |
-| DIV-004 — Documentation cleanup | In progress: Phase A audit complete; B1 (index, status, links) under owner review; B2–B5 not started | Phase A report supplied to the project owner |
+| DIV-003 — Isolated backend Testcontainers test baseline | Implemented and verified; merged into `main` via PR #1 (squash commit `c9d6168`, 2026-10-28) | [PR #1](https://github.com/KasunHerath-dev/divido/pull/1) |
+| DIV-004 — Documentation cleanup | In progress: Phase A audit complete; B1 (index, status, links) merged into `main`; B2 (decision register cleanup) under owner review; B3–B5 not started | Phase A report supplied to the project owner; [PR #2](https://github.com/KasunHerath-dev/divido/pull/2) (B1) |
 
 ## Rules
 

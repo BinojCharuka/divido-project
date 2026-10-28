@@ -4,6 +4,16 @@
 
 Use this file to distinguish explicit choices from recommendations and unresolved questions.
 
+## Register scope
+
+This is the canonical decision register for Divido. A `DEC-*` ID cited anywhere in the documentation refers to the entry in this file.
+
+[`01-product/scope-and-decisions.md`](../01-product/scope-and-decisions.md) is a supporting product summary, not a register. Its decision table predates this log and numbers the same topics differently, so one `DEC-*` number can mean different decisions in the two files. For example, `DEC-007` is *Payment methods* here but *Categories* there. Those historical IDs are kept unchanged, and the summary maps each one to its canonical entry below.
+
+- Cite only the IDs in this file.
+- `DEC-017` to `DEC-019` appear only in the supporting summary's historical table. They are not assigned here and must not be reused.
+- New decision IDs continue sequentially from `DEC-020`.
+
 | ID | Topic | Current decision or proposal | Status | Notes |
 |---|---|---|---|---|
 | DEC-001 | Target audience | Individual users | PROPOSED | Shared household collaboration is deferred |
@@ -22,6 +32,7 @@ Use this file to distinguish explicit choices from recommendations and unresolve
 | DEC-014 | Transaction deletion | Soft delete with restore | PROPOSED | Retention period unresolved |
 | DEC-015 | Authentication | Cookie-based server-side session using maintained framework | PROPOSED | Framework/version and CSRF design need verification |
 | DEC-016 | Money lending tracker | Future feature, outside MVP | PROPOSED | Search by username/phone and repayment records later |
+| DEC-020 | Income planning | Planned income and actual income records | PROPOSED | Recorded from historical `DEC-009` in the product scope summary; exact calculation and display remain open |
 
 ## Decision rules
 

@@ -41,7 +41,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`01-product/future-features.md`](01-product/future-features.md) | Deferred features, including `FUT-LEND-001` Money Lending Tracker | PROPOSED — excluded from MVP |
 | [`01-product/glossary.md`](01-product/glossary.md) | Shared terminology | PROPOSED |
 
-`scope-and-decisions.md` still describes itself as a "Central register" and uses decision IDs that overlap with the canonical log. That reconciliation is planned for DIV-004 B2. Until then, use `decision-log.md` IDs.
+`scope-and-decisions.md` keeps its historical decision IDs, which overlap with the canonical log but number topics differently. Its table maps each one to the canonical `decision-log.md` entry. Cite `decision-log.md` IDs only.
 
 ## 02 — UX/UI
 
