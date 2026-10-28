@@ -39,6 +39,14 @@ Phase 00 ([plan](../10-phases/PHASE-00-planning.md)) is **in progress**. Its exi
 | DIV-003 — Isolated backend Testcontainers test baseline | Implemented and verified; merged into `main` via PR #1 (squash commit `c9d6168`, 2026-10-28) | [PR #1](https://github.com/KasunHerath-dev/divido/pull/1) |
 | DIV-004 — Documentation cleanup | In progress: Phase A audit complete; B1 (index, status, links) merged into `main`; B2 (decision register cleanup) under owner review; B3–B5 not started | Phase A report supplied to the project owner; [PR #2](https://github.com/KasunHerath-dev/divido/pull/2) (B1) |
 
+## Phase 01 task status
+
+Phase 01 ([plan](../10-phases/PHASE-01-foundation-auth.md)) is **not complete**, and its entry criteria are not yet recorded as met.
+
+| Task | Status | Evidence |
+|---|---|---|
+| DIV-005 — Backend registration endpoint | In progress: registration implementation, security regression tests and documentation are committed on branch `feature/div-005-registration` (commit `90fa318834f9e1f0932e9ee10c090209704930ae`), approved for commit by the project owner after code review. Not yet merged into `main` or released. Login and sessions are out of scope (DIV-006). | Decisions `DEC-021` to `DEC-026` in the [decision log](decision-log.md) |
+
 ## Rules
 
 - Do not mark a folder complete while its files are missing or its required decisions are still undocumented.

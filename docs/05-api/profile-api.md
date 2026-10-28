@@ -20,7 +20,7 @@ Proposed response:
 }
 ```
 
-The exact fields are TBD; do not create a display-name requirement unless approved.
+The exact fields are TBD. A display name is required at registration (`DEC-021`, APPROVED) and the V1 `display_name` column is NOT NULL, so every account has one. Whether and how it can be edited through this API is not yet defined. The profile endpoints are not implemented.
 
 ## PROFILE-002 — Update profile/preferences
 

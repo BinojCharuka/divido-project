@@ -6,6 +6,15 @@ info:
     Proposed API contract for Divido. This specification is not frozen.
     Confirm all routes, fields, security, status codes, and schemas against
     approved product decisions and the current Spring Boot implementation.
+
+
+    Interim authentication (current implementation, not the target design):
+    protected routes are configured for HTTP Basic, but no application user
+    lookup exists yet, so no account can sign in and protected routes return
+    401. The intended design remains the server-side session cookie declared
+    in the global `security` section (DEC-015, DEC-024). That scheme is not
+    implemented yet. Registration does not create a session (DEC-025).
+    Unknown request fields are ignored (DEC-026).
 servers:
   - url: http://localhost:8080
     description: Local development proposal; confirm actual port and base URL.
@@ -28,16 +37,27 @@ paths:
       security: []
       responses:
         '200':
-          description: Health response; verify exact existing response shape in source.
+          description: >
+            Implemented. Always returns `{"status":"UP"}`; this endpoint does not
+            check the database or other dependencies.
           content:
             application/json:
               schema:
                 type: object
-                additionalProperties: true
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [UP]
   /api/v1/auth/register:
     post:
       tags: [Authentication]
-      summary: Register an account (proposed)
+      summary: Register an account (implemented in DIV-005; contract proposed)
+      description: >
+        Public; no credentials required, and an Authorization header is ignored.
+        Creates the account only. It does not create a session or sign the user
+        in; whether registration should sign the user in is deferred to DIV-006
+        (DEC-025).
       security: []
       requestBody:
         required: true
@@ -47,15 +67,21 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: Account created
+          description: >
+            Account created. `user.email` is the normalized (trimmed, lower-cased)
+            email and `onboardingComplete` is `false`. No password, hash or session
+            identifier is returned, and no cookie is set.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthUserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+          description: >
+            `VALIDATION_ERROR` with `fieldErrors` keyed by `email`, `password` or
+            `displayName`; or `MALFORMED_REQUEST` when the body is not readable JSON.
         '409':
-          $ref: '#/components/responses/Conflict'
+          $ref: '#/components/responses/RegistrationConflict'
   /api/v1/auth/login:
     post:
       tags: [Authentication]
@@ -576,6 +602,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiError'
+    RegistrationConflict:
+      description: >
+        Registration could not complete because the normalized email is already
+        registered. Implemented with a neutral code and message (DEC-022); the
+        response never contains the submitted email. The 409 status itself still
+        reveals that an account exists.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            status: 409
+            code: REGISTRATION_CONFLICT
+            message: We couldn't create an account with these details.
   schemas:
     ApiError:
       type: object
@@ -585,6 +625,10 @@ components:
           type: integer
         code:
           type: string
+          description: >
+            Stable machine-readable code. Known codes are listed in
+            api-conventions.md (VALIDATION_ERROR, MALFORMED_REQUEST,
+            REGISTRATION_CONFLICT).
         message:
           type: string
         fieldErrors:
@@ -593,17 +637,39 @@ components:
             type: string
         requestId:
           type: string
+          description: Optional; not emitted yet because no correlation ID exists.
     RegisterRequest:
       type: object
-      required: [email, password]
+      description: >
+        Unknown properties are ignored, not rejected (DEC-026); in particular a
+        client-supplied `id` has no effect. Limits apply after normalization.
+      additionalProperties: true
+      required: [email, password, displayName]
       properties:
         email:
           type: string
           format: email
+          maxLength: 255
+          description: >
+            Trimmed and lower-cased (Locale.ROOT) before validation and storage
+            (DEC-023). Must be a valid email address of at most 255 characters.
         password:
           type: string
           format: password
           minLength: 8
+          maxLength: 72
+          description: >
+            8 to 72 characters and also at most 72 bytes when UTF-8 encoded
+            (the bcrypt input limit), so some non-ASCII passwords under 72
+            characters are rejected. Must not be blank. Never trimmed or altered.
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: >
+            Required (DEC-021). Trimmed before validation; must not be blank and
+            is at most 100 characters after trimming. Must not contain the NUL
+            character (U+0000), which the database cannot store.
     LoginRequest:
       type: object
       required: [email, password]
@@ -639,7 +705,9 @@ components:
           type: string
           format: uuid
         displayName:
-          type: [string, 'null']
+          type: string
+          description: >
+            Set at registration (DEC-021); the V1 `display_name` column is NOT NULL.
         locale:
           type: string
           default: en
@@ -665,6 +733,10 @@ components:
       additionalProperties: false
     KakeiboGroup:
       type: string
+      description: >
+        Proposed API values. The V1 schema stores `categories.category_type` as
+        NEED, WANT, CULTURE or UNEXPECTED (singular). Whether the API maps
+        between the two or is aligned with the stored values is OPEN.
       enum: [NEEDS, WANTS, CULTURE, UNEXPECTED]
     Category:
       type: object

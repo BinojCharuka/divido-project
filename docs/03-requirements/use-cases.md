@@ -28,6 +28,8 @@
 
 **Open decisions:** Authentication identifier, password policy, email/phone verification, account recovery and rate limits.
 
+> **OPEN — step 5 (`DEC-025`):** whether registration itself creates a session is deferred to DIV-006. The current implementation (DIV-005) creates the account only and does not establish a session, so step 5 and the session part of the postconditions are not yet met.
+
 ## UC-002 — Sign in and sign out
 
 **Primary actor:** Registered user  

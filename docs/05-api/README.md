@@ -23,7 +23,7 @@ This set is the shared frontend/backend contract. The frontend must not invent e
 
 ## Contract status
 
-Every endpoint and schema is a proposal unless already implemented and verified in the current backend. The existing `GET /api/v1/health` endpoint is known to work from project discussion; its exact response shape should be checked in source code.
+Every endpoint and schema is a proposal unless already implemented and verified in the current backend. `GET /api/v1/health` is implemented and returns `{"status":"UP"}`. That is a fixed application-health response; it does not check database connectivity or other dependencies.
 
 ## Contract rules
 

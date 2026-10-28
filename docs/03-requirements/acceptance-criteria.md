@@ -8,6 +8,8 @@
 ### AC-001 — Valid registration
 Given a visitor enters valid approved registration details, when they submit, then the backend creates one account and establishes a session only if both operations succeed.
 
+> **OPEN (`DEC-025`):** the session part of this criterion is deferred to DIV-006. The current implementation creates the account but no session.
+
 ### AC-002 — Invalid or duplicate registration
 Given required fields are missing/invalid or the identifier conflicts with an existing account, when submitted, then the system returns a safe validation response and does not create duplicate accounts.
 

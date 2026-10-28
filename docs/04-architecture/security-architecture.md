@@ -95,3 +95,25 @@ Because cookies are sent automatically by browsers, state-changing requests need
 - CORS allowlist.
 - Login/recovery rate limits and account lockout policy.
 - Data retention and account deletion requirements.
+
+## 10. Current implementation (interim, not the target design)
+
+This section records what the backend does today, as of DIV-005. It is **not** the approved target architecture described above, and it is **not production-ready**. Source: `backend/src/main/java/com/divido/security/SecurityConfig.java` and `backend/src/main/resources/application.yml`.
+
+**Public routes** are handled by a separate filter chain with no HTTP Basic, so an `Authorization` header on them is ignored:
+- `/api/v1/health`: only `GET` is implemented; it returns `{"status":"UP"}`.
+- `/actuator/health`: `show-details: never`. The response may also list probe group names (`liveness`, `readiness`) but no component details. Sub-paths such as `/actuator/health/db` are protected.
+- `/error`.
+- `POST /api/v1/auth/register` only. Other methods on that path are protected.
+
+**Everything else** requires authentication. That includes `/actuator`, other actuator endpoints (only `health` is exposed), and unknown `/api/v1/...` paths. Unauthenticated requests get `401` with a `WWW-Authenticate: Basic` challenge.
+
+**HTTP Basic, with no users:** the user lookup is a placeholder that finds no accounts, so no one can sign in yet and every Basic attempt gets `401`. Defining it also disables Spring Boot's generated default user, so no generated password is created or logged.
+
+**Sessions and CSRF:** sessions are stateless and CSRF is disabled on both filter chains. No session or cookie is created, including at registration. There is no CORS configuration.
+
+**Passwords** are hashed with Spring Security's delegating password encoder (bcrypt, `{bcrypt}` prefix).
+
+**Database error detail:** the PostgreSQL driver's `Detail:` text is turned off with `spring.datasource.hikari.data-source-properties.logServerErrorDetail: false`. Values such as a conflicting email therefore don't appear in exception messages or logs; the constraint name still does.
+
+All of this is replaced or revisited by the approved session, CSRF and CORS design in DIV-006 (`DEC-015`, `DEC-024`, `DEC-025`).

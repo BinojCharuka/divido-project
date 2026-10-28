@@ -18,6 +18,8 @@
 - Exact cookie name, CSRF header name, session expiry, SameSite and CORS rules must be confirmed in security configuration.
 - Authentication endpoints and health endpoints are public only as explicitly configured.
 
+**Interim authentication (current implementation, not the target):** protected routes are configured for HTTP Basic, but no application user lookup exists yet, so no account can sign in and every protected route returns `401`. The intended design remains the server-side session cookie described above (`DEC-015`, `DEC-024`). CSRF, CORS and session behaviour must be resolved as part of the approved authentication design in DIV-006. Do not infer them from the target architecture or from the interim configuration. See [Security architecture — current implementation](../04-architecture/security-architecture.md#10-current-implementation-interim-not-the-target-design).
+
 ## 3. Request/response format
 
 - `Content-Type: application/json` for JSON request bodies.
@@ -75,8 +77,19 @@ Proposed response:
 
 Contract notes:
 - `fieldErrors` may be omitted if there are no field-level errors.
+- `requestId` is not emitted yet, because no correlation ID exists.
 - Never expose stack traces, SQL, raw exception messages, secret values, or another user's private data.
 - Exact fields and status mapping require approval and implementation verification.
+
+Known error codes:
+
+| Code | Status | Meaning | Implementation status |
+|---|---|---|---|
+| `VALIDATION_ERROR` | 400 | One or more fields failed validation; details are in `fieldErrors`. | Implemented (registration) |
+| `MALFORMED_REQUEST` | 400 | The request body could not be read, for example invalid JSON. | Implemented (registration) |
+| `REGISTRATION_CONFLICT` | 409 | Registration could not complete because the normalized email is already registered. The message is deliberately neutral (`DEC-022`). | Implemented (registration) |
+
+Responses produced by the framework rather than the API, such as `401` on protected routes, do not use this envelope yet. Their exact body has not been verified in a real servlet container.
 
 ## 7. Proposed status codes
 
@@ -102,7 +115,7 @@ Use one consistent safe policy for resources that exist but belong to another us
 
 - JSON field names use `camelCase`.
 - Enum values are stable documented strings.
-- Unknown fields: decide whether to ignore or reject; do not vary arbitrarily.
+- Unknown request fields are ignored, not rejected (`DEC-026`). Server-controlled values such as IDs and owner IDs are never read from the request body. Several proposed request schemas in `openapi.yaml` still declare `additionalProperties: false`. They must be reconciled with this rule when their endpoints are implemented.
 - Validate at both API and domain boundaries.
 - Field errors should use stable request field names.
 - Text length limits, allowed characters, amount rules, and future-date rules must be approved.

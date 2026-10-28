@@ -5,7 +5,7 @@ This matrix will become complete as requirements, UI, APIs, schema, and tests ar
 
 | Requirement | User story | Use case | UI | API | Database | Tests | Phase |
 |---|---|---|---|---|---|---|---|
-| REQ-AUTH-001 Register/sign in | US-AUTH-001 (planned) | UC-AUTH-001 (planned) | UI-AUTH-001 (planned) | API-AUTH-001 (planned) | DB-USER-001 (verify existing schema) | TEST-AUTH-001 (planned) | PHASE-01 |
+| REQ-AUTH-001 Register/sign in | US-001 (AC-001, AC-002); US-002 (AC-003, AC-004) | UC-001; UC-002 | UX-P02 Create account; UX-P01 Sign in | AUTH-001 register (implemented, DIV-005); AUTH-002 to AUTH-004 (proposed, DIV-006) | `app_users` (V1) | Registration: backend `AuthRegistrationIntegrationTest` (automated). Sign-in/session: TC-AUTH-001 to TC-AUTH-003, API-AUTH-001 to API-AUTH-005, SEC-001 to SEC-006 (documented, not yet run) | PHASE-01 (entry criteria not yet recorded as met) |
 | REQ-TRX-001 Record expense quickly | US-TRX-001 (planned) | UC-TRX-001 (planned) | UI-TRX-001 (planned) | API-TRX-001 (proposed) | DB-TRX-001 (proposed) | TEST-TRX-001 (planned) | PHASE-02 |
 | REQ-TRX-002 Record income | US-TRX-002 (planned) | UC-TRX-002 (planned) | UI-TRX-002 (planned) | API-TRX-002 (proposed) | DB-TRX-001 (proposed) | TEST-TRX-002 (planned) | PHASE-02 |
 | REQ-CAT-001 Use and manage categories | US-CAT-001 (planned) | UC-CAT-001 (planned) | UI-CAT-001 (planned) | API-CAT-001 (proposed) | DB-CAT-001 (verify existing schema) | TEST-CAT-001 (planned) | PHASE-02 |

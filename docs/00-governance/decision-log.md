@@ -12,7 +12,7 @@ This is the canonical decision register for Divido. A `DEC-*` ID cited anywhere 
 
 - Cite only the IDs in this file.
 - `DEC-017` to `DEC-019` appear only in the supporting summary's historical table. They are not assigned here and must not be reused.
-- New decision IDs continue sequentially from `DEC-020`.
+- New decision IDs continue sequentially from the highest ID in this table (currently `DEC-026`).
 
 | ID | Topic | Current decision or proposal | Status | Notes |
 |---|---|---|---|---|
@@ -33,6 +33,12 @@ This is the canonical decision register for Divido. A `DEC-*` ID cited anywhere 
 | DEC-015 | Authentication | Cookie-based server-side session using maintained framework | PROPOSED | Framework/version and CSRF design need verification |
 | DEC-016 | Money lending tracker | Future feature, outside MVP | PROPOSED | Search by username/phone and repayment records later |
 | DEC-020 | Income planning | Planned income and actual income records | PROPOSED | Recorded from historical `DEC-009` in the product scope summary; exact calculation and display remain open |
+| DEC-021 | Registration display name | `displayName` is required at registration; trimmed, 1–100 characters | APPROVED | Approved by the project owner on 2026-10-28. Matches the V1 `display_name NOT NULL` column |
+| DEC-022 | Duplicate registration response | HTTP `409` with neutral code `REGISTRATION_CONFLICT` and message "We couldn't create an account with these details." | APPROVED | Approved by the project owner on 2026-10-28. Implemented in DIV-005. The `409` status still reveals that an account exists; rate limiting is needed before public release |
+| DEC-023 | Email normalization | Trim and lower-case the entire email with `Locale.ROOT` before validation and storage; future login must use the same normalization | APPROVED | Approved by the project owner on 2026-10-28. The V1 unique constraint is case-sensitive; a later `lower(email)` unique index is a possible follow-up |
+| DEC-024 | Interim authentication documentation | Session-cookie authentication (`DEC-015`) remains the target. Docs describe the current interim HTTP Basic configuration separately, and the OpenAPI global scheme stays `sessionCookie` | APPROVED | Approved by the project owner on 2026-10-28. HTTP Basic has no user lookup, so no account can sign in yet |
+| DEC-025 | Sign-in at registration | Whether registration also signs the user in | OPEN | Deferred to DIV-006. Registration currently creates the account only, with no session. Conflicts with UC-001 step 5 and AC-001 until decided |
+| DEC-026 | Unknown request fields | Ignored, not rejected; server-controlled fields such as IDs are never read from the request | APPROVED | Approved by the project owner on 2026-10-28. Applied to registration. Some proposed OpenAPI schemas for unimplemented endpoints still declare `additionalProperties: false` |
 
 ## Decision rules
 
