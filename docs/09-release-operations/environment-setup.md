@@ -87,6 +87,22 @@ npm run dev
 
 Do not document both commands as mandatory if the repository uses a different tool. Prefer a committed Maven wrapper and one package-manager lockfile for reproducibility if the team approves.
 
+### Backend tests (verified in DIV-003)
+
+```bash
+# From backend/; requires a running Docker daemon
+./mvnw test
+```
+
+Spring context tests run against a disposable PostgreSQL container (Testcontainers, `postgres:18-alpine`) that Flyway migrates from scratch. They never use `.env` or the shared development database:
+
+- every Spring test imports `TestcontainersConfiguration` (service connection for the datasource and Flyway);
+- `src/test/resources/config/application.properties` replaces the `${DB_URL}` placeholder with an unresolvable host, so a test that is missing the import fails instead of connecting elsewhere;
+- Surefire strips `DB_*`, `SPRING_DATASOURCE_*` and `SPRING_FLYWAY_*` environment variables;
+- `TestDatabaseIsolationTest` checks that the datasource and Flyway point at the container.
+
+If Docker is unavailable the tests fail. Do not point them at a shared database as a workaround.
+
 ## 7. Connectivity and CORS
 
 - Confirm the frontend origin and backend origin for each environment.

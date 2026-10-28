@@ -94,6 +94,16 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -101,6 +111,24 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<!-- Tests must never inherit the shared database configuration; see TestcontainersConfiguration. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludedEnvironmentVariables>
+						<excludedEnvironmentVariable>DB_URL</excludedEnvironmentVariable>
+						<excludedEnvironmentVariable>DB_USERNAME</excludedEnvironmentVariable>
+						<excludedEnvironmentVariable>DB_PASSWORD</excludedEnvironmentVariable>
+						<excludedEnvironmentVariable>SPRING_DATASOURCE_URL</excludedEnvironmentVariable>
+						<excludedEnvironmentVariable>SPRING_DATASOURCE_USERNAME</excludedEnvironmentVariable>
+						<excludedEnvironmentVariable>SPRING_DATASOURCE_PASSWORD</excludedEnvironmentVariable>
+						<excludedEnvironmentVariable>SPRING_FLYWAY_URL</excludedEnvironmentVariable>
+						<excludedEnvironmentVariable>SPRING_FLYWAY_USER</excludedEnvironmentVariable>
+						<excludedEnvironmentVariable>SPRING_FLYWAY_PASSWORD</excludedEnvironmentVariable>
+					</excludedEnvironmentVariables>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
