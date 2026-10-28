@@ -1,7 +1,7 @@
 # Divido Documentation
 
 **Status:** In progress — proposed, not frozen  
-**Current documentation set:** Set 1 — Governance and Product
+**Authoring status:** Folders `00`–`10` are authored and awaiting owner review; see the [documentation status register](00-governance/documentation-status.md).
 
 ## Purpose
 
@@ -28,16 +28,23 @@ This directory is the single source of truth for approved Divido product require
 
 Never treat a document as frozen merely because it exists in the repository.
 
-## Documentation sets
+## Documentation folders
 
-- Set 1: Governance and product definition.
-- Set 2: UX/UI and wireframes.
-- Set 3: Use cases, user stories, acceptance criteria, and business rules.
-- Set 4: Architecture, security, database design, and class responsibilities.
-- Set 5: API contracts and OpenAPI.
-- Set 6: Data dictionary, test strategy, test cases, and traceability.
-- Set 7: Development workflow and frontend/backend roadmaps.
-- Set 8: Phase execution plans, AI agent rules, release and operations.
+The numbered folders are the single organization scheme. Where a document refers to "Set N", it means the folder numbered N (for example, Set 5 is `05-api/` and Set 10 is `10-phases/`).
+
+- [`00-governance/`](00-governance/README.md): principles, freeze rules, change control, the canonical decision log, and status register.
+- [`01-product/`](01-product/README.md): product overview, requirements, MVP scope, scope summary, future features, and glossary.
+- [`02-ux-ui/`](02-ux-ui/README.md): UX principles, navigation, flows, wireframes, pages, design system, and accessibility.
+- [`03-requirements/`](03-requirements/README.md): use cases, user stories, acceptance criteria, business rules, and non-functional requirements.
+- [`04-architecture/`](04-architecture/README.md): system, frontend, backend, database, security, error handling, and ADRs.
+- [`05-api/`](05-api/README.md): API conventions, per-resource contracts, and OpenAPI.
+- [`06-data/`](06-data/README.md): entity relationships, data dictionary, migration policy, seed data, and retention.
+- [`07-development/`](07-development/README.md): development workflow, roadmaps, GitHub workflow, branching, templates, and Definition of Done.
+- [`08-testing/`](08-testing/README.md): test strategy, test cases, and regression checklist.
+- [`09-release-operations/`](09-release-operations/README.md): environment setup, deployment, configuration and secrets, monitoring, and release checklist.
+- [`10-phases/`](10-phases/README.md): Phase 00–05 implementation plans.
+
+The full file list is in [`DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md).
 
 ## Current project status
 

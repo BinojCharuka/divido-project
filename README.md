@@ -25,8 +25,8 @@ See [`docs/README.md`](docs/README.md) for the documentation entry point and [`d
 2. [`docs/README.md`](docs/README.md) — how to navigate the documentation.
 3. [`docs/DOCUMENTATION_RULES.md`](docs/DOCUMENTATION_RULES.md) — status labels and change-control expectations.
 4. [`docs/DOCUMENTATION_INDEX.md`](docs/DOCUMENTATION_INDEX.md) — document inventory and status.
-5. [`docs/01-product/mvp-scope.md`](docs/01-product/mvp-scope.md) — intended MVP scope, when available.
-6. [`docs/10-phases/README.md`](docs/10-phases/README.md) — implementation phases, when available.
+5. [`docs/01-product/mvp-scope.md`](docs/01-product/mvp-scope.md) — proposed MVP scope (not frozen).
+6. [`docs/10-phases/README.md`](docs/10-phases/README.md) — proposed implementation phases.
 7. [`docs/TRACEABILITY_MATRIX.md`](docs/TRACEABILITY_MATRIX.md) — requirement-to-implementation links.
 
 If a linked file is not present in the repository yet, do not assume its contents; check the index/status register and ask the project owner if it blocks the task.
@@ -76,7 +76,7 @@ Do not copy production credentials into source files. Never commit `.env` files,
 
 ## Documentation status
 
-The documentation is being authored in sets. Some paths in the planned structure may not exist yet, and many decisions may still be `PROPOSED` or `OPEN`. Start with [`docs/DOCUMENTATION_INDEX.md`](docs/DOCUMENTATION_INDEX.md) and do not interpret an example, draft, or planned file as an approved contract.
+The documentation is authored in numbered folders `docs/00-governance` to `docs/10-phases` and is awaiting owner review. Most decisions are still `PROPOSED` or `OPEN`. Planned files that do not exist are marked `NOT CREATED` in the index. Start with [`docs/DOCUMENTATION_INDEX.md`](docs/DOCUMENTATION_INDEX.md) and do not interpret an example, draft, or planned file as an approved contract.
 
 ## Security reminder
 
