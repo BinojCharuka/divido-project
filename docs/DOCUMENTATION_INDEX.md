@@ -117,6 +117,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`07-development/README.md`](07-development/README.md) | Section entry point | Proposed working standard |
 | [`07-development/development-workflow.md`](07-development/development-workflow.md) | Feature delivery workflow | Proposed — owner approval required |
 | [`07-development/frontend-roadmap.md`](07-development/frontend-roadmap.md) | Frontend roadmap | Proposed sequence |
+| [`07-development/phase-02-transaction-ui-plan.md`](07-development/phase-02-transaction-ui-plan.md) | Phase 02 transaction frontend UI/component plan | PROPOSED — planning only; owner/API approval required |
 | [`07-development/backend-roadmap.md`](07-development/backend-roadmap.md) | Backend roadmap | Proposed sequence |
 | [`07-development/integration-roadmap.md`](07-development/integration-roadmap.md) | Integration roadmap | Proposed |
 | [`07-development/github-workflow.md`](07-development/github-workflow.md) | Issues, commits, PRs, review | Proposed — owner approval required |
