@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { SessionGate } from "@/components/auth/SessionGate";
 import { AuthPageShell } from "@/components/layout/AuthPageShell";
 import { SignOutButton } from "@/features/auth/SignOutButton";
@@ -17,6 +18,9 @@ function OnboardingPlaceholder() {
         You&apos;re signed in as <span className="font-medium text-zinc-900 dark:text-zinc-100">{user?.email}</span>.
       </p>
       <p className="text-zinc-700 dark:text-zinc-300">Account setup is coming soon.</p>
+      <Link href="/transactions" className="font-medium text-[var(--primary-strong)] underline underline-offset-4">
+        Explore transactions
+      </Link>
       <SignOutButton />
     </>
   );
