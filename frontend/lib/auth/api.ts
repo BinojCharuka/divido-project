@@ -1,0 +1,48 @@
+import { ApiError, apiRequest, clearCsrfToken } from "@/lib/api/client";
+
+/** The `user` object returned by register, sign-in and /me (authentication-api.md). */
+export type User = {
+  id: string;
+  email: string;
+  onboardingComplete: boolean;
+};
+
+type UserResponse = { user: User };
+
+export type RegisterInput = { email: string; password: string; displayName: string };
+export type SignInInput = { email: string; password: string };
+
+/** AUTH-003. Resolves to null when there is no valid session. */
+export async function fetchCurrentUser(): Promise<User | null> {
+  try {
+    return (await apiRequest<UserResponse>("/api/v1/auth/me", { quietUnauthenticated: true })).user;
+  } catch (error) {
+    if (error instanceof ApiError && error.kind === "unauthenticated") return null;
+    throw error;
+  }
+}
+
+/** AUTH-001. Creates the account only; the user is not signed in (DEC-025). */
+export async function register(input: RegisterInput): Promise<User> {
+  return (await apiRequest<UserResponse>("/api/v1/auth/register", { method: "POST", body: input })).user;
+}
+
+/** AUTH-002. The server replaces the CSRF token on success, so the cached one is dropped. */
+export async function signIn(input: SignInInput): Promise<User> {
+  const { user } = await apiRequest<UserResponse>("/api/v1/auth/login", {
+    method: "POST",
+    body: input,
+    quietUnauthenticated: true,
+  });
+  clearCsrfToken();
+  return user;
+}
+
+/** AUTH-004. The server clears the CSRF cookie too, so the cached token is dropped. */
+export async function signOut(): Promise<void> {
+  try {
+    await apiRequest<void>("/api/v1/auth/logout", { method: "POST", quietUnauthenticated: true });
+  } finally {
+    clearCsrfToken();
+  }
+}
