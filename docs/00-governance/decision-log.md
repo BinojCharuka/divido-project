@@ -18,7 +18,7 @@ This is the canonical decision register for Divido. A `DEC-*` ID cited anywhere 
 |---|---|---|---|---|
 | DEC-001 | Target audience | Individual users | PROPOSED | Shared household collaboration is deferred |
 | DEC-002 | Onboarding | Guided onboarding | PROPOSED | Exact fields and screens need UX review |
-| DEC-003 | Income sources | Multiple income sources | PROPOSED | Actual income records reference a source |
+| DEC-003 | Income sources | Income source is optional for income transactions. Income creation works without `incomeSourceId`; if provided, backend validates ownership by the authenticated user | APPROVED | Approved by the project owner on 2026-10-31 (DIV-009A). Supersedes earlier requirement that income records must always reference a source |
 | DEC-004 | Budget groups | Needs, Wants, Culture, Unexpected | PROPOSED | Confirm category mapping in UX/data set |
 | DEC-005 | Money accounts | One overall money view; no account balances | PROPOSED | Not a bank/account aggregation feature |
 | DEC-006 | Expense entry | Quick entry; amount and category first | PROPOSED | Optional details should not block save |
@@ -28,8 +28,8 @@ This is the canonical decision register for Divido. A `DEC-*` ID cited anywhere 
 | DEC-010 | Shared expenses | Outside MVP | PROPOSED | Future scope |
 | DEC-011 | Spending habits | Analyze 90 days; minimum three distinct spending days | PROPOSED | Regularity algorithm still needs definition |
 | DEC-012 | Budget allocation | Independent limits; warn if plan exceeds planned income after savings | PROPOSED | Exact warning copy and calculations need definition |
-| DEC-013 | Custom categories | Built-in plus user-created categories | PROPOSED | Uniqueness, archive, and historical label rules need design |
-| DEC-014 | Transaction deletion | Soft delete with restore | PROPOSED | Retention period unresolved |
+| DEC-013 | Category ownership & defaults | Exactly 3 shared global default categories (`user_id IS NULL`). Users can create custom categories (`user_id` set to authenticated user). Users can use global defaults and own custom categories. Global categories are immutable to users. Cross-user custom category access/mutation is prohibited | APPROVED | Approved by the project owner on 2026-10-31 (DIV-009A). V1 `categories.user_id` is nullable. Exact names and group mappings of the 3 defaults are pending owner specification (do not invent) |
+| DEC-014 | Transaction deletion | Hard delete for MVP. `DELETE /api/v1/transactions/{id}` permanently deletes the record and returns HTTP `204 No Content`. Deleted transactions are no longer retrievable. Users cannot delete another user's transactions | APPROVED | Approved by the project owner on 2026-10-31 (DIV-009A). Supersedes proposed soft delete with restore; restore endpoint `TX-006` is removed from MVP |
 | DEC-015 | Authentication | Cookie-based server-side session using maintained framework | PROPOSED | Framework/version and CSRF design need verification |
 | DEC-016 | Money lending tracker | Future feature, outside MVP | PROPOSED | Search by username/phone and repayment records later |
 | DEC-020 | Income planning | Planned income and actual income records | PROPOSED | Recorded from historical `DEC-009` in the product scope summary; exact calculation and display remain open |

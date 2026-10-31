@@ -28,6 +28,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`00-governance/change-control.md`](00-governance/change-control.md) | Change request process | PROPOSED |
 | [`00-governance/decision-log.md`](00-governance/decision-log.md) | **Canonical decision register** | PROPOSED — records discussed decisions, not a final freeze |
 | [`00-governance/documentation-status.md`](00-governance/documentation-status.md) | Documentation and Phase 00 task status register | IN PROGRESS |
+| [`00-governance/progress-tracker.md`](00-governance/progress-tracker.md) | **Master project progress and task backlog tracker** | ACTIVE |
 
 ## 01 — Product
 

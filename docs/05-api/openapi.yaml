@@ -234,7 +234,8 @@ paths:
   /api/v1/categories:
     get:
       tags: [Categories]
-      summary: List available categories
+      summary: List usable categories
+      description: Lists all categories usable by the authenticated user, comprising the 3 shared global defaults (user_id IS NULL) plus the user's custom categories (user_id = auth_user.id) per DEC-013.
       parameters:
         - $ref: '#/components/parameters/IncludeInactive'
         - $ref: '#/components/parameters/GroupFilter'
@@ -254,6 +255,7 @@ paths:
     post:
       tags: [Categories]
       summary: Create a custom category
+      description: Creates a user-owned custom category (user_id = auth_user.id) per DEC-013. Global default categories cannot be created by users.
       requestBody:
         required: true
         content:
@@ -275,6 +277,7 @@ paths:
     patch:
       tags: [Categories]
       summary: Update an allowed category field
+      description: Updates an allowed custom category field. Global default categories are immutable to users and cannot be updated (DEC-013).
       parameters:
         - $ref: '#/components/parameters/CategoryId'
       requestBody:
@@ -296,6 +299,7 @@ paths:
     post:
       tags: [Categories]
       summary: Deactivate a category (optional)
+      description: Deactivates a user's custom category. Global default categories cannot be deactivated by users (DEC-013).
       parameters:
         - $ref: '#/components/parameters/CategoryId'
       responses:
@@ -307,6 +311,8 @@ paths:
     get:
       tags: [Income Sources]
       summary: List income sources
+      parameters:
+        - $ref: '#/components/parameters/IncludeInactive'
       responses:
         '200':
           description: Income sources
@@ -463,25 +469,11 @@ paths:
           $ref: '#/components/responses/NotFound'
     delete:
       tags: [Transactions]
-      summary: Soft-delete an owned transaction (if approved)
+      summary: Permanently delete an owned transaction (hard delete per DEC-014)
+      description: Permanently deletes the transaction record for the authenticated user. Successful deletion returns 204 No Content. Once deleted, the transaction is no longer retrievable. Users cannot delete another user's transactions.
       responses:
         '204':
-          description: Transaction marked deleted
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /api/v1/transactions/{transactionId}/restore:
-    post:
-      tags: [Transactions]
-      summary: Restore a soft-deleted transaction (optional)
-      parameters:
-        - $ref: '#/components/parameters/TransactionId'
-      responses:
-        '200':
-          description: Restored transaction
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Transaction'
+          description: Transaction permanently deleted
         '404':
           $ref: '#/components/responses/NotFound'
   /api/v1/budgets/{month}:
@@ -1011,9 +1003,11 @@ components:
         categoryId:
           type: string
           format: uuid
+          description: Required for EXPENSE; must reference an active category accessible to the authenticated user (one of the 3 global defaults or user custom category per DEC-013). Unused for INCOME.
         incomeSourceId:
           type: string
           format: uuid
+          description: Optional for INCOME per DEC-003. If provided, backend validates ownership by the authenticated user. Unused for EXPENSE.
         description:
           type: string
           maxLength: 500
@@ -1032,9 +1026,11 @@ components:
         categoryId:
           type: string
           format: uuid
+          description: Optional for EXPENSE update; if changed, must reference an active category accessible to the authenticated user (DEC-013). Unused for INCOME.
         incomeSourceId:
           type: string
           format: uuid
+          description: Optional for INCOME update (DEC-003). If changed, backend validates ownership by the authenticated user. Unused for EXPENSE.
         description:
           type: string
           maxLength: 500

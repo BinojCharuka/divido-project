@@ -27,45 +27,47 @@ This document describes candidate logical fields, not guaranteed column names. E
 
 Do not add duplicate fields if the existing schema already models them under different names.
 
-## 3. `categories` — existing table to inspect
+## 3. `categories` — existing table (`V1__init.sql`, extended in `V2__categories_and_income_sources.sql`)
 
-| Logical field | Meaning | Candidate type | Rules / notes |
+| Field | Meaning | Type | Rules / notes |
 |---|---|---|---|
-| `id` | Category identifier | Existing type | Inspect actual type |
-| `user_id` | Owner for custom category | FK or nullable FK | Depends on global-default versus per-user-copy model |
-| `name` | Category label | Text | Trim/normalize and enforce approved length |
-| `group_key` | Kakeibo group | Enum/text | Proposed `NEEDS`, `WANTS`, `CULTURE`, `UNEXPECTED` |
-| `is_default` | Whether predefined | Boolean | Exact model TBD |
-| `is_active` | Whether selectable for new entries | Boolean | Lifecycle policy TBD |
-| `created_at`, `updated_at` | Audit timestamps | Timestamp | If supported by existing conventions |
+| `id` | Category identifier | `UUID` | Primary key (`gen_random_uuid()`) |
+| `user_id` | Owner for custom category | `UUID` (nullable FK) | `NULL` for the 3 global default categories; references `app_users(id)` for user-owned custom categories (`DEC-013`) |
+| `name` | Category label | `VARCHAR(100)` | Required |
+| `slug` | Normalized url/code slug | `VARCHAR(100)` | Required; server-generated lowercase kebab-case with counter suffix on duplicates |
+| `category_type` | Kakeibo group | `VARCHAR(20)` | `CHECK (category_type IN ('NEED', 'WANT', 'CULTURE', 'UNEXPECTED'))` |
+| `is_active` | Whether selectable for new entries | `BOOLEAN` | Added in V2; default `TRUE` |
+| `created_at` | Audit timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
+| `updated_at` | Last updated timestamp | `TIMESTAMPTZ` | Added in V2; default `CURRENT_TIMESTAMP` |
 
-## 4. `income_sources` — proposed
+## 4. `income_sources` — implemented table (`V2__categories_and_income_sources.sql`)
 
-| Logical field | Meaning | Candidate type | Rules / notes |
+| Field | Meaning | Type | Rules / notes |
 |---|---|---|---|
-| `id` | Source identifier | UUID or existing convention | PK |
-| `user_id` | Owner | FK | Required |
-| `name` | Label, e.g. Salary | Text | Trimmed; length/uniqueness TBD |
-| `is_active` | Selectable for new income | Boolean | Preserve historical references |
-| `created_at`, `updated_at` | Audit timestamps | Timestamp | Server-generated |
+| `id` | Source identifier | `UUID` | Primary key (`gen_random_uuid()`) |
+| `user_id` | Owner | `UUID` (FK) | Required; references `app_users(id) ON DELETE CASCADE` |
+| `name` | Label, e.g. Salary | `VARCHAR(100)` | Required; trimmed; unique per user |
+| `is_active` | Whether selectable for new entries | `BOOLEAN` | Default `TRUE` |
+| `created_at` | Audit timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
+| `updated_at` | Last updated timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
 
-## 5. `transactions` — proposed single-table option
+## 5. `transactions` — proposed single-table (`V3` migration)
 
-| Logical field | Meaning | Candidate type | Rules / notes |
+| Field | Meaning | Type | Rules / notes |
 |---|---|---|---|
-| `id` | Transaction identifier | UUID or existing convention | PK |
-| `user_id` | Owner | FK | Required; set by backend session context |
-| `type` | `INCOME` or `EXPENSE` | Enum/text | Required; do not infer from sign |
-| `amount` | Money amount | `NUMERIC(p,s)` | Positive-only is proposed; exact scale/max TBD |
-| `transaction_date` | Effective calendar date | `DATE` | Timezone/month semantics must be approved |
-| `category_id` | Expense category | FK, nullable for income | Required for expense; exact constraints depend on model |
-| `income_source_id` | Income source | FK, nullable for expense | Required only if approved |
-| `description` | Optional note | Text | Length limit TBD |
-| `payment_method` | Optional manual label | Enum/text | Exact allowed values TBD |
-| `created_at`, `updated_at` | Audit timestamps | Timestamp | Server-generated |
-| `deleted_at` | Soft-delete instant | Nullable timestamp | Only if soft deletion is approved |
+| `id` | Transaction identifier | `UUID` | Primary key (`gen_random_uuid()`) |
+| `user_id` | Owner | `UUID` (FK) | Required; set by backend session context (`app_users(id)`) |
+| `type` | `INCOME` or `EXPENSE` | `VARCHAR(20)` | Required; `CHECK (type IN ('INCOME', 'EXPENSE'))` |
+| `amount` | Money amount | `NUMERIC(12,2)` | Required; positive values only (`amount > 0`) |
+| `transaction_date` | Effective calendar date | `DATE` | Required; user timezone date |
+| `category_id` | Expense category | `UUID` (FK) | Required for `EXPENSE`; references `categories(id)` (`DEC-013`). Nullable for `INCOME` |
+| `income_source_id` | Income source | `UUID` (FK) | Optional for `INCOME` (`DEC-003`); references `income_sources(id)`. Null for `EXPENSE` |
+| `description` | Optional note | `VARCHAR(500)` | Optional |
+| `payment_method` | Optional manual label | `VARCHAR(50)` | Optional |
+| `created_at` | Created timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
+| `updated_at` | Updated timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
 
-If one table is selected, add domain validation and possibly database check constraints so type/category/source combinations are valid. SQL check constraints cannot enforce all cross-table ownership conditions by themselves.
+*Note on deletion:* No `deleted_at` column is required in MVP. `DEC-014` approved hard delete (`DELETE /api/v1/transactions/{id}` permanently deletes the row and returns `204 No Content`).
 
 ## 6. `monthly_plans` — proposed
 

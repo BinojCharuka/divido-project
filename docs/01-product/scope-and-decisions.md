@@ -11,11 +11,11 @@ This table predates the canonical decision log and uses its own numbering. Its I
 |---|---|---|---|---|
 | DEC-001 | Audience | Individual users | PROPOSED | DEC-001 |
 | DEC-002 | Onboarding | Guided | PROPOSED | DEC-002 |
-| DEC-003 | Income | Multiple income sources | PROPOSED | DEC-003 |
+| DEC-003 | Income | Multiple income sources; income source is optional on transactions | APPROVED | DEC-003 |
 | DEC-004 | Kakeibo groups | Needs, Wants, Culture, Unexpected | PROPOSED | DEC-004 |
 | DEC-005 | Accounts | One overall view; no account balances | PROPOSED | DEC-005 |
 | DEC-006 | Entry UX | Quick expense entry | PROPOSED | DEC-006 |
-| DEC-007 | Categories | Built-in plus user-created categories | PROPOSED | DEC-013 |
+| DEC-007 | Categories | Exactly 3 global default categories (user_id IS NULL) plus user custom categories | APPROVED | DEC-013 |
 | DEC-008 | Payment method | Manual and optional | PROPOSED | DEC-007 |
 | DEC-009 | Income planning | Planned income and actual income records | PROPOSED | DEC-020 |
 | DEC-010 | Budget limits | Independent group budgets | PROPOSED | DEC-012 |
@@ -24,7 +24,7 @@ This table predates the canonical decision log and uses its own numbering. Its I
 | DEC-013 | Habit period | 90 days | PROPOSED | DEC-011 |
 | DEC-014 | Habit evidence | At least three distinct spending days for a candidate | PROPOSED | DEC-011 |
 | DEC-015 | Authentication | Cookie-based server-side session using a maintained framework | PROPOSED | DEC-015 |
-| DEC-016 | Deletion | Soft-delete with restore | PROPOSED | DEC-014 |
+| DEC-016 | Deletion | Hard delete for MVP; 204 No Content | APPROVED | DEC-014 |
 | DEC-017 | Language | English initially | PROPOSED | DEC-009 |
 | DEC-018 | Shared expenses | Out of MVP | PROPOSED | DEC-010 |
 | DEC-019 | Money lending | Future feature, out of MVP | PROPOSED | DEC-016 |
@@ -32,13 +32,13 @@ This table predates the canonical decision log and uses its own numbering. Its I
 ## Open product decisions
 
 1. Exact onboarding fields and when monthly planning is required.
-2. Exact built-in category names and default Kakeibo group mapping.
+2. Exact built-in category names and default Kakeibo group mapping (exactly 3 defaults approved per DEC-013; names/groups pending specification).
 3. Whether categories can be moved between groups after they have transactions.
 4. Exact calculation and display of planned income, actual income, expenses, net savings, and remaining budget.
 5. Whether the user must enter all four group budgets or can leave one at zero/unset.
 6. Exact habit matching/regularity algorithm and treatment of category-only patterns.
 7. Exact monthly reflection questions.
-8. Transaction soft-delete retention period and restore UX.
+8. (Resolved in DEC-014: MVP uses hard delete; soft delete and restore UX deferred/out of MVP).
 9. Session expiry and account recovery requirements.
 10. Whether custom category names may duplicate system categories.
 

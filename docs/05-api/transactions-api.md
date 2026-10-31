@@ -1,10 +1,14 @@
 # Transactions API
 
-**Status:** Proposed contract — core MVP contract; exact schema needs owner approval
+**Status:** Contract updated per owner-approved decisions DEC-003, DEC-013, and DEC-014 (DIV-009A)
 
-## Transaction model proposal
+## Transaction model
 
-One resource represents one recorded money event. `type` distinguishes `INCOME` and `EXPENSE`; amount is transmitted as a decimal string. This is a proposed design, not a final schema decision.
+One resource represents one recorded money event. `type` distinguishes `INCOME` and `EXPENSE`; amount is transmitted as a decimal string.
+
+- **DEC-003 (Approved):** Income source is optional for `INCOME` transactions. Creation succeeds without `incomeSourceId`. If provided, backend validates ownership by the authenticated user.
+- **DEC-013 (Approved):** Category ownership: exactly 3 shared global default categories (`user_id IS NULL`) plus user-owned custom categories (`user_id = auth_user.id`). An `EXPENSE` transaction requires a category usable by the authenticated user (global default or own custom).
+- **DEC-014 (Approved):** MVP uses hard delete. Successful deletion returns HTTP `204 No Content` and permanently removes the transaction. Deleted records cannot be retrieved. Soft-delete and restore (`TX-006`) are removed from MVP.
 
 ## TX-001 — List transactions
 
@@ -52,7 +56,7 @@ Response `200 OK`:
 
 `POST /api/v1/transactions`
 
-Expense request (proposed):
+Expense request:
 ```json
 {
   "type": "EXPENSE",
@@ -64,7 +68,7 @@ Expense request (proposed):
 }
 ```
 
-Income request (proposed):
+Income request (with optional income source):
 ```json
 {
   "type": "INCOME",
@@ -75,20 +79,31 @@ Income request (proposed):
 }
 ```
 
+Income request (without income source — DEC-003):
+```json
+{
+  "type": "INCOME",
+  "amount": "5000.00",
+  "date": "2026-10-05",
+  "description": "Cash gift"
+}
+```
+
 Response `201 Created`: created transaction representation.
 
 Rules:
-- Required fields, amount precision/range, allowed date range, description length, payment-method enum, and income-source requirements must be approved.
-- Expense category must be active and usable by current user.
-- Income source must be usable by current user if required.
+- Required fields for `EXPENSE`: `type`, `amount`, `date`, `categoryId`.
+- Required fields for `INCOME`: `type`, `amount`, `date`. `incomeSourceId` is OPTIONAL (DEC-003).
+- Expense `categoryId` must reference an active category accessible to the authenticated user (either a global default where `user_id IS NULL`, or the user's own custom category where `user_id = auth_user.id`) (DEC-013).
+- If `incomeSourceId` is provided on `INCOME`, backend must verify that the income source belongs to the authenticated user (DEC-003).
 - Ignore/reject client-supplied `userId`, calculated totals, group override, and server-managed timestamps.
-- Duplicate submission/idempotency behavior must be decided.
+- Decimal amount precision: 2 decimal places (scale 2); positive amount only.
 
 ## TX-003 — Read transaction
 
 `GET /api/v1/transactions/{transactionId}`
 
-Returns an owned active record; missing, deleted, or another user's record follows the safe 404/403 policy.
+Returns an owned active record; missing or another user's record follows the safe 404/403 policy.
 
 ## TX-004 — Update transaction
 
@@ -106,30 +121,33 @@ Partial update example:
 
 Rules:
 - Backend revalidates all changed fields and resource ownership.
-- Decide whether changing `type` is permitted; proposed default is to disallow type changes and require correction workflow if necessary.
+- If `categoryId` is changed on an expense, backend verifies category accessibility (DEC-013).
+- If `incomeSourceId` is changed on income, backend verifies income source ownership (DEC-003).
+- Changing `type` is not supported on update (type is immutable; use delete + create instead).
 - Recompute summaries from persisted data; do not trust client-calculated totals.
 
-## TX-005 — Soft-delete transaction
+## TX-005 — Delete transaction (Hard delete per DEC-014)
 
 `DELETE /api/v1/transactions/{transactionId}`
 
-Proposed response: `204 No Content`.
+Response: `204 No Content`.
 
-This means mark as deleted, not physically erase immediately, if soft-delete is approved. Normal lists and calculations exclude deleted records.
+Rules:
+- Hard delete: permanently deletes the transaction record from the database (DEC-014).
+- Successful deletion returns HTTP `204 No Content`.
+- The deleted transaction is permanently erased and can no longer be retrieved by subsequent `GET` requests.
+- Users can only delete their own transactions; requests targeting another user's transaction must be rejected (404/403).
 
-## TX-006 — Restore transaction (optional)
+## TX-006 — Restore transaction (DEFERRED / OUT OF MVP)
 
-`POST /api/v1/transactions/{transactionId}/restore`
-
-Proposed response `200 OK` with restored transaction.
-
-Do not implement until restore UI, retention, and lifecycle behavior are approved.
+*Removed from MVP per DEC-014.* Because the MVP uses hard delete, restoration of deleted transactions is not supported and will not be implemented.
 
 ## Shared requirements
 
-- Every operation requires authentication except any deliberately public endpoint (none proposed here).
-- Query results are scoped to current user.
+- Every operation requires authentication (`DEC-015`, `DEC-027`).
+- All queries and mutations are strictly scoped to the authenticated user session.
+- Users cannot read, update, or delete another user's transactions.
 - Pagination limits response size.
-- Date filters are inclusive date-only values in the approved timezone policy.
+- Date filters are inclusive date-only values in the user's timezone.
 - Errors use the common error schema.
-- Every endpoint needs tests for validation and cross-user isolation.
+- Every endpoint requires automated integration tests verifying validation, business rules, and cross-user isolation.

@@ -1,6 +1,18 @@
 # Categories API
 
-**Status:** Proposed contract — exact default-category model is TBD
+**Status:** Implemented (DIV-010)
+
+## Category ownership model (DEC-013)
+
+- **Global default categories:** Divido has exactly 3 shared global default categories stored with `user_id IS NULL`, seeded in `V2__categories_and_income_sources.sql`:
+  1. `Groceries` (Group: `NEEDS` in API / `NEED` in DB constraint, slug: `groceries`)
+  2. `Transport` (Group: `NEEDS` in API / `NEED` in DB constraint, slug: `transport`)
+  3. `Entertainment` (Group: `WANTS` in API / `WANT` in DB constraint, slug: `entertainment`)
+- **Custom categories:** Users can create custom categories. Custom categories belong strictly to their creator (`user_id = auth_user.id`).
+- **Usable categories:** An authenticated user can list and use all global default categories plus their own custom categories (`user_id IS NULL OR user_id = :authUserId`).
+- **Immutability of defaults:** Users cannot modify or delete global default categories (attempts return `403 Forbidden`).
+- **Isolation of custom categories:** Users cannot access, view, modify, or delete another user's custom categories (attempts return safe `404 Not Found`).
+- **Slug generation:** Slugs are generated server-side in lowercase kebab-case. Duplicate slug candidates are automatically disambiguated with a numerical suffix (`-2`, `-3`). Duplicate category names for the same user return `409 Conflict`.
 
 ## CATEGORY-001 — List usable categories
 
@@ -25,7 +37,7 @@ Response `200 OK`:
 }
 ```
 
-Only categories available to the current user are returned. Whether global defaults are shared or copied per user is a schema decision.
+Returns all 3 global default categories (`isDefault: true`, `user_id IS NULL`) plus the authenticated user's active custom categories (`isDefault: false`, `user_id = auth_user.id`).
 
 ## CATEGORY-002 — Create custom category
 
@@ -42,9 +54,10 @@ Request:
 Response `201 Created`: category representation.
 
 Rules:
-- Category group must be an approved enum value.
-- Name validation, case/whitespace normalization, and uniqueness scope must be defined.
-- Client-supplied `userId`, `isDefault`, and privileged fields are ignored/rejected; backend assigns ownership/default status.
+- Category group must be an approved enum value (`NEEDS`, `WANTS`, `CULTURE`, `UNEXPECTED`).
+- Backend assigns `user_id = auth_user.id` and generates `slug`.
+- Client-supplied `userId`, `isDefault`, and privileged fields are ignored/rejected; user cannot create a global default.
+- Name validation, case/whitespace normalization, and user-scoped uniqueness rules apply.
 
 ## CATEGORY-003 — Update category
 
@@ -58,7 +71,10 @@ Request (partial):
 }
 ```
 
-Only fields allowed by the approved lifecycle policy may be updated. Changing a group mapping after transactions exist can alter historical reports; do not permit this until historical behavior is decided.
+Rules:
+- Global default categories cannot be modified by users (DEC-013); mutation attempt returns `403 Forbidden` / `404 Not Found`.
+- Only the owning user can update their custom category.
+- Changing a group mapping after transactions exist can alter historical reports; do not permit this until historical behavior is decided.
 
 ## CATEGORY-004 — Deactivate category
 
@@ -66,12 +82,14 @@ Only fields allowed by the approved lifecycle policy may be updated. Changing a 
 
 Response: proposed `200 OK` with category or `204 No Content`.
 
-Deactivation should prevent new use but preserve historical references. Whether this endpoint is in MVP is TBD.
+Rules:
+- Global default categories cannot be deactivated by users (DEC-013).
+- Deactivation should prevent new use in transactions but preserve historical transaction references. Whether this endpoint is in MVP is TBD.
 
 ## Security and errors
 
-- User-owned categories are scoped to the current session user.
-- A user cannot edit/deactivate another user's category.
-- Default-category mutation policy must be explicit.
+- User-owned categories are strictly scoped to the authenticated session user.
+- Global categories cannot be modified or deleted by users.
+- A user cannot access, edit, or deactivate another user's category (404/403).
 - Duplicate names return the documented `409` or field validation response.
 - Do not hard-delete a category referenced by historical transactions without an approved migration/lifecycle rule.

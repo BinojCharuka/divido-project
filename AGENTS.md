@@ -19,10 +19,23 @@ Do not assume a file exists just because it appears in a planned documentation t
 Before implementing a task:
 
 1. Read this `AGENTS.md`.
-2. Read [`docs/README.md`](docs/README.md), [`docs/DOCUMENTATION_RULES.md`](docs/DOCUMENTATION_RULES.md), and [`docs/DOCUMENTATION_INDEX.md`](docs/DOCUMENTATION_INDEX.md).
-3. Read the relevant approved product requirement, user story, acceptance criteria, architecture/API contract, and phase plan.
-4. Check [`docs/TRACEABILITY_MATRIX.md`](docs/TRACEABILITY_MATRIX.md) for related IDs and dependencies.
-5. Confirm that the task is approved and that essential decisions are not still `OPEN` or merely `PROPOSED`.
+2. Read [`README.md`](README.md) for project overview, tech stack, architecture principles, and local development setup.
+3. Read [`docs/README.md`](docs/README.md), [`docs/DOCUMENTATION_RULES.md`](docs/DOCUMENTATION_RULES.md), [`docs/DOCUMENTATION_INDEX.md`](docs/DOCUMENTATION_INDEX.md), and the master progress tracker in [`docs/00-governance/progress-tracker.md`](docs/00-governance/progress-tracker.md).
+4. Inspect the [`docs/`](docs/) directory and consult all domain-specific documents relevant to the task:
+   - `docs/00-governance/` for decision logs, progress tracking, and development governance.
+   - `docs/01-product/` for product requirements, user stories, and MVP scope.
+   - `docs/02-ux-ui/` for design systems, component guidelines, visual hierarchy, and flows.
+   - `docs/03-requirements/` for functional and non-functional requirements and acceptance criteria.
+   - `docs/04-architecture/` for system architecture, component design, and integration guidelines.
+   - `docs/05-api/` for OpenAPI specifications and API contracts (`docs/05-api/openapi.yaml`).
+   - `docs/06-data/` for data models, entity schemas, and Flyway migration rules.
+   - `docs/07-development/` for git branching strategy, commit standards, and developer workflow.
+   - `docs/08-testing/` for testing strategy, verification steps, and coverage expectations.
+   - `docs/09-release-operations/` for environment configuration, deployment, and security practices.
+   - `docs/10-phases/` for phase breakdown, roadmap, and delivery milestones.
+5. Check [`docs/TRACEABILITY_MATRIX.md`](docs/TRACEABILITY_MATRIX.md) for related IDs and dependencies.
+6. Confirm that the task is approved and that essential decisions are not still `OPEN` or merely `PROPOSED`.
+7. Review applicable workspace skills in [`.agents/skills/`](.agents/skills/) (design systems, animations, UI/UX, API security) as defined in [`.agents/rules/skills.md`](.agents/rules/skills.md).
 
 If an essential requirement or contract is unresolved, ask the project owner or work only on explicitly unblocked tasks. Do not invent product decisions.
 
@@ -106,10 +119,12 @@ If an essential requirement or contract is unresolved, ask the project owner or 
 Before marking a task complete, verify as applicable:
 
 - [ ] The task and acceptance criteria are clear and approved.
+- [ ] `README.md` and relevant domain documentation under `docs/` were reviewed and adhered to.
 - [ ] Frontend/backend responsibilities and API contracts are coordinated.
 - [ ] Authorization and validation are enforced server-side.
 - [ ] Database changes use a safe, new Flyway migration where needed.
 - [ ] Relevant tests were run and results are reported honestly.
 - [ ] Documentation and traceability links are updated.
+- [ ] Master progress tracker (`docs/00-governance/progress-tracker.md`) is updated with current status and next steps.
 - [ ] No secrets or real personal/financial data were added.
 - [ ] Known limitations and follow-up work are recorded.

@@ -24,27 +24,21 @@ Display descriptions and examples need owner review. Keep stable internal enum k
 
 ## 3. Default categories
 
-The exact default category list and each category's group mapping are not approved yet. Do not seed a guessed final list into production.
-
-Before seeding:
-1. Approve category names and mappings.
-2. Decide whether defaults are global shared rows or per-user copies.
-3. Decide how existing users receive newly added defaults.
-4. Define uniqueness and localization behavior.
-5. Write deterministic seed/migration logic.
-6. Add tests for expected category set and mappings.
+Per **DEC-013 (Approved)** and seeded in `V2__categories_and_income_sources.sql`:
+- Exactly 3 shared global default categories are stored with `user_id IS NULL`:
+  1. `Groceries` (category_type: `NEED`, slug: `groceries`, active: `true`)
+  2. `Transport` (category_type: `NEED`, slug: `transport`, active: `true`)
+  3. `Entertainment` (category_type: `WANT`, slug: `entertainment`, active: `true`)
+- Global default categories are immutable to users and available to every authenticated user.
+- Verified by automated Testcontainers test `CategoryIntegrationTest.flywaySeedsExactlyThreeGlobalDefaultCategories()`.
 
 ## 4. Seed mechanisms
 
-Choose one primary strategy consistent with the current repository:
-- Flyway migration inserts stable reference data; or
-- a dedicated idempotent application seeder for data that must be created per user.
-
-Do not mix strategies without clear ownership. Re-running a seeder must not create duplicates.
+A forward-only Flyway migration (`V2__categories_and_income_sources.sql`) inserts the 3 approved global default categories (`user_id IS NULL`). Because global defaults are shared (not copied per user per DEC-013), an application-level per-user seeder is not required for default categories.
 
 ## 5. System groups versus database rows
 
-The four Kakeibo groups may be represented as an enum rather than a mutable table. Choose based on whether groups need admin-managed metadata. Do not store duplicate group labels in every transaction if the category/group relationship is the approved source of truth.
+The four Kakeibo groups are represented in `categories.category_type` (`CHECK (category_type IN ('NEED', 'WANT', 'CULTURE', 'UNEXPECTED'))`). An explicit JPA AttributeConverter (`KakeiboGroupConverter`) maps between the database singular values (`NEED`, `WANT`) and the API/frontend plural enum keys (`NEEDS`, `WANTS`), tested in `KakeiboGroupMappingTest`.
 
 ## 6. Test data
 
@@ -55,8 +49,4 @@ The four Kakeibo groups may be represented as an enum rather than a mutable tabl
 
 ## 7. Open decisions
 
-- Exact default categories.
-- Shared global defaults versus per-user copies.
-- Whether categories can be renamed, deactivated, or moved between groups.
-- How new defaults reach existing users.
-- Seed mechanism and idempotency strategy.
+- Whether custom categories can be renamed, deactivated, or moved between groups by owners after historical transactions exist.
