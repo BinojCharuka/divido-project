@@ -26,6 +26,9 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
     Optional<Category> findByIdAndUserId(UUID id, UUID userId);
 
+    @Query("SELECT c FROM Category c WHERE c.id = :id AND (c.userId IS NULL OR c.userId = :userId)")
+    Optional<Category> findUsableCategoryById(@Param("id") UUID id, @Param("userId") UUID userId);
+
     @Query("SELECT COUNT(c) > 0 FROM Category c WHERE " +
             "((c.userId IS NULL) OR (c.userId = :userId)) " +
             "AND LOWER(TRIM(c.name)) = LOWER(TRIM(:name)) " +
