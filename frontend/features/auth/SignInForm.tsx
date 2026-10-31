@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState, type FormEvent } from "react";
 import { FormAlert } from "@/components/feedback/FormAlert";
 import { TextField } from "@/components/forms/TextField";
+import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { validateSignIn, type FieldErrors } from "@/lib/auth/validation";
@@ -87,16 +88,12 @@ export function SignInForm({ notice }: { notice: SignInNotice | null }) {
         onChange={(e) => setPassword(e.target.value)}
         error={fieldErrors.password}
       />
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-md bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-      >
+      <Button type="submit" variant="primary" size="lg" loading={pending} className="w-full">
         {pending ? "Signing in…" : "Sign in"}
-      </button>
-      <p className="text-sm text-zinc-700 dark:text-zinc-300">
+      </Button>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
         New to Divido?{" "}
-        <Link href="/sign-up" className="font-medium underline">
+        <Link href="/sign-up" className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 underline">
           Create an account
         </Link>
       </p>

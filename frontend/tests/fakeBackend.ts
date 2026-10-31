@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import type { Transaction } from "@/types/transaction";
 
 /**
  * An in-memory stand-in for the auth endpoints in authentication-api.md, installed
@@ -17,6 +18,50 @@ function error(status: number, code: string, message: string, fieldErrors?: Reco
   return json(status, { status, code, message, ...(fieldErrors ? { fieldErrors } : {}) });
 }
 
+export interface FakeCategory {
+  id: string;
+  name: string;
+  group: "NEEDS" | "WANTS" | "CULTURE" | "UNEXPECTED";
+  isDefault?: boolean;
+  active?: boolean;
+}
+
+export interface FakeIncomeSource {
+  id: string;
+  name: string;
+  active?: boolean;
+}
+
+export const DEFAULT_CATEGORIES: FakeCategory[] = [
+  { id: "cat-1", name: "Groceries", group: "NEEDS", isDefault: true, active: true },
+  { id: "cat-2", name: "Transport", group: "NEEDS", isDefault: true, active: true },
+  { id: "cat-3", name: "Entertainment", group: "WANTS", isDefault: true, active: true },
+];
+
+export const DEFAULT_INCOME_SOURCES: FakeIncomeSource[] = [
+  { id: "src-1", name: "Monthly Salary", active: true },
+  { id: "src-2", name: "Freelance", active: true },
+  { id: "src-3", name: "Investments", active: true },
+];
+
+function resolveCategory(id: string, customCategories: FakeCategory[] = []) {
+  const all = [...DEFAULT_CATEGORIES, ...customCategories];
+  const found = all.find((c) => c.id === id);
+  if (found) {
+    return { id: found.id, name: found.name, group: found.group };
+  }
+  return { id, name: "Selected Category", group: "NEEDS" as const };
+}
+
+function resolveIncomeSource(id: string, customIncomeSources: FakeIncomeSource[] = []) {
+  const all = [...DEFAULT_INCOME_SOURCES, ...customIncomeSources];
+  const found = all.find((s) => s.id === id);
+  if (found) {
+    return { id: found.id, name: found.name };
+  }
+  return { id, name: "Income Source" };
+}
+
 export function installFakeBackend() {
   const state = {
     accounts: new Map<string, { password: string }>(),
@@ -24,6 +69,9 @@ export function installFakeBackend() {
     csrf: null as string | null,
     issued: 0,
     calls: [] as Call[],
+    transactions: new Map<string, Transaction>(),
+    customCategories: [] as FakeCategory[],
+    customIncomeSources: [] as FakeIncomeSource[],
     /** Return this response for the next call to `path`, once. */
     overrides: new Map<string, () => Response | Promise<Response>>(),
   };
@@ -85,6 +133,130 @@ export function installFakeBackend() {
       state.csrf = null; // cleared at sign-out
       return new Response(null, { status: 204 });
     }
+
+    // Categories endpoint (DEC-013: exactly 3 global default categories)
+    if (method === "GET" && path === "/api/v1/categories") {
+      return json(200, {
+        items: [
+          { id: "cat-1", name: "Groceries", group: "NEEDS", isDefault: true, active: true },
+          { id: "cat-2", name: "Transport", group: "NEEDS", isDefault: true, active: true },
+          { id: "cat-3", name: "Entertainment", group: "WANTS", isDefault: true, active: true },
+          ...state.customCategories,
+        ],
+      });
+    }
+
+    // Income sources endpoint
+    if (method === "GET" && path === "/api/v1/income-sources") {
+      return json(200, {
+        items: [
+          { id: "src-1", name: "Monthly Salary", active: true },
+          { id: "src-2", name: "Freelance", active: true },
+          { id: "src-3", name: "Investments", active: true },
+          ...state.customIncomeSources,
+        ],
+      });
+    }
+
+    // Transactions list & create
+    if (path === "/api/v1/transactions") {
+      if (!state.signedInAs) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
+
+      if (method === "GET") {
+        const typeFilter = new URL(url, "http://frontend.test").searchParams.get("type");
+        let items = Array.from(state.transactions.values());
+        if (typeFilter) {
+          items = items.filter((tx) => tx.type === typeFilter);
+        }
+        return json(200, {
+          items,
+          page: 0,
+          size: 20,
+          totalItems: items.length,
+          totalPages: 1,
+        });
+      }
+
+      if (method === "POST") {
+        const payload = body as Record<string, unknown>;
+        const id = `tx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        
+        let category = null;
+        if (payload.categoryId) {
+          category = resolveCategory(String(payload.categoryId), state.customCategories);
+        }
+        let incomeSource = null;
+        if (payload.incomeSourceId) {
+          incomeSource = resolveIncomeSource(String(payload.incomeSourceId), state.customIncomeSources);
+        }
+
+        const tx: Transaction = {
+          id,
+          type: (payload.type as "INCOME" | "EXPENSE") ?? "EXPENSE",
+          amount: String(payload.amount),
+          date: String(payload.date),
+          category: category ? { id: category.id, name: category.name, group: category.group } : null,
+          incomeSource: incomeSource ? { id: incomeSource.id, name: incomeSource.name } : null,
+          description: payload.description ? String(payload.description) : null,
+          paymentMethod: payload.paymentMethod ? String(payload.paymentMethod) : null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        state.transactions.set(id, tx);
+        return json(201, tx);
+      }
+    }
+
+    // Single transaction operations: GET, PATCH, DELETE
+    if (path.startsWith("/api/v1/transactions/")) {
+      if (!state.signedInAs) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
+      const id = path.replace("/api/v1/transactions/", "");
+      const tx = state.transactions.get(id);
+
+      if (method === "GET") {
+        if (!tx) return error(404, "NOT_FOUND", "Transaction not found.");
+        return json(200, tx);
+      }
+
+      if (method === "PATCH") {
+        if (!tx) return error(404, "NOT_FOUND", "Transaction not found.");
+        const updates = body as Record<string, unknown>;
+
+        let nextCategory = tx.category;
+        if ("categoryId" in updates) {
+          nextCategory = updates.categoryId
+            ? resolveCategory(String(updates.categoryId), state.customCategories)
+            : null;
+        }
+
+        let nextIncomeSource = tx.incomeSource;
+        if ("incomeSourceId" in updates) {
+          nextIncomeSource = updates.incomeSourceId
+            ? resolveIncomeSource(String(updates.incomeSourceId), state.customIncomeSources)
+            : null;
+        }
+
+        const updatedTx: Transaction = {
+          ...tx,
+          ...(updates.amount !== undefined ? { amount: String(updates.amount) } : {}),
+          ...(updates.date !== undefined ? { date: String(updates.date) } : {}),
+          category: nextCategory,
+          incomeSource: nextIncomeSource,
+          ...(updates.description !== undefined ? { description: updates.description ? String(updates.description) : null } : {}),
+          ...(updates.paymentMethod !== undefined ? { paymentMethod: updates.paymentMethod ? String(updates.paymentMethod) : null } : {}),
+          updatedAt: new Date().toISOString(),
+        };
+        state.transactions.set(id, updatedTx);
+        return json(200, updatedTx);
+      }
+
+      if (method === "DELETE") {
+        if (!tx) return error(404, "NOT_FOUND", "Transaction not found.");
+        state.transactions.delete(id);
+        return new Response(null, { status: 204 });
+      }
+    }
+
     return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
   });
 

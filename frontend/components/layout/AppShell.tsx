@@ -1,51 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { SignOutButton } from "@/features/auth/SignOutButton";
+import { useState, type ReactNode } from "react";
+import { MobileNavigation } from "./MobileNavigation";
+import { PrimaryNavigation } from "./PrimaryNavigation";
+import { QuickAddModal } from "./QuickAddModal";
 
-const NAV_ITEMS = [{ href: "/transactions", label: "Transactions" }] as const;
+export interface AppShellProps {
+  children: ReactNode;
+}
 
-/** Shared authenticated shell; routes remain session-gated by the transactions layout. */
-export function AppShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+export function AppShell({ children }: AppShellProps) {
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <header className="border-b border-[var(--border)] bg-[#fcfbf7]">
-        <div className="mx-auto flex min-h-18 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/transactions" className="text-xl font-bold tracking-tight text-[var(--foreground)] outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[var(--focus)]">
-            Divido
-          </Link>
-          <nav aria-label="Primary navigation" className="hidden items-center gap-1 sm:flex">
-            {NAV_ITEMS.map((item) => {
-              const current = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={current ? "page" : undefined}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--focus)] ${current ? "bg-[#e7f0e9] text-[var(--primary-strong)]" : "text-[var(--text-secondary)] hover:bg-[var(--surface-muted)]"}`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-            <span className="px-3 py-2 text-sm text-[#89918d]" aria-label="Budget coming soon">Budget</span>
-            <span className="px-3 py-2 text-sm text-[#89918d]" aria-label="Insights coming soon">Insights</span>
-          </nav>
-          <SignOutButton />
-        </div>
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 antialiased">
+      {/* Desktop Navigation */}
+      <PrimaryNavigation onOpenQuickAdd={() => setQuickAddOpen(true)} />
+
+      {/* Mobile Top Header */}
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 h-14 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+        <Link href="/transactions" className="flex items-center gap-2 font-bold text-lg text-zinc-900 dark:text-zinc-100">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-sm">
+            D
+          </span>
+          <span>Divido</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setQuickAddOpen(true)}
+          className="text-xs px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800"
+        >
+          + Add
+        </button>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">{children}</main>
-      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 border-t border-[var(--border)] bg-[#fcfbf7]/95 px-4 py-2 backdrop-blur sm:hidden">
-        <div className="mx-auto flex max-w-md justify-around">
-          {NAV_ITEMS.map((item) => {
-            const current = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return <Link key={item.href} href={item.href} aria-current={current ? "page" : undefined} className={`min-h-11 px-4 py-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] ${current ? "text-[var(--primary-strong)]" : "text-[var(--text-secondary)]"}`}>{item.label}</Link>;
-          })}
-        </div>
-      </nav>
+
+      {/* Main Content Area */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-12">
+        {children}
+      </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNavigation onOpenQuickAdd={() => setQuickAddOpen(true)} />
+
+      {/* Quick Add Modal */}
+      <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} />
     </div>
   );
 }

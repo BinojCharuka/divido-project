@@ -14,7 +14,7 @@ export function TextField({ label, hint, error, className, ...input }: TextField
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className={`flex flex-col gap-1 ${className ?? ""}`}>
+    <div className={`flex flex-col gap-1.5 ${className ?? ""}`}>
       <label htmlFor={id} className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
         {label}
       </label>
@@ -22,16 +22,16 @@ export function TextField({ label, hint, error, className, ...input }: TextField
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-900 outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 aria-invalid:border-red-700 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:focus-visible:ring-zinc-100 dark:aria-invalid:border-red-400"
+        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base text-zinc-900 outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 aria-invalid:border-red-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus-visible:ring-emerald-400 dark:aria-invalid:border-red-400 transition-colors"
         {...input}
       />
       {hint && (
-        <p id={hintId} className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p id={hintId} className="text-xs text-zinc-600 dark:text-zinc-400">
           {hint}
         </p>
       )}
       {error && (
-        <p id={errorId} className="text-sm text-red-700 dark:text-red-400">
+        <p id={errorId} className="text-xs font-medium text-red-600 dark:text-red-400">
           {error}
         </p>
       )}

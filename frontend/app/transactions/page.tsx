@@ -1,23 +1,174 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { FormAlert } from "@/components/feedback/FormAlert";
+import { TransactionListSkeleton } from "@/components/feedback/LoadingSkeleton";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { PaginationControls } from "@/components/ui/PaginationControls";
 import { TransactionFilters } from "@/features/transactions/TransactionFilters";
+import { TransactionRow } from "@/features/transactions/TransactionRow";
+import { listTransactions } from "@/lib/api/transactions";
+import { getCurrentMonth, getMonthDateRange } from "@/lib/formatting/dates";
+import type { Transaction, TransactionType } from "@/types/transaction";
+
+const NOTICES: Record<string, string> = {
+  "expense-saved": "Expense saved successfully.",
+  "income-saved": "Income recorded successfully.",
+  deleted: "Transaction deleted.",
+  updated: "Transaction updated.",
+};
+
+function TransactionsContent() {
+  const searchParams = useSearchParams();
+  const noticeKey = searchParams.get("notice");
+  const notice = noticeKey && NOTICES[noticeKey] ? NOTICES[noticeKey] : null;
+
+  const [month, setMonth] = useState(getCurrentMonth());
+  const [type, setType] = useState<TransactionType | undefined>(undefined);
+  const [page, setPage] = useState(0);
+
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch transactions whenever month, type, or page changes
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { from, to } = getMonthDateRange(month);
+        const data = await listTransactions({
+          page,
+          size: 20,
+          type,
+          from,
+          to,
+        });
+
+        if (active) {
+          setTransactions(data.items);
+          setTotalItems(data.totalItems);
+          setTotalPages(data.totalPages);
+        }
+      } catch {
+        if (active) setError("Could not load transactions. Please check your connection.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [month, type, page]);
+
+  function handleTypeChange(newType?: TransactionType) {
+    setType(newType);
+    setPage(0); // Reset to page 0
+  }
+
+  function handleMonthChange(newMonth: string) {
+    setMonth(newMonth);
+    setPage(0);
+  }
+
+  return (
+    <div>
+      <PageHeader
+        title="Transactions"
+        subtitle="Review, filter, and manage your income and spending."
+        action={
+          <div className="flex items-center gap-2">
+            <Link href="/transactions/new-expense">
+              <Button variant="secondary" size="sm">
+                + Expense
+              </Button>
+            </Link>
+            <Link href="/transactions/new-income">
+              <Button variant="primary" size="sm">
+                + Income
+              </Button>
+            </Link>
+          </div>
+        }
+      />
+
+      {notice && (
+        <div className="mb-4">
+          <FormAlert tone="info">{notice}</FormAlert>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4">
+          <FormAlert tone="error">{error}</FormAlert>
+        </div>
+      )}
+
+      <TransactionFilters
+        currentType={type}
+        currentMonth={month}
+        onTypeChange={handleTypeChange}
+        onMonthChange={handleMonthChange}
+      />
+
+      {loading ? (
+        <TransactionListSkeleton count={5} />
+      ) : transactions.length === 0 ? (
+        <EmptyState
+          title={type ? `No ${type.toLowerCase()} transactions found` : "No transactions recorded"}
+          description={
+            type
+              ? `There are no ${type.toLowerCase()} entries recorded for the selected period.`
+              : "Start recording your daily expenses or income to track your monthly budget."
+          }
+          action={
+            <div className="flex items-center gap-3">
+              <Link href="/transactions/new-expense">
+                <Button variant="primary" size="sm">
+                  Record Expense
+                </Button>
+              </Link>
+              <Link href="/transactions/new-income">
+                <Button variant="secondary" size="sm">
+                  Record Income
+                </Button>
+              </Link>
+            </div>
+          }
+        />
+      ) : (
+        <div className="flex flex-col rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden divide-y divide-zinc-100 dark:divide-zinc-800/80 shadow-xs">
+          {transactions.map((transaction) => (
+            <TransactionRow key={transaction.id} transaction={transaction} />
+          ))}
+        </div>
+      )}
+
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setPage}
+      />
+    </div>
+  );
+}
 
 export default function TransactionsPage() {
   return (
-    <div className="pb-20 sm:pb-0">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold tracking-wide text-[var(--primary-strong)]">Your records</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">Transactions</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-secondary)]">Review your recorded income and expenses in one clear place.</p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Link href="/transactions/new-income" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] outline-none hover:bg-[var(--surface-muted)] focus-visible:ring-2 focus-visible:ring-[var(--focus)]">+ Add income</Link>
-          <Link href="/transactions/new-expense" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white outline-none hover:bg-[var(--primary-strong)] focus-visible:ring-2 focus-visible:ring-[var(--focus)]">+ Add expense</Link>
-        </div>
-      </div>
-      <div className="mt-8"><TransactionFilters /></div>
-      <div className="mt-6"><EmptyState title="Your transactions will appear here" detail="When transaction history is connected, you will be able to review, filter, edit, and safely remove your own entries." action={{ href: "/transactions/new-expense", label: "Add your first expense" }} /></div>
-    </div>
+    <Suspense fallback={<TransactionListSkeleton count={5} />}>
+      <TransactionsContent />
+    </Suspense>
   );
 }

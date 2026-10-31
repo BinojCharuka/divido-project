@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FormAlert } from "@/components/feedback/FormAlert";
+import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
@@ -23,16 +24,17 @@ export function SignOutButton() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {error && <FormAlert tone="error">{error}</FormAlert>}
-      <button
+      <Button
         type="button"
+        variant="secondary"
+        size="sm"
         onClick={() => void onClick()}
-        disabled={pending}
-        className="self-start rounded-md border border-zinc-400 px-4 py-2 font-medium text-zinc-900 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 disabled:opacity-60 dark:border-zinc-500 dark:text-zinc-100 dark:hover:bg-zinc-800"
+        loading={pending}
       >
         {pending ? "Signing out…" : "Sign out"}
-      </button>
+      </Button>
     </div>
   );
 }
