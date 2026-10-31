@@ -78,7 +78,7 @@
 - Phase 00 baseline and Testcontainers setup.
 - Phase 01 complete authentication stack (backend registration, session authentication, CSRF hardening, frontend forms, session gate, and E2E tests).
 - Phase 02 planning (`phase-02-transaction-ui-plan.md` in PR #7) and UI foundation (PR #8).
-- PR #9 scope cleanup and transaction UI implementation completed and merged. The production-routable mock API route and fake-success fallbacks were removed; out-of-scope prototype modules were preserved on `backup/div-008-pre-cleanup`. Route reconciliation, DEC-013 fixtures, PATCH simulation tests, transaction forms/list/edit/delete UI, and loading/error states were merged via PR #9. The implementation run reported lint/typecheck/build success and 74/74 unit tests; live E2E was deferred to DIV-015 because backend transaction CRUD is not implemented yet.
+- PR #9 scope cleanup and transaction UI implementation completed and merged. The production-routable mock API route and fake-success fallbacks were removed; out-of-scope prototype modules were preserved on `backup/div-008-pre-cleanup`. Route reconciliation, DEC-013 fixtures, PATCH simulation tests, transaction forms/list/edit/delete UI, and loading/error states were merged via PR #9. The implementation run reported lint/typecheck/build success and 74/74 unit tests; live E2E remains deferred to DIV-015 until the backend MVP completion audit and required backend-only work are finished.
 - **DIV-009A (Finalize Transaction API Contract Decisions):**
   - Canonical decision log updated with owner-approved decisions (DEC-003, DEC-013, DEC-014).
   - Contract documents updated (`transactions-api.md`, `categories-api.md`, `openapi.yaml`, `seed-data.md`, `data-dictionary.md`).
