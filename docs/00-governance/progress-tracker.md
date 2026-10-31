@@ -10,7 +10,7 @@
 
 - **Current Development Phase:** Phase 02 — Transactions (`docs/10-phases/PHASE-02-transactions.md`)
 - **Current Milestone:** Milestone 02 — Core Transaction Management & API Integration
-- **Current Task ID:** DIV-011 (Transaction Database Schema Migration V3) (Transaction Database Schema Migration V3)
+- **Current Task ID:** DIV-011 — Transaction Database Schema Migration (V3)
 - **Current Task Owners:** 
   - Backend: Project Owner / Claude Code
   - Frontend: Implementation Assistant / Frontend Developer
@@ -40,7 +40,7 @@
 
 *Notes on sub-statuses:*
 - **Categories:** Flyway `V2__categories_and_income_sources.sql` applied; 3 global default categories seeded (`Groceries`, `Transport`, `Entertainment`); endpoints `GET`, `POST`, `PATCH`, `POST /deactivate` implemented, tested, and merged in PR #10.
-- **Income Sources:** Table created in Flyway `V2__categories_and_income_sources.sql`; endpoints `GET`, `POST`, `PATCH`, `POST /deactivate` implemented, tested, and submitted for review in PR #10.
+- **Income Sources:** Table created in Flyway `V2__categories_and_income_sources.sql`; endpoints `GET`, `POST`, `PATCH`, `POST /deactivate` implemented, tested, and implemented, tested, and merged in PR #10.
 - **Transaction Frontend Integration / E2E:** Blocked pending backend implementation of `/api/v1/transactions` (`DIV-011`, `DIV-013`).
 
 ---
@@ -61,7 +61,7 @@
 | **DIV-008C** | Transaction UI components & review fixes | 02 | P0 | DIV-008B | Frontend | `IN_REVIEW` | Expense/income forms, edit/delete dialog, filters, formatting, error states; fixed PR #9 review blockers (PR #9). |
 | **DIV-009A** | Finalize Transaction API contract decisions | 02 | P0 | DIV-008A | Project Owner | `COMPLETED` | Recorded DEC-003, DEC-013, and DEC-014 in canonical decision log; updated `transactions-api.md`, `categories-api.md`, and `openapi.yaml`. |
 | **DIV-010** | Backend Categories & Income Sources foundation | 02 | P0 | DIV-009A | Backend (Claude Code) | `COMPLETED` | Flyway V2 migration, category/income-source APIs, ownership protections, 141/141 backend tests passing; merged via PR #10 (squash commit `32b5ba2`). |
-| **DIV-011** | Transaction database schema migration (`V3`) | 02 | P0 | DIV-009A, DIV-010 | Backend (Claude Code) | `PLANNED` | Add forward-only Flyway migration for `transactions` table with decimal precision, date, user ownership, and no `deleted_at` column (hard delete per DEC-014). |
+| **DIV-011** | Transaction database schema migration (`V3`) | 02 | P0 | DIV-009A, DIV-010 | Backend (Claude Code) | `IN_PROGRESS` | Add forward-only Flyway migration for `transactions` table with decimal precision, date, user ownership, and no `deleted_at` column (hard delete per DEC-014). |
 | **DIV-013** | Backend Transaction CRUD APIs & business logic | 02 | P0 | DIV-011, DIV-010 | Backend (Claude Code) | `PLANNED` | Implement `GET /api/v1/transactions`, `POST`, `GET /{id}`, `PATCH /{id}`, `DELETE /{id}` (hard delete, 204 No Content). |
 | **DIV-014** | Backend Transaction integration & isolation tests | 02 | P0 | DIV-013 | Backend (Claude Code) | `PLANNED` | Testcontainers integration tests verifying validation, cross-user isolation, and error responses. |
 | **DIV-015** | Frontend-Backend Transaction integration & E2E verification | 02 | P0 | DIV-008C, DIV-014 | Frontend & Backend | `PLANNED` | Connect live frontend forms to real backend endpoints; run full real-browser Playwright journey. |
@@ -97,6 +97,7 @@
   - Tests: 141/141 backend tests passing (`KakeiboGroupMappingTest`, `CategorySlugTest`, `CategoryIntegrationTest`, `IncomeSourceIntegrationTest`, `TestDatabaseIsolationTest`). Merged via PR #10 (squash commit `32b5ba29e1d5c8efbabd77b6da1defe5b6e363ea`).
 
 ### Currently In Progress
+- **DIV-011 — Transaction Database Schema Migration (V3):** Preparing a forward-only migration for the transactions table. Repository inspection confirms only V1 and V2 migrations exist on `main`; V3 is the next migration version. V1 confirms UUID identifiers, `app_users(id)`, `categories(id)`, and `pgcrypto` are already present. The approved transaction contract requires positive `NUMERIC(12,2)` amounts, `DATE` transaction dates, immutable `INCOME`/`EXPENSE` type, optional income source for income, required accessible category for expense, server-owned user ID, audit timestamps, and hard-delete compatibility (no `deleted_at`). No shared Neon database was accessed.
 - **PR #9 Review & Reconciliation:** PR #9 is open on `feature/div-008-frontend-transactions` awaiting project-owner review.
 - **Route Alignment with `main`:** PR #8 merged earlier introduced transaction route stubs directly in `frontend/app/transactions/`, while PR #9 placed them under route group `frontend/app/(app)/transactions/`.
 
@@ -104,7 +105,7 @@
 - Frontend live integration against backend transactions is **BLOCKED** because backend transaction CRUD endpoints (`/api/v1/transactions`) do not exist yet.
 
 ### What Must Be Done Next & Why
-- **Next Task:** `DIV-011 — Transaction database schema migration (V3)` followed by `DIV-013 — Backend Transaction CRUD APIs & business logic`.
+- **Next Task:** Complete `DIV-011 — Transaction database schema migration (V3)`, then proceed to `DIV-013 — Backend Transaction CRUD APIs & business logic`.
 - **Why:** With Categories and Income Sources fully persisted, tested, and callable on the backend, the backend transaction persistence layer (`transactions` table) can now be migrated in `V3` and CRUD APIs implemented, satisfying all prerequisites for frontend-backend live transaction integration.
 
 ---
@@ -144,7 +145,7 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **#7** | https://github.com/KasunHerath-dev/divido/pull/7 | `docs/transaction-ui-plan` | `main` | `e77ee6f` | `MERGED` | Approved | Phase 02 transaction UI delivery plan. |
 | **#8** | https://github.com/KasunHerath-dev/divido/pull/8 | `feature/transaction-ui-foundation` | `main` | `68d7b53` | `MERGED` | Approved | Transaction UI foundation & AppShell. |
 | **#9** | https://github.com/KasunHerath-dev/divido/pull/9 | `feature/div-008-frontend-transactions` | `main` | `ba954e0` | `OPEN` | In Review | Scope restricted to transaction UI; review blockers fixed. Has merge conflicts with `main` due to PR #8 merge. |
-| **#10** | https://github.com/KasunHerath-dev/divido/pull/10 | `feature/div-010-backend-categories` | `main` | `e59acf5` | `MERGED` | Approved | Categories and Income Sources backend foundation; squash merge commit `32b5ba2`. |
+| **#10** | https://github.com/KasunHerath-dev/divido/pull/10 | `feature/div-010-backend-categories` | `main` | `e59acf5` | `MERGED` | Categories and Income Sources backend foundation; squash merge commit `32b5ba2`. |
 
 *Backup Branches:*
 - `backup/div-008-pre-cleanup` (SHA `fefe3b0`): Preserves full prototype including future-phase budget, dashboard, categories, and settings code.
