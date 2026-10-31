@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "divido.rate-limit.login.window=1m",
         "divido.rate-limit.register.limit=3",
         "divido.rate-limit.register.window=1m",
-        "divido.rate-limit.trusted-proxies=10.0.0.1"
+        "divido.rate-limit.trusted-proxies=10.0.0.1, 10.0.0.2"
 })
 class RateLimitingIntegrationTest {
 
@@ -38,6 +39,9 @@ class RateLimitingIntegrationTest {
 
     @Autowired
     private SlidingWindowRateLimiter rateLimiter;
+
+    @Autowired
+    private RateLimitMaintenanceScheduler maintenanceScheduler;
 
     @BeforeEach
     void resetLimiter() {
@@ -147,42 +151,132 @@ class RateLimitingIntegrationTest {
     }
 
     @Test
-    void trustedProxyUsesXForwardedForClientIp() {
-        String trustedProxyIp = "10.0.0.1";
+    void trustedProxyUsesRightToLeftUntrustedHop() {
+        String trustedProxy1 = "10.0.0.1";
         String clientIp1 = "203.0.113.10";
-        String clientIp2 = "203.0.113.20";
 
-        // Exhaust clientIp1 via trusted proxy
+        // Normal trusted proxy chain: clientIp1, trustedProxy1
         for (int i = 0; i < 5; i++) {
             var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
-            req.header("X-Forwarded-For", clientIp1 + ", " + trustedProxyIp);
+            req.header("X-Forwarded-For", clientIp1);
             req.with(r -> {
-                r.setRemoteAddr(trustedProxyIp);
+                r.setRemoteAddr(trustedProxy1);
                 return r;
             });
             req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
             req.exchange();
         }
 
-        // clientIp1 is now rate limited
+        // 6th attempt for clientIp1 is rate-limited
         var req1 = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
-        req1.header("X-Forwarded-For", clientIp1 + ", " + trustedProxyIp);
+        req1.header("X-Forwarded-For", clientIp1);
         req1.with(r -> {
-            r.setRemoteAddr(trustedProxyIp);
+            r.setRemoteAddr(trustedProxy1);
             return r;
         });
         req1.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
         assertThat(req1.exchange()).hasStatus(HttpStatus.TOO_MANY_REQUESTS);
+    }
 
-        // clientIp2 through the same trusted proxy is NOT rate limited
-        var req2 = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
-        req2.header("X-Forwarded-For", clientIp2 + ", " + trustedProxyIp);
-        req2.with(r -> {
-            r.setRemoteAddr(trustedProxyIp);
+    @Test
+    void multipleTrustedProxiesInChainHandledCorrectly() {
+        String trustedProxy1 = "10.0.0.1"; // Immediate remoteAddr
+        String trustedProxy2 = "10.0.0.2"; // Intermediate proxy
+        String genuineClient = "198.51.100.50";
+
+        // Chain: genuineClient, trustedProxy2 (connecting to trustedProxy1)
+        for (int i = 0; i < 5; i++) {
+            var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
+            req.header("X-Forwarded-For", genuineClient + ", " + trustedProxy2);
+            req.with(r -> {
+                r.setRemoteAddr(trustedProxy1);
+                return r;
+            });
+            req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+            req.exchange();
+        }
+
+        // genuineClient is now throttled
+        var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
+        req.header("X-Forwarded-For", genuineClient + ", " + trustedProxy2);
+        req.with(r -> {
+            r.setRemoteAddr(trustedProxy1);
             return r;
         });
-        req2.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
-        assertThat(req2.exchange()).hasStatus(HttpStatus.UNAUTHORIZED);
+        req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+        assertThat(req.exchange()).hasStatus(HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @Test
+    void spoofedLeftmostXffDoesNotBypassLimitWhenActualClientFollows() {
+        String trustedProxy1 = "10.0.0.1";
+        String genuineClient = "198.51.100.77";
+
+        // Attacker sends arbitrary spoofed leftmost IPs: "1.1.1.1", "2.2.2.2", ...
+        // Proxy appends genuineClient: "spoofed, genuineClient"
+        for (int i = 0; i < 5; i++) {
+            var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
+            req.header("X-Forwarded-For", "1.1.1." + i + ", " + genuineClient);
+            req.with(r -> {
+                r.setRemoteAddr(trustedProxy1);
+                return r;
+            });
+            req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+            req.exchange();
+        }
+
+        // Next request with another spoofed leftmost IP ("9.9.9.9, genuineClient") is still blocked
+        // because the right-to-left resolver extracts genuineClient!
+        var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
+        req.header("X-Forwarded-For", "9.9.9.9, " + genuineClient);
+        req.with(r -> {
+            r.setRemoteAddr(trustedProxy1);
+            return r;
+        });
+        req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+        assertThat(req.exchange()).hasStatus(HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @Test
+    void malformedOrInvalidXffSafelyFallsBackToRemoteAddr() {
+        String trustedProxy1 = "10.0.0.1";
+
+        // Attacker sends malformed non-IP string in XFF
+        for (int i = 0; i < 5; i++) {
+            var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
+            req.header("X-Forwarded-For", "not-a-valid-ip-address");
+            req.with(r -> {
+                r.setRemoteAddr(trustedProxy1);
+                return r;
+            });
+            req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+            req.exchange();
+        }
+
+        // Falls back to remoteAddr (10.0.0.1) and is rate limited safely without crashing
+        var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
+        req.header("X-Forwarded-For", "not-a-valid-ip-address");
+        req.with(r -> {
+            r.setRemoteAddr(trustedProxy1);
+            return r;
+        });
+        req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+        assertThat(req.exchange()).hasStatus(HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @Test
+    void idleBucketsAreEvictedDuringMaintenance() {
+        // Create 20 distinct client IP entries
+        for (int i = 0; i < 20; i++) {
+            postLogin("192.168.2." + i, "{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+        }
+        assertThat(rateLimiter.getBucketCount()).isEqualTo(20);
+
+        // Run maintenance with zero threshold (all buckets are older than threshold)
+        maintenanceScheduler.cleanupExpiredBuckets(Duration.ZERO);
+
+        // All idle entries are cleared from memory
+        assertThat(rateLimiter.getBucketCount()).isEqualTo(0);
     }
 
     @Test

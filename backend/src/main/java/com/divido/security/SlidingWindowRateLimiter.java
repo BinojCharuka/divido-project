@@ -74,7 +74,16 @@ public class SlidingWindowRateLimiter {
     }
 
     /**
+     * Returns the current number of tracked bucket entries.
+     */
+    public int getBucketCount() {
+        return requestWindows.size();
+    }
+
+    /**
      * Evicts buckets that have had no activity within the eviction threshold.
+     * Concurrency-safe: synchronizes on the bucket deque while checking and removing,
+     * ensuring no concurrent tryAcquire() call loses newly added tokens.
      *
      * @param maxIdleThreshold duration after which an idle bucket is purged
      * @param nowMs current timestamp in milliseconds

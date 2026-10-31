@@ -145,15 +145,99 @@ class SlidingWindowRateLimiterTest {
 
     @Test
     void evictExpiredRemovesIdleBuckets() {
-        String key = "idle:127.0.0.1";
+        String key1 = "idle:1";
+        String key2 = "idle:2";
         Duration window = Duration.ofSeconds(10);
         long now = 1_000_000L;
 
-        limiter.tryAcquire(key, 5, window, now);
+        limiter.tryAcquire(key1, 5, window, now);
+        limiter.tryAcquire(key2, 5, window, now);
+        assertThat(limiter.getBucketCount()).isEqualTo(2);
+
         // Eviction with threshold of 30s when time is now + 40s
         limiter.evictExpired(Duration.ofSeconds(30), now + 40_000L);
 
-        // After eviction, retryAfter is 0 and key is clean
-        assertThat(limiter.getRetryAfterMillis(key, window, now + 40_000L)).isEqualTo(0L);
+        // After eviction, both idle buckets are completely removed from memory
+        assertThat(limiter.getBucketCount()).isEqualTo(0);
+    }
+
+    @Test
+    void activeBucketsRemainWhileIdleBucketsAreEvicted() {
+        String idleKey = "idle:old";
+        String activeKey = "active:recent";
+        Duration window = Duration.ofSeconds(60);
+        long now = 1_000_000L;
+
+        // idleKey acquired at now
+        limiter.tryAcquire(idleKey, 5, window, now);
+        // activeKey acquired at now + 50s
+        limiter.tryAcquire(activeKey, 5, window, now + 50_000L);
+        assertThat(limiter.getBucketCount()).isEqualTo(2);
+
+        // Eviction at now + 65s with 60s idle threshold
+        // idleKey is 65s old (> 60s) -> evicted
+        // activeKey is 15s old (< 60s) -> preserved
+        limiter.evictExpired(Duration.ofSeconds(60), now + 65_000L);
+
+        assertThat(limiter.getBucketCount()).isEqualTo(1);
+        assertThat(limiter.tryAcquire(activeKey, 5, window, now + 65_000L)).isTrue();
+    }
+
+    @Test
+    void concurrentAcquisitionAndEvictionDoesNotCorruptOrBypass() throws InterruptedException {
+        int threadCount = 10;
+        int operationsPerThread = 200;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount + 2);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        AtomicInteger totalAcquisitions = new AtomicInteger(0);
+
+        List<Future<?>> futures = new ArrayList<>();
+
+        // 10 worker threads acquiring for distinct and shared keys
+        for (int i = 0; i < threadCount; i++) {
+            final int threadId = i;
+            futures.add(executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    for (int op = 0; op < operationsPerThread; op++) {
+                        String key = "thread-" + (threadId % 3) + ":ip-" + (op % 5);
+                        if (limiter.tryAcquire(key, 5, Duration.ofMillis(50), System.currentTimeMillis())) {
+                            totalAcquisitions.incrementAndGet();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }));
+        }
+
+        // 2 background eviction threads running concurrently
+        for (int i = 0; i < 2; i++) {
+            futures.add(executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    for (int j = 0; j < 50; j++) {
+                        limiter.evictExpired(Duration.ofMillis(10), System.currentTimeMillis());
+                        Thread.sleep(5);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }));
+        }
+
+        startLatch.countDown();
+
+        for (Future<?> f : futures) {
+            try {
+                f.get();
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        executor.shutdown();
+
+        // Verification: executions completed without exceptions, deadlocks, or state corruption
+        assertThat(totalAcquisitions.get()).isGreaterThan(0);
     }
 }

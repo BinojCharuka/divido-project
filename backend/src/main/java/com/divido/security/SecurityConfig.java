@@ -47,12 +47,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import tools.jackson.databind.json.JsonMapper;
 import java.time.Clock;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
+
 /**
  * Session-cookie authentication with cookie-based CSRF protection. The session is
  * created only by a successful login; anonymous requests never create one.
  * Cookie names and attributes come from {@link CookieSettings}.
  */
 @Configuration
+@EnableScheduling
 @EnableConfigurationProperties(RateLimitProperties.class)
 public class SecurityConfig {
 

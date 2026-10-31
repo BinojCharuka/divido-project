@@ -13,8 +13,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Clock;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -100,29 +101,69 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Resolves the client IP address. If the immediate remote address is in the configured
-     * trusted proxies list, the first untrusted IP from the X-Forwarded-For header is used.
-     * Otherwise, request.getRemoteAddr() is returned directly to prevent header spoofing.
+     * Resolves the client IP address using secure right-to-left evaluation:
+     * 1. Start with the immediate remote address (request.getRemoteAddr()).
+     * 2. If the immediate address is NOT in the trusted proxies set, return it directly.
+     * 3. If the immediate address is trusted and X-Forwarded-For is present, parse the chain
+     *    and walk from right to left, skipping trusted proxy IPs.
+     * 4. The first untrusted IP encountered is selected as the client IP, provided it is a valid IP literal.
+     * 5. If all IPs are trusted, or any IP is malformed/invalid, fallback safely to the immediate remote address.
      */
     public String resolveClientIp(HttpServletRequest request) {
         String remoteAddr = request.getRemoteAddr();
-        if (remoteAddr == null) {
-            remoteAddr = "unknown";
+        if (remoteAddr == null || remoteAddr.isBlank()) {
+            return "unknown";
+        }
+        remoteAddr = remoteAddr.strip();
+
+        // If the immediate connection does not come from a trusted proxy, never trust XFF.
+        if (!trustedProxies.contains(remoteAddr)) {
+            return remoteAddr;
         }
 
-        if (trustedProxies.contains(remoteAddr)) {
-            String xForwardedFor = request.getHeader("X-Forwarded-For");
-            if (StringUtils.hasText(xForwardedFor)) {
-                String[] parts = xForwardedFor.split(",");
-                for (String part : parts) {
-                    String candidate = part.strip();
-                    if (StringUtils.hasText(candidate) && !trustedProxies.contains(candidate)) {
-                        return candidate;
-                    }
-                }
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (!StringUtils.hasText(xForwardedFor)) {
+            return remoteAddr;
+        }
+
+        String[] hops = xForwardedFor.split(",");
+        // Walk from right to left
+        for (int i = hops.length - 1; i >= 0; i--) {
+            String hop = hops[i].strip();
+            if (hop.isEmpty()) {
+                // Malformed empty hop: reject trusting and fallback to immediate remote address
+                return remoteAddr;
+            }
+
+            if (!isValidIpLiteral(hop)) {
+                // Malformed or invalid IP: reject trusting and fallback to immediate remote address
+                return remoteAddr;
+            }
+
+            if (!trustedProxies.contains(hop)) {
+                // First untrusted IP from the right is the genuine client address
+                return hop;
             }
         }
 
+        // All hops were in the trusted proxies set
         return remoteAddr;
+    }
+
+    /**
+     * Checks if a candidate string is a valid IPv4 or IPv6 address literal without DNS resolution.
+     */
+    public static boolean isValidIpLiteral(String candidate) {
+        if (candidate == null || candidate.isEmpty() || candidate.length() > 45) {
+            return false;
+        }
+        try {
+            // Using InetAddress.getByName with an IP string parses it as an address literal.
+            // However, to ensure NO DNS lookup is attempted, we verify format.
+            byte[] addressBytes = InetAddress.getByName(candidate).getAddress();
+            return addressBytes.length == 4 || addressBytes.length == 16;
+        } catch (UnknownHostException | SecurityException e) {
+            return false;
+        }
     }
 }

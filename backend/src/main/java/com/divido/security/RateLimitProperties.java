@@ -1,5 +1,8 @@
 package com.divido.security;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -26,12 +29,29 @@ public class RateLimitProperties {
     /**
      * Rate limit policy for login (POST /api/v1/auth/login).
      */
+    @Valid
+    @NotNull
     private Policy login = new Policy(10, Duration.ofMinutes(1));
 
     /**
      * Rate limit policy for registration (POST /api/v1/auth/register).
      */
+    @Valid
+    @NotNull
     private Policy register = new Policy(10, Duration.ofMinutes(1));
+
+    @PostConstruct
+    public void validate() {
+        if (login == null) {
+            throw new IllegalStateException("divido.rate-limit.login policy must not be null");
+        }
+        login.validate("divido.rate-limit.login");
+
+        if (register == null) {
+            throw new IllegalStateException("divido.rate-limit.register policy must not be null");
+        }
+        register.validate("divido.rate-limit.register");
+    }
 
     public boolean isEnabled() {
         return enabled;
@@ -75,6 +95,18 @@ public class RateLimitProperties {
         public Policy(int limit, Duration window) {
             this.limit = limit;
             this.window = window;
+        }
+
+        public void validate(String prefix) {
+            if (limit < 1) {
+                throw new IllegalStateException(prefix + ".limit must be at least 1; configured: " + limit);
+            }
+            if (window == null) {
+                throw new IllegalStateException(prefix + ".window must not be null");
+            }
+            if (window.isZero() || window.isNegative()) {
+                throw new IllegalStateException(prefix + ".window must be strictly positive; configured: " + window);
+            }
         }
 
         public int getLimit() {
