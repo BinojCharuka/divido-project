@@ -10,14 +10,14 @@
 
 - **Current Development Phase:** Phase 02 — Transactions (`docs/10-phases/PHASE-02-transactions.md`)
 - **Current Milestone:** Milestone 02 — Core Transaction Management & API Integration
-- **Current Task ID:** DIV-016 — Reconcile PR #9 routes with `main` & merge PR #9
+- **Current Task ID:** DIV-013 — Backend Transaction CRUD APIs & business logic
 - **Current Task Owners:** 
   - Backend: Project Owner / Claude Code
   - Frontend: Implementation Assistant / Frontend Developer
 - **Overall Progress Summary:**
   - **Phase 00 (Planning & Baselines):** Complete. Testcontainers baseline verified and merged (PR #1). Documentation cleanups merged (PR #2, PR #3).
   - **Phase 01 (Foundation & Authentication):** Complete. User registration backend (PR #4), session-cookie auth & CSRF hardening (PR #5), and frontend auth UI/integration with E2E tests (PR #6) are implemented, verified, and merged into `main`.
-  - **Phase 02 (Transactions):** In progress. Transaction UI plan and foundation merged (PR #7, #8). PR #9 now contains the route reconciliation, DEC-013 fixture correction, and PATCH fake-backend tests; branch is synced with current `main` and awaiting final review. Transaction API contract decisions are finalized (DIV-009A), Categories & Income Sources backend is merged (DIV-010/PR #10), and transaction schema V3 is merged (DIV-011/PR #11). Next: complete PR #9 review/merge, then implement transaction CRUD APIs (DIV-013).
+  - **Phase 02 (Transactions):** In progress. Transaction UI plan/foundation (PR #7/#8) and transaction management UI (PR #9) are merged. API contract decisions are finalized (DIV-009A), Categories & Income Sources backend is merged (DIV-010/PR #10), and transaction schema V3 is merged (DIV-011/PR #11). Next: implement transaction CRUD APIs and business logic (DIV-013), followed by integration/isolation tests (DIV-014) and live frontend integration/E2E (DIV-015).
   - **Phases 03–05 (Budgets, Dashboard, Insights, Reflection, Release):** Planned for subsequent phases.
 
 ---
@@ -27,7 +27,7 @@
 | Feature | Planning | API Contract | Database Schema | Backend Impl | Backend Tests | Frontend Impl | Frontend Integration | E2E Tests | PR Status | Overall Status |
 |---|---|---|---|---|---|---|---|---|---|---|
 | **Authentication** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Merged (#4, #5, #6) | `COMPLETED` |
-| **Transaction Management** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `NOT_STARTED` | `NOT_STARTED` | `IN_PROGRESS` | `BLOCKED` | `BLOCKED` | Open (#9); schema merged (#11) | `IN_PROGRESS` |
+| **Transaction Management** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `NOT_STARTED` | `NOT_STARTED` | `COMPLETED` | `BLOCKED` | `BLOCKED` | Merged (#9, #11) | `IN_PROGRESS` |
 | **Categories** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `IN_PROGRESS` | `PLANNED` | `PLANNED` | Merged (#10) | `COMPLETED` |
 | **Income Sources** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `IN_PROGRESS` | `PLANNED` | `PLANNED` | Merged (#10) | `COMPLETED` |
 | **Budget Management** | `PLANNED` | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED` |
@@ -59,14 +59,14 @@
 | **DIV-007** | Frontend authentication & session integration | 01 | P0 | DIV-006 | Frontend | `COMPLETED` | Sign-in, sign-up, sign-out, session restore, CSRF integration, Vitest & Playwright E2E tests (PR #6). |
 | **DIV-008A** | Transaction UI plan documentation | 02 | P0 | DIV-007 | Frontend | `COMPLETED` | Authored Phase 02 transaction UI component and delivery plan (PR #7). |
 | **DIV-008B** | Transaction UI foundation | 02 | P0 | DIV-008A | Frontend | `COMPLETED` | Added AppShell, navigation, route frame, and initial transaction stubs (PR #8). |
-| **DIV-008C** | Transaction UI components & review fixes | 02 | P0 | DIV-008B | Frontend | `IN_REVIEW` | Expense/income forms, edit/delete dialog, filters, formatting and error states; PR #9 routes reconciled with main under `frontend/app/transactions/`, latest `origin/main` merged, 3 default category fixtures aligned with DEC-013, PATCH simulation fully tested, all 74 frontend tests and next build passing. Ready for final review. |
+| **DIV-008C** | Transaction UI components & review fixes | 02 | P0 | DIV-008B | Frontend | `COMPLETED` | Transaction list, expense/income forms, edit/delete flows, filters, formatting and error states; canonical protected routes, DEC-013-aligned fixtures and PATCH fake-backend tests merged via PR #9 (squash commit `3e7a445`). Implementation run reported 74/74 frontend tests and production build passing; live E2E remains under DIV-015. |
 | **DIV-009A** | Finalize Transaction API contract decisions | 02 | P0 | DIV-008A | Project Owner | `COMPLETED` | Recorded DEC-003, DEC-013, and DEC-014 in canonical decision log; updated `transactions-api.md`, `categories-api.md`, and `openapi.yaml`. |
 | **DIV-010** | Backend Categories & Income Sources foundation | 02 | P0 | DIV-009A | Backend (Claude Code) | `COMPLETED` | Flyway V2 migration, category/income-source APIs, ownership protections, 141/141 backend tests passing; merged via PR #10 (squash commit `32b5ba2`). |
 | **DIV-011** | Transaction database schema migration (`V3`) | 02 | P0 | DIV-009A, DIV-010 | Backend (Claude Code) | `COMPLETED` | Added forward-only Flyway V3 migration, schema constraints/indexes, comprehensive Testcontainers migration tests (162/162 backend tests reported passing); merged via PR #11 (squash commit `5a7760f`). |
 | **DIV-013** | Backend Transaction CRUD APIs & business logic | 02 | P0 | DIV-011, DIV-010 | Backend (Claude Code) | `PLANNED` | Implement `GET /api/v1/transactions`, `POST`, `GET /{id}`, `PATCH /{id}`, `DELETE /{id}` (hard delete, 204 No Content). |
 | **DIV-014** | Backend Transaction integration & isolation tests | 02 | P0 | DIV-013 | Backend (Claude Code) | `PLANNED` | Testcontainers integration tests verifying validation, cross-user isolation, and error responses. |
 | **DIV-015** | Frontend-Backend Transaction integration & E2E verification | 02 | P0 | DIV-008C, DIV-014 | Frontend & Backend | `PLANNED` | Connect live frontend forms to real backend endpoints; run full real-browser Playwright journey. |
-| **DIV-016** | Reconcile PR #9 routes with `main` & merge PR #9 | 02 | P0 | DIV-008B, DIV-015 | Project Owner | `PLANNED` | Align `app/(app)/transactions` route group with merged PR #8 `app/transactions/`, resolve merge conflicts. |
+| **DIV-016** | Reconcile PR #9 routes with `main` & merge PR #9 | 02 | P0 | DIV-008B | Project Owner | `COMPLETED` | Consolidated transaction routes under `frontend/app/transactions/`, resolved branch sync/review findings, and squash-merged PR #9 (`3e7a445567879ff68a8e13f60d8ad8aba9075b46`). |
 | **DIV-017** | Budget & Dashboard planning & API contract | 03 | P1 | DIV-016 | Project Owner | `PLANNED` | Define monthly budget allocation and dashboard calculation specifications (Phase 03). |
 
 ---
@@ -77,7 +77,7 @@
 - Phase 00 baseline and Testcontainers setup.
 - Phase 01 complete authentication stack (backend registration, session authentication, CSRF hardening, frontend forms, session gate, and E2E tests).
 - Phase 02 planning (`phase-02-transaction-ui-plan.md` in PR #7) and UI foundation (PR #8).
-- PR #9 scope cleanup completed in commit `ba954e0`: production-routable mock API route removed, out-of-scope modules preserved on `backup/div-008-pre-cleanup`, unused dependency removed, fake-success fallbacks eliminated, and error-state tests expanded. Author-reported lint/typecheck/unit/build/E2E checks passed, but these have not been independently re-run against latest `main`.
+- PR #9 scope cleanup and transaction UI implementation completed and merged. The production-routable mock API route and fake-success fallbacks were removed; out-of-scope prototype modules were preserved on `backup/div-008-pre-cleanup`. Route reconciliation, DEC-013 fixtures, PATCH simulation tests, transaction forms/list/edit/delete UI, and loading/error states were merged via PR #9. The implementation run reported lint/typecheck/build success and 74/74 unit tests; live E2E was deferred to DIV-015 because backend transaction CRUD is not implemented yet.
 - **DIV-009A (Finalize Transaction API Contract Decisions):**
   - Canonical decision log updated with owner-approved decisions (DEC-003, DEC-013, DEC-014).
   - Contract documents updated (`transactions-api.md`, `categories-api.md`, `openapi.yaml`, `seed-data.md`, `data-dictionary.md`).
@@ -100,14 +100,16 @@
   - 162/162 backend tests passing against isolated Testcontainers PostgreSQL (as reported by the implementation run). PR #11 squash-merged into `main` as `5a7760f7ba1bc0309354cfd0a7d32d1693ab82eb`.
 
 ### Currently In Progress
-- **PR #9 Route Reconciliation & Review Fixes (DIV-008C):** Reconciled route structure to canonical `frontend/app/transactions/`, merged latest `origin/main` without history rewrite, aligned fakeBackend with DEC-013 (exactly 3 global default categories), implemented full PATCH support for category and income source changes, verified with 74/74 unit tests and production build. Ready for final review.
-- **Route Alignment with `main`:** Completed. Duplicate route group `frontend/app/(app)/` removed; all transaction pages reside directly in `frontend/app/transactions/` and are protected by `SessionGate` and `AppShell` via `TransactionsLayout`.
+- **DIV-013 — Backend Transaction CRUD APIs & business logic:** Next implementation task. Build the documented transaction endpoints on top of the merged V3 schema, enforce authenticated-user ownership and validation, and preserve DEC-003/DEC-013/DEC-014 behavior.
+
+### Completed in this milestone
+- **DIV-008C / PR #9:** Transaction frontend UI and review fixes merged. Canonical routes are under `frontend/app/transactions/` and protected by `SessionGate` and `AppShell`; fake category fixtures match the three DEC-013 defaults; fake PATCH behavior updates category and income-source references and is covered by tests.
 
 ### Blocked
 - Frontend live integration against backend transactions is **BLOCKED** because backend transaction CRUD endpoints (`/api/v1/transactions`) do not exist yet.
 
 ### What Must Be Done Next & Why
-- **Next Task:** Review and merge DIV-008 PR #9, then proceed to `DIV-013 — Backend Transaction CRUD APIs & business logic`.
+- **Next Task:** Implement `DIV-013 — Backend Transaction CRUD APIs & business logic`.
 - **Why:** With Categories and Income Sources fully persisted and tested, and the transaction database schema migrated in `V3`, unblocking PR #9 completes the frontend foundation and allows implementing backend transaction CRUD APIs (`DIV-013`).
 
 ---
@@ -146,7 +148,7 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **#6** | https://github.com/KasunHerath-dev/divido/pull/6 | `feature/div-007-frontend-auth` | `main` | `21c9e3c` | `MERGED` | Approved | Frontend auth integration and E2E tests. |
 | **#7** | https://github.com/KasunHerath-dev/divido/pull/7 | `docs/transaction-ui-plan` | `main` | `e77ee6f` | `MERGED` | Approved | Phase 02 transaction UI delivery plan. |
 | **#8** | https://github.com/KasunHerath-dev/divido/pull/8 | `feature/transaction-ui-foundation` | `main` | `68d7b53` | `MERGED` | Approved | Transaction UI foundation & AppShell. |
-| **#9** | https://github.com/KasunHerath-dev/divido/pull/9 | `feature/div-008-frontend-transactions` | `main` | `f443527` | `OPEN` | Ready for Review | GitHub HEAD verified; 8 commits ahead / 0 behind main; routes consolidated, DEC-013 fixtures aligned, PATCH fake-backend updates tested; author-reported 74/74 frontend tests and production build passing. |
+| **#9** | https://github.com/KasunHerath-dev/divido/pull/9 | `feature/div-008-frontend-transactions` | `main` | `161b60f` | `MERGED` | Approved | Transaction management UI, protected routes, DEC-013-aligned test fixtures and PATCH fake-backend coverage; squash merge commit `3e7a445567879ff68a8e13f60d8ad8aba9075b46`. |
 | **#10** | https://github.com/KasunHerath-dev/divido/pull/10 | `feature/div-010-backend-categories` | `main` | `e59acf5` | `MERGED` | Categories and Income Sources backend foundation; squash merge commit `32b5ba2`. |
 | **#11** | https://github.com/KasunHerath-dev/divido/pull/11 | `feature/div-011-transaction-schema` | `main` | `ca75db6` | `MERGED` | V3 transactions schema migration and Testcontainers tests; squash merge commit `5a7760f`. |
 
