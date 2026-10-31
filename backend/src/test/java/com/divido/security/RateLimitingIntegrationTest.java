@@ -265,6 +265,33 @@ class RateLimitingIntegrationTest {
     }
 
     @Test
+    void hostnameInXffSafelyFallsBackToRemoteAddrWithoutDnsLookup() {
+        String trustedProxy1 = "10.0.0.1";
+
+        // Attacker sends DNS hostnames in XFF (e.g. localhost, internal hostname)
+        for (int i = 0; i < 5; i++) {
+            var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
+            req.header("X-Forwarded-For", "localhost");
+            req.with(r -> {
+                r.setRemoteAddr(trustedProxy1);
+                return r;
+            });
+            req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+            req.exchange();
+        }
+
+        // Hostname is rejected without DNS lookup, falls back to remoteAddr (10.0.0.1) and is rate limited
+        var req = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"));
+        req.header("X-Forwarded-For", "attacker-host.invalid");
+        req.with(r -> {
+            r.setRemoteAddr(trustedProxy1);
+            return r;
+        });
+        req.contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"u@example.com\",\"password\":\"wrong\"}");
+        assertThat(req.exchange()).hasStatus(HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @Test
     void idleBucketsAreEvictedDuringMaintenance() {
         // Create 20 distinct client IP entries
         for (int i = 0; i < 20; i++) {

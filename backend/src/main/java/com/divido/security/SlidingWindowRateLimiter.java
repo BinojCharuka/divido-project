@@ -3,20 +3,25 @@ package com.divido.security;
 import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Thread-safe sliding-window rate limiter storing request timestamps in memory per key.
- * Expired entries are evicted lazily during access and during periodic maintenance.
+ * Uses atomic per-key computation to coordinate map membership and bucket mutation,
+ * ensuring no request can update a detached bucket or bypass limits during concurrent eviction.
  */
 public class SlidingWindowRateLimiter {
 
     private final Map<String, Deque<Long>> requestWindows = new ConcurrentHashMap<>();
 
+    // Package-private hooks for deterministic concurrency regression testing
+    volatile java.util.function.Consumer<String> onAcquireInFlight;
+    volatile java.util.function.Consumer<String> onEvictInFlight;
+
     /**
      * Attempts to acquire permission for the specified key under the given limit and window.
+     * Atomically coordinates map membership and bucket mutation using ConcurrentHashMap.compute().
      *
      * @param key the unique bucket identifier (e.g. IP + endpoint)
      * @param limit maximum allowed requests within the duration window
@@ -26,21 +31,31 @@ public class SlidingWindowRateLimiter {
      */
     public boolean tryAcquire(String key, int limit, Duration window, long nowMs) {
         long windowStartMs = nowMs - window.toMillis();
+        boolean[] acquired = new boolean[1];
 
-        Deque<Long> timestamps = requestWindows.computeIfAbsent(key, k -> new ArrayDeque<>());
-        synchronized (timestamps) {
+        requestWindows.compute(key, (k, existingDeque) -> {
+            if (onAcquireInFlight != null) {
+                onAcquireInFlight.accept(k);
+            }
+
+            Deque<Long> deque = (existingDeque != null) ? existingDeque : new ArrayDeque<>();
+
             // Evict timestamps outside the sliding window
-            while (!timestamps.isEmpty() && timestamps.peekFirst() <= windowStartMs) {
-                timestamps.pollFirst();
+            while (!deque.isEmpty() && deque.peekFirst() <= windowStartMs) {
+                deque.pollFirst();
             }
 
-            if (timestamps.size() < limit) {
-                timestamps.addLast(nowMs);
-                return true;
+            if (deque.size() < limit) {
+                deque.addLast(nowMs);
+                acquired[0] = true;
             } else {
-                return false;
+                acquired[0] = false;
             }
-        }
+
+            return deque.isEmpty() ? null : deque;
+        });
+
+        return acquired[0];
     }
 
     /**
@@ -52,18 +67,18 @@ public class SlidingWindowRateLimiter {
      * @return milliseconds until next availability, or 0 if currently available
      */
     public long getRetryAfterMillis(String key, Duration window, long nowMs) {
-        Deque<Long> timestamps = requestWindows.get(key);
-        if (timestamps == null) {
-            return 0L;
-        }
-        synchronized (timestamps) {
-            if (timestamps.isEmpty()) {
-                return 0L;
+        long[] retryAfter = new long[1];
+
+        requestWindows.computeIfPresent(key, (k, deque) -> {
+            if (!deque.isEmpty()) {
+                long oldestTimestamp = deque.peekFirst();
+                long availableAt = oldestTimestamp + window.toMillis();
+                retryAfter[0] = Math.max(0L, availableAt - nowMs);
             }
-            long oldestTimestamp = timestamps.peekFirst();
-            long availableAt = oldestTimestamp + window.toMillis();
-            return Math.max(0L, availableAt - nowMs);
-        }
+            return deque;
+        });
+
+        return retryAfter[0];
     }
 
     /**
@@ -82,26 +97,25 @@ public class SlidingWindowRateLimiter {
 
     /**
      * Evicts buckets that have had no activity within the eviction threshold.
-     * Concurrency-safe: synchronizes on the bucket deque while checking and removing,
-     * ensuring no concurrent tryAcquire() call loses newly added tokens.
+     * Uses atomic computeIfPresent to inspect and conditionally remove buckets from the map,
+     * ensuring no request thread can obtain a detached reference or race with eviction.
      *
      * @param maxIdleThreshold duration after which an idle bucket is purged
      * @param nowMs current timestamp in milliseconds
      */
     public void evictExpired(Duration maxIdleThreshold, long nowMs) {
         long cutoff = nowMs - maxIdleThreshold.toMillis();
-        Iterator<Map.Entry<String, Deque<Long>>> iterator = requestWindows.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, Deque<Long>> entry = iterator.next();
-            Deque<Long> deque = entry.getValue();
-            synchronized (deque) {
+        for (String key : requestWindows.keySet()) {
+            requestWindows.computeIfPresent(key, (k, deque) -> {
+                if (onEvictInFlight != null) {
+                    onEvictInFlight.accept(k);
+                }
                 while (!deque.isEmpty() && deque.peekFirst() <= cutoff) {
                     deque.pollFirst();
                 }
-                if (deque.isEmpty()) {
-                    iterator.remove();
-                }
-            }
+                // Returning null atomically removes the key from the ConcurrentHashMap
+                return deque.isEmpty() ? null : deque;
+            });
         }
     }
 }

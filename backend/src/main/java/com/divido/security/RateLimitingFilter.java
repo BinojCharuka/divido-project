@@ -13,11 +13,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Clock;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +29,14 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final String LOGIN_PATH = "/api/v1/auth/login";
     private static final String REGISTER_PATH = "/api/v1/auth/register";
+
+    // Strict IPv4 literal: 4 decimal octets 0-255, no leading zeroes unless single digit '0'
+    private static final Pattern IPV4_PATTERN = Pattern.compile(
+            "^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\."
+                    + "(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\."
+                    + "(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\."
+                    + "(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$"
+    );
 
     private final SlidingWindowRateLimiter rateLimiter;
     private final RateLimitProperties properties;
@@ -106,7 +113,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
      * 2. If the immediate address is NOT in the trusted proxies set, return it directly.
      * 3. If the immediate address is trusted and X-Forwarded-For is present, parse the chain
      *    and walk from right to left, skipping trusted proxy IPs.
-     * 4. The first untrusted IP encountered is selected as the client IP, provided it is a valid IP literal.
+     * 4. The first untrusted IP encountered is selected as the client IP, provided it is a strictly valid IP literal.
      * 5. If all IPs are trusted, or any IP is malformed/invalid, fallback safely to the immediate remote address.
      */
     public String resolveClientIp(HttpServletRequest request) {
@@ -136,7 +143,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             }
 
             if (!isValidIpLiteral(hop)) {
-                // Malformed or invalid IP: reject trusting and fallback to immediate remote address
+                // Malformed or invalid IP literal: reject trusting and fallback to immediate remote address
                 return remoteAddr;
             }
 
@@ -151,19 +158,131 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Checks if a candidate string is a valid IPv4 or IPv6 address literal without DNS resolution.
+     * Checks if a candidate string is a strictly valid IPv4 or IPv6 address literal
+     * without performing any DNS or name service resolution.
      */
     public static boolean isValidIpLiteral(String candidate) {
         if (candidate == null || candidate.isEmpty() || candidate.length() > 45) {
             return false;
         }
-        try {
-            // Using InetAddress.getByName with an IP string parses it as an address literal.
-            // However, to ensure NO DNS lookup is attempted, we verify format.
-            byte[] addressBytes = InetAddress.getByName(candidate).getAddress();
-            return addressBytes.length == 4 || addressBytes.length == 16;
-        } catch (UnknownHostException | SecurityException e) {
+
+        // Reject any characters outside valid IPv4 / IPv6 hex and separator sets
+        for (int i = 0; i < candidate.length(); i++) {
+            char c = candidate.charAt(i);
+            boolean isHex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+            if (!isHex && c != '.' && c != ':') {
+                return false;
+            }
+        }
+
+        if (candidate.indexOf(':') != -1) {
+            return isValidIPv6Literal(candidate);
+        } else if (candidate.indexOf('.') != -1) {
+            return isValidIPv4Literal(candidate);
+        }
+
+        return false;
+    }
+
+    private static boolean isValidIPv4Literal(String candidate) {
+        return IPV4_PATTERN.matcher(candidate).matches();
+    }
+
+    private static boolean isValidIPv6Literal(String candidate) {
+        if (candidate.contains(":::")) {
             return false;
         }
+
+        if (candidate.startsWith(":") && !candidate.startsWith("::")) {
+            return false;
+        }
+        if (candidate.endsWith(":") && !candidate.endsWith("::")) {
+            return false;
+        }
+
+        int doubleColon = candidate.indexOf("::");
+        if (doubleColon != -1) {
+            // Only one double colon allowed
+            if (candidate.indexOf("::", doubleColon + 2) != -1) {
+                return false;
+            }
+        }
+
+        // Handle possible embedded IPv4 address (e.g. ::ffff:192.0.2.1)
+        int lastColon = candidate.lastIndexOf(':');
+        String lastSegment = candidate.substring(lastColon + 1);
+        boolean hasEmbeddedIPv4 = lastSegment.indexOf('.') != -1;
+
+        if (hasEmbeddedIPv4) {
+            if (!isValidIPv4Literal(lastSegment)) {
+                return false;
+            }
+            String ipv6Prefix = candidate.substring(0, lastColon);
+            if (ipv6Prefix.indexOf('.') != -1) {
+                return false;
+            }
+
+            if (":".equals(ipv6Prefix) && candidate.startsWith("::")) {
+                return true;
+            }
+
+            return isValidIPv6PrefixForEmbeddedIPv4(ipv6Prefix, doubleColon != -1);
+        }
+
+        // Pure IPv6 cannot contain dots
+        if (candidate.indexOf('.') != -1) {
+            return false;
+        }
+
+        return isValidPureIPv6(candidate, doubleColon != -1);
+    }
+
+    private static boolean isValidIPv6PrefixForEmbeddedIPv4(String prefix, boolean hasDoubleColon) {
+        String[] parts = prefix.split(":", -1);
+        int nonEmptyParts = 0;
+        for (String part : parts) {
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (part.length() > 4) {
+                return false;
+            }
+            nonEmptyParts++;
+        }
+
+        return hasDoubleColon ? nonEmptyParts <= 5 : nonEmptyParts == 6;
+    }
+
+    private static boolean isValidPureIPv6(String candidate, boolean hasDoubleColon) {
+        if ("::".equals(candidate)) {
+            return true;
+        }
+
+        String[] parts = candidate.split(":", -1);
+
+        if (!hasDoubleColon) {
+            if (parts.length != 8) {
+                return false;
+            }
+            for (String part : parts) {
+                if (part.isEmpty() || part.length() > 4) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        int nonEmptyParts = 0;
+        for (String part : parts) {
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (part.length() > 4) {
+                return false;
+            }
+            nonEmptyParts++;
+        }
+
+        return nonEmptyParts >= 1 && nonEmptyParts <= 7;
     }
 }
