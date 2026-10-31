@@ -95,6 +95,8 @@ paths:
           $ref: '#/components/responses/CsrfInvalid'
         '409':
           $ref: '#/components/responses/RegistrationConflict'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
   /api/v1/auth/login:
     post:
       tags: [Authentication]
@@ -139,6 +141,8 @@ paths:
           $ref: '#/components/responses/InvalidCredentials'
         '403':
           $ref: '#/components/responses/CsrfInvalid'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
   /api/v1/auth/me:
     get:
       tags: [Authentication]
@@ -724,6 +728,23 @@ components:
             status: 409
             code: REGISTRATION_CONFLICT
             message: We couldn't create an account with these details.
+    RateLimitExceeded:
+      description: >
+        Too many requests from the client IP address on an authentication endpoint
+        within the sliding-window time period (DEC-022, DEC-027).
+      headers:
+        Retry-After:
+          description: Minimum number of seconds to wait before retrying.
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            status: 429
+            code: RATE_LIMIT_EXCEEDED
+            message: Too many requests. Please try again later.
   schemas:
     ApiError:
       type: object

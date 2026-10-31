@@ -10,7 +10,7 @@
 
 - **Current Development Phase:** Phase 02 — Transactions (`docs/10-phases/PHASE-02-transactions.md`)
 - **Current Milestone:** Milestone 02 — Core Transaction Management & API Integration
-- **Current Task ID:** DIV-018 — Backend MVP completion audit & hardening (PLANNED)
+- **Current Task ID:** DIV-019 — Backend authentication rate limiting (IN_REVIEW)
 - **Current Task Owners:** 
   - Backend: Project Owner / Claude Code
   - Frontend: Implementation Assistant / Frontend Developer
@@ -68,7 +68,8 @@
 | **DIV-015** | Frontend-Backend Transaction integration & E2E verification | 02 | P0 | DIV-008C, DIV-014 | Frontend & Backend | `PLANNED` | Connect live frontend forms to real backend endpoints; run full real-browser Playwright journey after backend MVP completion. |
 | **DIV-016** | Reconcile PR #9 routes with `main` & merge PR #9 | 02 | P0 | DIV-008B | Project Owner | `COMPLETED` | Consolidated transaction routes under `frontend/app/transactions/`, resolved branch sync/review findings, and squash-merged PR #9 (`3e7a445567879ff68a8e13f60d8ad8aba9075b46`). |
 | **DIV-017** | Budget & Dashboard planning & API contract | 03 | P1 | DIV-016 | Project Owner | `PLANNED` | Define monthly budget allocation and dashboard calculation specifications (Phase 03). |
-| **DIV-018** | Backend MVP completion audit & hardening | 02 | P0 | DIV-014 | Project Owner / Backend (Claude Code) | `PLANNED` | Audit all in-scope MVP backend requirements against implementation, API contracts, security, data integrity, and tests; identify missing work and split approved gaps into small backend-only tasks. Do not start frontend live integration until backend completion is approved. |
+| **DIV-018** | Backend MVP completion audit & hardening | 02 | P0 | DIV-014 | Project Owner / Backend (Claude Code) | `COMPLETED` | Audited in-scope MVP backend requirements against implementation, API contracts, security, data integrity, and tests; identified missing work and split approved gaps into small backend-only tasks. Corrected audit report submitted. |
+| **DIV-019** | Backend authentication rate limiting | 02 | P0 | DIV-018 | Backend (Claude Code) | `IN_REVIEW` | Implemented in-memory sliding-window rate limiting on `/api/v1/auth/login` and `/api/v1/auth/register` per DEC-022 and DEC-027. Returns HTTP 429 `RATE_LIMIT_EXCEEDED` with `Retry-After` header. Independent per-endpoint and per-client IP limits; trusted proxy validation. 205/205 backend tests passing. |
 
 ---
 
