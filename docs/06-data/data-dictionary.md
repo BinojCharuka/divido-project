@@ -51,23 +51,34 @@ Do not add duplicate fields if the existing schema already models them under dif
 | `created_at` | Audit timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
 | `updated_at` | Last updated timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
 
-## 5. `transactions` — proposed single-table (`V3` migration)
+## 5. `transactions` — implemented in `V3` migration (`DIV-011`)
 
 | Field | Meaning | Type | Rules / notes |
 |---|---|---|---|
 | `id` | Transaction identifier | `UUID` | Primary key (`gen_random_uuid()`) |
-| `user_id` | Owner | `UUID` (FK) | Required; set by backend session context (`app_users(id)`) |
+| `user_id` | Owner | `UUID` (FK) | Required; references `app_users(id) ON DELETE CASCADE` |
 | `type` | `INCOME` or `EXPENSE` | `VARCHAR(20)` | Required; `CHECK (type IN ('INCOME', 'EXPENSE'))` |
 | `amount` | Money amount | `NUMERIC(12,2)` | Required; positive values only (`amount > 0`) |
 | `transaction_date` | Effective calendar date | `DATE` | Required; user timezone date |
-| `category_id` | Expense category | `UUID` (FK) | Required for `EXPENSE`; references `categories(id)` (`DEC-013`). Nullable for `INCOME` |
-| `income_source_id` | Income source | `UUID` (FK) | Optional for `INCOME` (`DEC-003`); references `income_sources(id)`. Null for `EXPENSE` |
+| `category_id` | Expense category | `UUID` (FK) | Required for `EXPENSE`; references `categories(id) ON DELETE RESTRICT` (`DEC-013`). Must be NULL for `INCOME` |
+| `income_source_id` | Income source | `UUID` (FK) | Optional for `INCOME` (`DEC-003`); references `income_sources(id) ON DELETE RESTRICT`. Must be NULL for `EXPENSE` |
 | `description` | Optional note | `VARCHAR(500)` | Optional |
 | `payment_method` | Optional manual label | `VARCHAR(50)` | Optional |
 | `created_at` | Created timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
-| `updated_at` | Updated timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
+| `updated_at` | Last updated timestamp | `TIMESTAMPTZ` | Default `CURRENT_TIMESTAMP` |
 
-*Note on deletion:* No `deleted_at` column is required in MVP. `DEC-014` approved hard delete (`DELETE /api/v1/transactions/{id}` permanently deletes the row and returns `204 No Content`).
+*Constraints:*
+- `chk_transactions_type`: `type IN ('INCOME', 'EXPENSE')`
+- `chk_transactions_amount`: `amount > 0`
+- `chk_transactions_type_references`: `(type = 'EXPENSE' AND category_id IS NOT NULL AND income_source_id IS NULL) OR (type = 'INCOME' AND category_id IS NULL)`
+
+*Indexes:*
+- `idx_transactions_user_date`: `(user_id, transaction_date DESC, created_at DESC)`
+- `idx_transactions_user_type_date`: `(user_id, type, transaction_date DESC, created_at DESC)`
+- `idx_transactions_category_id`: `(category_id)`
+- `idx_transactions_income_source_id`: `(income_source_id)`
+
+*Note on deletion:* No `deleted_at` column is present. `DEC-014` approved hard delete (`DELETE /api/v1/transactions/{id}` permanently deletes the row and returns `204 No Content`). Foreign keys to categories and income sources use `ON DELETE RESTRICT` to preserve historical financial integrity.
 
 ## 6. `monthly_plans` — proposed
 

@@ -62,11 +62,11 @@ class TestDatabaseIsolationTest {
 	}
 
 	@Test
-	void containerHasV1AndV2Applied() {
+	void containerHasV1V2AndV3Applied() {
 		List<Map<String, Object>> history = new JdbcTemplate(dataSource).queryForList(
 				"SELECT version, script, checksum, success FROM flyway_schema_history ORDER BY installed_rank");
 
-		assertThat(history).hasSize(2);
+		assertThat(history).hasSize(3);
 		assertThat(history.get(0))
 				.containsEntry("version", "1")
 				.containsEntry("script", "V1__init.sql")
@@ -75,6 +75,10 @@ class TestDatabaseIsolationTest {
 		assertThat(history.get(1))
 				.containsEntry("version", "2")
 				.containsEntry("script", "V2__categories_and_income_sources.sql")
+				.containsEntry("success", true);
+		assertThat(history.get(2))
+				.containsEntry("version", "3")
+				.containsEntry("script", "V3__transactions.sql")
 				.containsEntry("success", true);
 	}
 
