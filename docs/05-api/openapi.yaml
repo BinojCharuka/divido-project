@@ -990,6 +990,10 @@ components:
           type: string
     TransactionCreate:
       type: object
+      description: >
+        Unknown properties are ignored, not rejected (DEC-026); in particular
+        client-supplied `id`, `userId`, and `createdAt` have no effect.
+      additionalProperties: true
       required: [type, amount, date]
       properties:
         type:
@@ -1013,9 +1017,13 @@ components:
           maxLength: 500
         paymentMethod:
           type: string
-      additionalProperties: false
     TransactionUpdate:
       type: object
+      description: >
+        Unknown properties are ignored, not rejected (DEC-026).
+        Transaction `type` is immutable on update and not an accepted field;
+        if supplied, it is treated as an unknown property and ignored.
+      additionalProperties: true
       properties:
         amount:
           type: string
@@ -1036,7 +1044,6 @@ components:
           maxLength: 500
         paymentMethod:
           type: string
-      additionalProperties: false
     TransactionPage:
       type: object
       required: [items, page, size, totalItems, totalPages]

@@ -55,8 +55,8 @@ public class TransactionService {
             throw new FieldValidationException("date", "Date is required.");
         }
 
-        String description = cleanString(request.description(), 500, "Description");
-        String paymentMethod = cleanString(request.paymentMethod(), 50, "Payment method");
+        String description = cleanString(request.description(), 500, "description", "Description");
+        String paymentMethod = cleanString(request.paymentMethod(), 50, "paymentMethod", "Payment method");
 
         Category category = null;
         IncomeSource incomeSource = null;
@@ -145,11 +145,11 @@ public class TransactionService {
         }
 
         if (request.isDescriptionPresent()) {
-            tx.setDescription(cleanString(request.getDescription(), 500, "Description"));
+            tx.setDescription(cleanString(request.getDescription(), 500, "description", "Description"));
         }
 
         if (request.isPaymentMethodPresent()) {
-            tx.setPaymentMethod(cleanString(request.getPaymentMethod(), 50, "Payment method"));
+            tx.setPaymentMethod(cleanString(request.getPaymentMethod(), 50, "paymentMethod", "Payment method"));
         }
 
         tx.setUpdatedAt(Instant.now());
@@ -270,7 +270,7 @@ public class TransactionService {
         return incomeSource;
     }
 
-    private String cleanString(String input, int maxLength, String fieldName) {
+    private String cleanString(String input, int maxLength, String fieldKey, String fieldLabel) {
         if (input == null) {
             return null;
         }
@@ -279,7 +279,7 @@ public class TransactionService {
             return null;
         }
         if (trimmed.length() > maxLength) {
-            throw new FieldValidationException(fieldName.toLowerCase(), fieldName + " must not exceed " + maxLength + " characters.");
+            throw new FieldValidationException(fieldKey, fieldLabel + " must not exceed " + maxLength + " characters.");
         }
         return trimmed;
     }
