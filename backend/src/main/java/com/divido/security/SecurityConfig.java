@@ -42,12 +42,21 @@ import java.time.Duration;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import tools.jackson.databind.json.JsonMapper;
+import java.time.Clock;
+
+import org.springframework.scheduling.annotation.EnableScheduling;
+
 /**
  * Session-cookie authentication with cookie-based CSRF protection. The session is
  * created only by a successful login; anonymous requests never create one.
  * Cookie names and attributes come from {@link CookieSettings}.
  */
 @Configuration
+@EnableScheduling
+@EnableConfigurationProperties(RateLimitProperties.class)
 public class SecurityConfig {
 
     public static final String CSRF_HEADER_NAME = "X-XSRF-TOKEN";
@@ -56,11 +65,29 @@ public class SecurityConfig {
     private static final Pattern ORIGIN = Pattern.compile("https?://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?");
 
     @Bean
+    public Clock clock() {
+        return Clock.systemUTC();
+    }
+
+    @Bean
+    public SlidingWindowRateLimiter slidingWindowRateLimiter() {
+        return new SlidingWindowRateLimiter();
+    }
+
+    @Bean
+    public RateLimitingFilter rateLimitingFilter(SlidingWindowRateLimiter rateLimiter,
+            RateLimitProperties properties, JsonMapper jsonMapper, Clock clock) {
+        return new RateLimitingFilter(rateLimiter, properties, jsonMapper, clock);
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CsrfTokenRepository csrfTokenRepository,
-            SecurityContextRepository securityContextRepository, ApiSecurityErrorHandler errorHandler)
+            SecurityContextRepository securityContextRepository, ApiSecurityErrorHandler errorHandler,
+            RateLimitingFilter rateLimitingFilter)
             throws Exception {
 
         http
+            .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/health", "/actuator/health", "/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll()

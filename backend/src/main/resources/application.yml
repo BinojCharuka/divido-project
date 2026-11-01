@@ -43,6 +43,15 @@ divido:
     # Comma-separated exact frontend origins allowed to make credentialed requests,
     # e.g. http://localhost:3000. Empty means no cross-origin access.
     allowed-origins: ${DIVIDO_CORS_ALLOWED_ORIGINS:}
+  rate-limit:
+    enabled: ${DIVIDO_RATE_LIMIT_ENABLED:true}
+    trusted-proxies: ${DIVIDO_RATE_LIMIT_TRUSTED_PROXIES:}
+    login:
+      limit: ${DIVIDO_RATE_LIMIT_LOGIN_LIMIT:10}
+      window: ${DIVIDO_RATE_LIMIT_LOGIN_WINDOW:1m}
+    register:
+      limit: ${DIVIDO_RATE_LIMIT_REGISTER_LIMIT:10}
+      window: ${DIVIDO_RATE_LIMIT_REGISTER_WINDOW:1m}
 
 management:
   endpoints:

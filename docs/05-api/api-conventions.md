@@ -92,6 +92,7 @@ Known error codes:
 | `UNAUTHENTICATED` | 401 | A protected route was called without a valid session (none, expired, signed out). | Implemented (all protected routes) |
 | `CSRF_INVALID` | 403 | The `X-XSRF-TOKEN` header is missing, malformed, or does not match the CSRF cookie. | Implemented (all state-changing requests) |
 | `FORBIDDEN` | 403 | Signed in but not permitted. No current route produces it. | Implemented (security error handler) |
+| `RATE_LIMIT_EXCEEDED` | 429 | Request rate limit exceeded on authentication endpoints (/login, /register). Includes `Retry-After` header. | Implemented (auth rate limiting filter) |
 
 The `401` and `403` responses produced by the security filters use this envelope too, and no `WWW-Authenticate` header is sent. Other framework errors, such as `405` or `415`, still use the framework's default body.
 

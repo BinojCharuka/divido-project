@@ -52,15 +52,16 @@ Errors:
 | 400 | `MALFORMED_REQUEST` | The body is not readable JSON. |
 | 403 | `CSRF_INVALID` | The CSRF token is missing or does not match the cookie. |
 | 409 | `REGISTRATION_CONFLICT` | The normalized email is already registered. Message: "We couldn't create an account with these details." (`DEC-022`). The body never contains the submitted email. |
+| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests from the client IP within the configured sliding window (default 10 requests / 1 min). Includes `Retry-After` header. |
 
-The `409` status still reveals that an account exists for that email. Rate limiting is required before public release (see the non-functional requirements).
+The `409` status still reveals that an account exists for that email. Rate limiting is enforced per client IP before processing requests (`DEC-022`, `DEC-027`).
 
 Behavior:
 - Passwords are stored only as bcrypt hashes through Spring Security's delegating password encoder (`{bcrypt}` prefix). Plaintext is never stored or returned.
 - Duplicate detection relies on the database unique constraint on `app_users.email`. That constraint is case-sensitive, so email uniqueness ignores case only because every write through this API uses the normalized form. Future login must apply the same normalization (`DEC-023`).
 - **Registration does not create a session or sign the user in** (`DEC-025`, approved). After a `201`, the client sends the user to the sign-in page; signing in is a separate [AUTH-002](#auth-002--sign-in) request.
 
-**TBD:** Email verification, account recovery and rate limiting.
+**TBD:** Email verification and account recovery.
 
 ## AUTH-002 — Sign in
 
@@ -119,6 +120,7 @@ Errors:
 | 400 | `MALFORMED_REQUEST` | The body is not readable JSON. |
 | 401 | `INVALID_CREDENTIALS` | Unknown email or wrong password. Message: "The email or password is incorrect." Both cases get an identical response, so the response does not reveal whether an account exists. A password longer than 72 UTF-8 bytes cannot match any account and gets the same response. |
 | 403 | `CSRF_INVALID` | The CSRF token is missing or does not match the cookie. |
+| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests from the client IP within the configured sliding window (default 10 requests / 1 min). Includes `Retry-After` header. |
 
 A failed sign-in creates no session. Signing in again while signed in replaces the session with a new one.
 
