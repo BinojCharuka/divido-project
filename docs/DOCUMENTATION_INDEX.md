@@ -1,7 +1,7 @@
 # Documentation Index
 
 **Status:** PROPOSED / IN PROGRESS  
-**Last reconciled:** 2026-10-28 (DIV-004 B1) against the repository files.
+**Last reconciled:** 2026-11-02 against repository files.
 
 This index lists every documentation file that exists in the repository, grouped by the numbered folders `00`–`10`, which are the single organization scheme for Divido documentation. The **Declared status** column summarizes each file's own status line, often abbreviated; the source file remains authoritative. It is not an approval record: a document is approved only when the project owner explicitly approves it (see [`DOCUMENTATION_RULES.md`](DOCUMENTATION_RULES.md)). Planned files that do not exist are listed separately as `NOT CREATED`.
 
@@ -16,7 +16,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`README.md`](README.md) | Documentation entry point | In progress — proposed, not frozen |
 | [`DOCUMENTATION_RULES.md`](DOCUMENTATION_RULES.md) | Status labels, IDs, and change rules | PROPOSED |
 | [`DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) | This index | PROPOSED / IN PROGRESS |
-| [`TRACEABILITY_MATRIX.md`](TRACEABILITY_MATRIX.md) | Requirement-to-implementation links | PROPOSED / INITIAL REGISTER |
+| [`TRACEABILITY_MATRIX.md`](TRACEABILITY_MATRIX.md) | Requirement-to-implementation links | PROPOSED / UPDATED REGISTER |
 
 ## 00 — Governance
 
