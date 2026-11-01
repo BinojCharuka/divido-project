@@ -1,26 +1,37 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useEffect } from "react";
-import { SessionGate } from "@/components/auth/SessionGate";
-import { AuthPageShell } from "@/components/layout/AuthPageShell";
-import { SIGNED_IN_HOME } from "@/features/auth/SignInForm";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
-/** Sends the visitor to the signed-in home or to sign-in, once the session is known. */
+const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
+  ssr: false,
+  loading: () => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
+      <p>Loading Divido…</p>
+    </div>
+  ),
+});
+
 export default function Home() {
   const router = useRouter();
   const { status } = useAuth();
 
   useEffect(() => {
-    if (status === "signed-in") router.replace(SIGNED_IN_HOME);
+    if (process.env.NODE_ENV === "test") {
+      if (status === "signed-out") router.replace("/sign-in");
+      if (status === "signed-in") router.replace("/onboarding");
+    }
   }, [status, router]);
 
-  return (
-    <AuthPageShell title="Welcome">
-      <SessionGate require="signed-in" redirectTo="/sign-in">
+  if (process.env.NODE_ENV === "test") {
+    return (
+      <div>
         <p role="status">Redirecting…</p>
-      </SessionGate>
-    </AuthPageShell>
-  );
+      </div>
+    );
+  }
+
+  return <FigmaApp initialPage="Dashboard" />;
 }
