@@ -242,16 +242,52 @@ function Modal({
     </dialog>
   )
 }
-function Brand() {
+function Brand({
+  variant = "full",
+  className = "",
+}: {
+  variant?: "full" | "text" | "icon"
+  className?: string
+} = {}) {
+  if (variant === "text") {
+    return (
+      <div className={`brand brand-text-only ${className}`}>
+        <img
+          src="/webp/Logo - text.webp"
+          alt="Divido"
+          className="brand-logo-img light-only"
+        />
+        <img
+          src="/webp/Logo - text-dark.webp"
+          alt="Divido"
+          className="brand-logo-img dark-only"
+        />
+      </div>
+    )
+  }
+  if (variant === "icon") {
+    return (
+      <div className={`brand brand-icon-only ${className}`}>
+        <img
+          src="/webp/Logo-flavicon - 250px.webp"
+          alt="Divido"
+          className="brand-logo-img"
+        />
+      </div>
+    )
+  }
   return (
-    <div className="brand">
-      <span className="brand-symbol" aria-hidden="true">
-        <span />
-        <span />
-      </span>
-      <span>
-        divido<span className="brand-dot">.</span>
-      </span>
+    <div className={`brand brand-full ${className}`}>
+      <img
+        src="/webp/logo-fulls.webp"
+        alt="Divido"
+        className="brand-logo-img light-only"
+      />
+      <img
+        src="/webp/logo-fulls-dark.webp"
+        alt="Divido"
+        className="brand-logo-img dark-only"
+      />
     </div>
   )
 }
@@ -3033,8 +3069,9 @@ export default function App({
           )}
 
           <footer className="page-footer">
-            <span>
-              <span className="footer-brand">divido.</span> Personal Budgeting
+            <span className="footer-brand-wrap">
+              <Brand variant="text" className="footer-text-brand" />
+              <span className="footer-tagline">Personal Budgeting</span>
             </span>
             <span>
               Kakeibo Method

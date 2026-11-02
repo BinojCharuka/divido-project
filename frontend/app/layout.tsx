@@ -18,6 +18,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Divido",
   description: "Personal budgeting with Divido.",
+  icons: {
+    icon: [
+      { url: "/webp/Logo-flavicon - 250px.webp", type: "image/webp" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/webp/Logo-flavicon - 250px.webp",
+    apple: "/webp/Logo-flavicon - 250px.webp",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -6,15 +6,22 @@ export function AuthPageShell({ title, children }: { title: string; children: Re
   return (
     <div className="auth-page">
       <div className="auth-brand">
-        <div className="brand">
-          <span className="brand-symbol" aria-hidden="true">
-            <span />
-            <span />
-          </span>
-          <span>
-            divido<span className="brand-dot">.</span>
-          </span>
-        </div>
+        <Link href="/dashboard" aria-label="Divido Home">
+          <div className="brand brand-full">
+            <img
+              src="/webp/logo-fulls.webp"
+              alt="Divido"
+              className="brand-logo-img light-only"
+              height={48}
+            />
+            <img
+              src="/webp/logo-fulls-dark.webp"
+              alt="Divido"
+              className="brand-logo-img dark-only"
+              height={48}
+            />
+          </div>
+        </Link>
       </div>
       <div className="auth-card">
         <h1>{title}</h1>
