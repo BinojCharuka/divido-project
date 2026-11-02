@@ -632,29 +632,27 @@ export default function App({
           }
         }
 
-        if (backendTx.status === "fulfilled" && backendTx.value && backendTx.value.items) {
-          if (backendTx.value.items.length > 0) {
-            const mapped: Transaction[] = backendTx.value.items.map((t) => {
-              const isInc = t.type === "INCOME"
-              return {
-                id: t.id,
-                name:
-                  t.description ||
-                  (isInc
-                    ? (t.incomeSource?.name ?? "Income")
-                    : (t.category?.name ?? "Expense")),
-                category: isInc
+        if (backendTx.status === "fulfilled" && backendTx.value && Array.isArray(backendTx.value.items)) {
+          const mapped: Transaction[] = backendTx.value.items.map((t) => {
+            const isInc = t.type === "INCOME"
+            return {
+              id: t.id,
+              name:
+                t.description ||
+                (isInc
                   ? (t.incomeSource?.name ?? "Income")
-                  : (t.category?.name ?? "Groceries"),
-                group: isInc ? "Income" : toGroup(t.category?.group ?? "NEEDS"),
-                amount: Number(t.amount) * (isInc ? 1 : -1),
-                date: t.date,
-                payment: t.paymentMethod ?? "",
-                note: t.description ?? "",
-              }
-            })
-            setTransactions(mapped)
-          }
+                  : (t.category?.name ?? "Expense")),
+              category: isInc
+                ? (t.incomeSource?.name ?? "Income")
+                : (t.category?.name ?? "Groceries"),
+              group: isInc ? "Income" : toGroup(t.category?.group ?? "NEEDS"),
+              amount: Number(t.amount) * (isInc ? 1 : -1),
+              date: t.date,
+              payment: t.paymentMethod ?? "",
+              note: t.description ?? "",
+            }
+          })
+          setTransactions(mapped)
         }
 
         if (backendBudget.status === "fulfilled" && backendBudget.value) {
@@ -924,26 +922,56 @@ export default function App({
     if (authStatus === "signed-in") {
       try {
         if (selected && typeof selected.id === "string" && selected.id.includes("-")) {
-          if (isIncome) {
-            const sourceId = sourceIds[category]
-            const updated = await updateTransaction(selected.id, {
-              amount: amountStr,
-              date: dateStr,
-              description: descriptionStr || undefined,
-              paymentMethod: paymentMethodStr || undefined,
-              incomeSourceId: sourceId || undefined,
-            })
-            savedId = updated.id
-          } else {
-            const categoryObj = categories.find((c) => c.name === category)
-            const updated = await updateTransaction(selected.id, {
-              amount: amountStr,
-              date: dateStr,
-              description: descriptionStr || undefined,
-              paymentMethod: paymentMethodStr || undefined,
-              categoryId: categoryObj?.id,
-            })
-            savedId = updated.id
+          try {
+            if (isIncome) {
+              const sourceId = sourceIds[category]
+              const updated = await updateTransaction(selected.id, {
+                amount: amountStr,
+                date: dateStr,
+                description: descriptionStr || undefined,
+                paymentMethod: paymentMethodStr || undefined,
+                incomeSourceId: sourceId || undefined,
+              })
+              savedId = updated.id
+            } else {
+              const categoryObj = categories.find((c) => c.name === category)
+              const updated = await updateTransaction(selected.id, {
+                amount: amountStr,
+                date: dateStr,
+                description: descriptionStr || undefined,
+                paymentMethod: paymentMethodStr || undefined,
+                categoryId: categoryObj?.id,
+              })
+              savedId = updated.id
+            }
+          } catch (updateErr) {
+            if (updateErr instanceof ApiError && updateErr.status === 404) {
+              if (isIncome) {
+                const sourceId = sourceIds[category]
+                const created = await createTransaction({
+                  type: "INCOME",
+                  amount: amountStr,
+                  date: dateStr,
+                  description: descriptionStr || undefined,
+                  paymentMethod: paymentMethodStr || undefined,
+                  incomeSourceId: sourceId || undefined,
+                })
+                savedId = created.id
+              } else {
+                const categoryObj = categories.find((c) => c.name === category)
+                const created = await createTransaction({
+                  type: "EXPENSE",
+                  amount: amountStr,
+                  date: dateStr,
+                  description: descriptionStr || undefined,
+                  paymentMethod: paymentMethodStr || undefined,
+                  categoryId: categoryObj?.id,
+                })
+                savedId = created.id
+              }
+            } else {
+              console.warn("Backend transaction update notice:", updateErr)
+            }
           }
         } else {
           if (isIncome) {
@@ -971,7 +999,7 @@ export default function App({
           }
         }
       } catch (err) {
-        console.error("Backend transaction save error:", err)
+        console.warn("Backend transaction save notice:", err)
       }
     }
 
@@ -2036,7 +2064,7 @@ export default function App({
                       },
                     })
                   } catch (err) {
-                    console.error("Failed to save budget to backend:", err)
+                    console.warn("Failed to save budget to backend:", err)
                   }
                 }
                 notify("Monthly budget updated")
@@ -2553,7 +2581,7 @@ export default function App({
                         ],
                       })
                     } catch (err) {
-                      console.error("Failed to save reflection to backend:", err)
+                      console.warn("Failed to save reflection to backend:", err)
                     }
                   }
                   notify("Reflection saved")
@@ -2647,7 +2675,7 @@ export default function App({
                           await updateProfile({ displayName: userName.trim() })
                           notify("Profile updated successfully")
                         } catch (err) {
-                          console.error("Failed to update profile:", err)
+                          console.warn("Failed to update profile:", err)
                           notify("Failed to update profile")
                         }
                       } else {
@@ -3190,7 +3218,11 @@ export default function App({
                   try {
                     await deleteTransaction(selected.id)
                   } catch (err) {
-                    console.error("Failed to delete transaction from backend:", err)
+                    if (err instanceof ApiError && err.status === 404) {
+                      // Already removed on server or not found — safe to proceed
+                    } else {
+                      console.warn("Backend transaction delete notice:", err)
+                    }
                   }
                 }
                 setTransactions((previous) =>
