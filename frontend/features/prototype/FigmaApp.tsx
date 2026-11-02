@@ -132,36 +132,26 @@ const groups: {
   name: Group
   icon: LucideIcon
   description: string
-  planned: number
-  spent: number
 }[] = [
   {
     name: "Needs",
     icon: House,
     description: "Everyday essentials and living costs",
-    planned: 120000,
-    spent: 65000,
   },
   {
     name: "Wants",
     icon: Heart,
     description: "Dining out, entertainment, and hobbies",
-    planned: 60000,
-    spent: 21000,
   },
   {
     name: "Culture",
     icon: BookOpen,
     description: "Books, education, and personal growth",
-    planned: 40000,
-    spent: 9100,
   },
   {
     name: "Unexpected",
     icon: Wrench,
     description: "Unplanned expenses and emergencies",
-    planned: 35000,
-    spent: 5450,
   },
 ]
 const initialCategories: Category[] = [
@@ -174,58 +164,7 @@ const initialCategories: Category[] = [
   { name: "Courses", group: "Culture", active: true },
   { name: "Repairs", group: "Unexpected", active: true },
 ]
-const initialTransactions: Transaction[] = [
-  {
-    id: 1,
-    name: "Groceries",
-    category: "Groceries",
-    group: "Needs",
-    amount: -2450,
-    date: "2026-10-28",
-    payment: "Cash",
-    note: "Weekly groceries",
-  },
-  {
-    id: 2,
-    name: "Freelance project",
-    category: "Freelance",
-    group: "Income",
-    amount: 12000,
-    date: "2026-10-26",
-    payment: "",
-    note: "Website design project",
-  },
-  {
-    id: 3,
-    name: "Bus to work",
-    category: "Transport",
-    group: "Needs",
-    amount: -320,
-    date: "2026-10-25",
-    payment: "Cash",
-    note: "",
-  },
-  {
-    id: 4,
-    name: "Coffee with friends",
-    category: "Dining out",
-    group: "Wants",
-    amount: -650,
-    date: "2026-10-25",
-    payment: "Cash",
-    note: "",
-  },
-  {
-    id: 5,
-    name: "A new perspective",
-    category: "Books",
-    group: "Culture",
-    amount: -1850,
-    date: "2026-10-24",
-    payment: "Debit card",
-    note: "Books for the weekend",
-  },
-]
+const initialTransactions: Transaction[] = []
 const navItems: {
   page: Page
   icon: LucideIcon
@@ -454,7 +393,7 @@ function BudgetCard({
       <div className="budget-card-bottom">
         <span>
           {over && <TriangleAlert size={12} />}
-          {money(planned - spent)} {over ? "over plan" : "left"}
+          {money(Math.abs(planned - spent))} {over ? "over plan" : "left"}
         </span>
         <strong>{percent}%</strong>
       </div>
@@ -515,44 +454,75 @@ export default function App({
     }
     return "Dashboard"
   })
-  const [dataCleared, setDataCleared] = useState<boolean>(() => {
-    try {
-      return (
-        typeof window !== "undefined" &&
-        localStorage.getItem("divido-data-cleared") === "true"
-      )
-    } catch {
-      return false
-    }
-  })
+  const [dataCleared, setDataCleared] = useState<boolean>(true)
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
-      if (
-        typeof window !== "undefined" &&
-        localStorage.getItem("divido-data-cleared") === "true"
-      ) {
+      if (typeof window !== "undefined") {
         const saved = localStorage.getItem("divido-transactions")
-        return saved ? JSON.parse(saved) : []
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (Array.isArray(parsed)) return parsed
+        }
       }
     } catch {}
-    return initialTransactions
+    return []
   })
   useEffect(() => {
-    if (dataCleared) {
-      try {
-        localStorage.setItem("divido-transactions", JSON.stringify(transactions))
-      } catch {}
+    try {
+      localStorage.setItem("divido-transactions", JSON.stringify(transactions))
+    } catch {}
+  }, [transactions])
+  const [plans, setPlans] = useState<Record<Group, number>>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("divido-group-plans")
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (parsed && typeof parsed === "object") return parsed
+        }
+      }
+    } catch {}
+    return {
+      Needs: 0,
+      Wants: 0,
+      Culture: 0,
+      Unexpected: 0,
     }
-  }, [transactions, dataCleared])
-  const [plans, setPlans] = useState<Record<Group, number>>({
-    Needs: 120000,
-    Wants: 60000,
-    Culture: 40000,
-    Unexpected: 35000,
   })
-  const [plannedIncome, setPlannedIncome] = useState(285000)
-  const [savings, setSavings] = useState(30000)
-  const [month, setMonth] = useState(9)
+  const [plannedIncome, setPlannedIncome] = useState<number>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("divido-planned-income")
+        if (saved !== null && !isNaN(Number(saved))) return Number(saved)
+      }
+    } catch {}
+    return 0
+  })
+  const [savings, setSavings] = useState<number>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("divido-savings-target")
+        if (saved !== null && !isNaN(Number(saved))) return Number(saved)
+      }
+    } catch {}
+    return 0
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem("divido-group-plans", JSON.stringify(plans))
+    } catch {}
+  }, [plans])
+  useEffect(() => {
+    try {
+      localStorage.setItem("divido-planned-income", String(plannedIncome))
+    } catch {}
+  }, [plannedIncome])
+  useEffect(() => {
+    try {
+      localStorage.setItem("divido-savings-target", String(savings))
+    } catch {}
+  }, [savings])
+  const [month, setMonth] = useState(() => new Date().getMonth())
   const [modal, setModal] =
     useState<"expense" | "income" | "add" | "detail" | "delete" | "notifications" | "help" | "insight" | "category" | "source" | "signout" | "clear-data" | null>(
       () =>
@@ -826,6 +796,16 @@ export default function App({
   const [draftPlan, setDraftPlan] = useState(plans)
   const [draftIncome, setDraftIncome] = useState(plannedIncome)
   const [draftSavings, setDraftSavings] = useState(savings)
+
+  useEffect(() => {
+    setDraftPlan(plans)
+  }, [plans])
+  useEffect(() => {
+    setDraftIncome(plannedIncome)
+  }, [plannedIncome])
+  useEffect(() => {
+    setDraftSavings(savings)
+  }, [savings])
   const mainRef = useRef<HTMLElement>(null)
   const currentPath = signedOut
     ? authMode === "Create account"
@@ -882,45 +862,26 @@ export default function App({
   const monthName = new Date(2026, month).toLocaleDateString("en-US", {
     month: "long",
   })
-  const isSampleMonth = !dataCleared && month === 9
   const monthTransactions = transactions.filter(
     (t) => new Date(`${t.date}T12:00:00`).getMonth() === month,
   )
-  // The sample month includes earlier activity, beyond the five recent records.
-  const earlierSampleExpenses =
-    100550 -
-    initialTransactions
-      .filter((t) => t.amount < 0)
-      .reduce((sum, t) => sum - t.amount, 0)
-  const spent =
-    (isSampleMonth ? earlierSampleExpenses : 0) +
-    monthTransactions
-      .filter((t) => t.amount < 0)
-      .reduce((sum, t) => sum - t.amount, 0)
-  const income =
-    (isSampleMonth ? 285000 - 12000 : 0) +
-    monthTransactions
-      .filter((t) => t.amount > 0)
-      .reduce((sum, t) => sum + t.amount, 0)
+  const spent = monthTransactions
+    .filter((t) => t.amount < 0)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+  const income = monthTransactions
+    .filter((t) => t.amount > 0)
+    .reduce((sum, t) => sum + t.amount, 0)
   const groupSpent = (group: Group) => {
-    const base = isSampleMonth ? groups.find((g) => g.name === group)!.spent : 0
-    const before = isSampleMonth
-      ? initialTransactions
-          .filter((t) => t.group === group)
-          .reduce((sum, t) => sum - t.amount, 0)
-      : 0
-    return (
-      base -
-      before +
-      monthTransactions
-        .filter((t) => t.group === group)
-        .reduce((sum, t) => sum - t.amount, 0)
-    )
+    return monthTransactions
+      .filter((t) => t.group === group && t.amount < 0)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0)
   }
-  const available = plannedIncome - savings
-  const remaining = available - spent
+  const totalAllocated = Object.values(plans).reduce((a, b) => a + b, 0)
+  const available = Math.max(0, plannedIncome - savings)
+  const budgetBase = available > 0 ? available : totalAllocated
+  const remaining = budgetBase - spent
   const spendingPercent =
-    available > 0 ? Math.round((spent / available) * 100) : spent > 0 ? 100 : 0
+    budgetBase > 0 ? Math.round((spent / budgetBase) * 100) : spent > 0 ? 100 : 0
   const notify = (message: string) => setToast(message)
   useEffect(() => {
     if (toast) {
@@ -1055,6 +1016,44 @@ export default function App({
         (groupFilter === "All groups" || t.group === groupFilter),
     )
     .sort((a, b) => b.date.localeCompare(a.date))
+
+  const distinctSpendingDays = new Set(
+    transactions.filter((t) => t.amount < 0).map((t) => t.date),
+  ).size
+
+  const topGroup = [...groups].sort(
+    (a, b) => groupSpent(b.name) - groupSpent(a.name),
+  )[0]
+  const topGroupPct =
+    spent > 0 ? Math.round((groupSpent(topGroup.name) / spent) * 100) : 0
+
+  const chartMonths = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - (5 - i))
+    const m = d.getMonth()
+    const y = d.getFullYear()
+    const mSpend = transactions
+      .filter((t) => {
+        const td = new Date(`${t.date}T12:00:00`)
+        return td.getMonth() === m && td.getFullYear() === y && t.amount < 0
+      })
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+    return {
+      label: d.toLocaleString("default", { month: "short" }),
+      spend: mSpend,
+    }
+  })
+  const maxMonthSpend = Math.max(
+    ...chartMonths.map((m) => m.spend),
+    budgetBase,
+    50000,
+  )
+  const chartYMax = Math.ceil(maxMonthSpend / 10000) * 10000 || 50000
+  const chartPoints = chartMonths.map((m, i) => ({
+    x: 15 + i * (570 / 5),
+    y: Math.max(10, 190 - (m.spend / chartYMax) * 180),
+  }))
+
   const MonthSelector = () => (
     <div className="month-selector">
       <CalendarDays size={16} />
@@ -1146,7 +1145,10 @@ export default function App({
           type="date"
           name="date"
           defaultValue={
-            selected?.date ?? new Date().toLocaleDateString("en-CA")
+            selected?.date ??
+            (new Date().getMonth() === month
+              ? new Date().toLocaleDateString("en-CA")
+              : `2026-${String(month + 1).padStart(2, "0")}-01`)
           }
           required
         />
@@ -1618,7 +1620,7 @@ export default function App({
 
           {page === "Dashboard" && (
             <>
-              {dataCleared && transactions.length === 0 && (
+              {transactions.length === 0 && plannedIncome === 0 && (
                 <div
                   className="panel"
                   style={{
@@ -1651,33 +1653,22 @@ export default function App({
                     </div>
                     <div>
                       <strong style={{ display: "block", color: "var(--ink)", fontSize: "14px" }}>
-                        Clean Slate Dashboard Active
+                        Fresh Budget Workspace
                       </strong>
                       <span style={{ fontSize: "13px", color: "var(--muted)" }}>
-                        All previous income and expenses are cleared. Add your first record to start tracking!
+                        Set planned income and group allocations, or add your first transaction.
                       </span>
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Button variant="primary" onClick={() => openAdd("income")}>
+                    <Button variant="primary" onClick={() => navigate("Budget")}>
+                      <Wallet size={15} /> Set Up Budget
+                    </Button>
+                    <Button variant="secondary" onClick={() => openAdd("income")}>
                       <Plus size={15} /> Add Income
                     </Button>
                     <Button variant="secondary" onClick={() => openAdd("expense")}>
                       <Plus size={15} /> Add Expense
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setTransactions(initialTransactions)
-                        setDataCleared(false)
-                        try {
-                          localStorage.removeItem("divido-data-cleared")
-                          localStorage.removeItem("divido-transactions")
-                        } catch {}
-                        notify("Sample demo transactions restored.")
-                      }}
-                    >
-                      Restore demo data
                     </Button>
                   </div>
                 </div>
@@ -1836,7 +1827,7 @@ export default function App({
                   </span>
                   <div>
                     <h3>
-                      {isSampleMonth
+                      {spent > 0
                         ? `Needs: ${
                             spent
                               ? Math.round((groupSpent("Needs") / spent) * 100)
@@ -1845,7 +1836,7 @@ export default function App({
                         : "Spending Breakdown"}
                     </h3>
                     <p>
-                      {isSampleMonth
+                      {spent > 0
                         ? `Essential needs account for LKR ${groupSpent("Needs").toLocaleString()} of ${monthName} spending.`
                         : "Record expenses to start tracking group breakdowns."}
                     </p>
@@ -2155,17 +2146,31 @@ export default function App({
                     <div className="progress-track">
                       <span
                         style={{
-                          width: `${Math.min(100, (groupSpent(group.name) / (draftPlan[group.name] || 1)) * 100)}%`,
+                          width: `${
+                            draftPlan[group.name] > 0
+                              ? Math.min(
+                                  100,
+                                  (groupSpent(group.name) /
+                                    draftPlan[group.name]) *
+                                    100,
+                                )
+                              : groupSpent(group.name) > 0
+                                ? 100
+                                : 0
+                          }%`,
                         }}
                       />
                     </div>
                     <p className="budget-percent-text">
-                      {Math.round(
-                        (groupSpent(group.name) /
-                          (draftPlan[group.name] || 1)) *
-                          100,
-                      )}
-                      % of planned amount used
+                      {draftPlan[group.name] > 0
+                        ? `${Math.round(
+                            (groupSpent(group.name) /
+                              draftPlan[group.name]) *
+                              100,
+                          )}% of planned amount used`
+                        : groupSpent(group.name) > 0
+                          ? "No planned amount (Over plan)"
+                          : "0% of planned amount used"}
                     </p>
                   </div>
                 ))}
@@ -2252,7 +2257,7 @@ export default function App({
                   days)
                 </span>
               </div>
-              {!isSampleMonth ? (
+              {distinctSpendingDays < 3 ? (
                 <section className="panel empty-state">
                   <ChartNoAxesCombined size={36} />
                   <span className="status-badge">
@@ -2277,16 +2282,17 @@ export default function App({
                       onClick={() => setModal("insight")}
                     >
                       <span className="group-icon">
-                        <Utensils size={21} />
+                        <topGroup.icon size={21} />
                       </span>
-                      <h3>Dining Spending (+18%)</h3>
-                      <GroupBadge group="Wants" />
+                      <h3>
+                        {topGroup.name} Spending ({topGroupPct}%)
+                      </h3>
+                      <GroupBadge group={topGroup.name} />
                       <p>
-                        Dining spending is 18% higher than the previous
-                        comparable period.
+                        {topGroup.name} is your largest spending category this month, totaling {money(groupSpent(topGroup.name))}.
                       </p>
                       <div className="insight-evidence">
-                        {period} · 23 sample transactions
+                        {monthName} 2026 · {monthTransactions.filter((t) => t.group === topGroup.name).length} transactions
                         <ArrowUpRight size={16} />
                       </div>
                     </button>
@@ -2319,12 +2325,14 @@ export default function App({
                       <GroupBadge group="Unexpected" />
                       <p>
                         Unexpected expenses total{" "}
-                        {money(groupSpent("Unexpected"))}. That’s{" "}
-                        {money(plans.Unexpected - groupSpent("Unexpected"))}{" "}
-                        {groupSpent("Unexpected") > plans.Unexpected
-                          ? "above"
-                          : "below"}{" "}
-                        your monthly allocation.
+                        {money(groupSpent("Unexpected"))}.{" "}
+                        {plans.Unexpected > 0
+                          ? `That’s ${money(Math.abs(plans.Unexpected - groupSpent("Unexpected")))} ${
+                              groupSpent("Unexpected") > plans.Unexpected
+                                ? "above"
+                                : "within"
+                            } your monthly allocation.`
+                          : "No monthly unexpected allocation set."}
                       </p>
                       <div className="insight-evidence">
                         {monthName} 2026 · Budget vs. actual
@@ -2350,16 +2358,16 @@ export default function App({
                       </div>
                       <div className="line-chart">
                         <div className="chart-y-axis">
-                          <span>300k</span>
-                          <span>225k</span>
-                          <span>150k</span>
-                          <span>75k</span>
+                          <span>{Math.round(chartYMax / 1000)}k</span>
+                          <span>{Math.round((chartYMax * 0.75) / 1000)}k</span>
+                          <span>{Math.round((chartYMax * 0.5) / 1000)}k</span>
+                          <span>{Math.round((chartYMax * 0.25) / 1000)}k</span>
                           <span>0</span>
                         </div>
                         <svg
                           viewBox="0 0 600 210"
                           role="img"
-                          aria-label={`Sample monthly spending: May 84,000; June 112,000; July 92,000; August 120,000; September 108,000; October ${spent.toLocaleString()}.`}
+                          aria-label={`Monthly spending over last 6 months`}
                         >
                           <defs>
                             <pattern
@@ -2383,44 +2391,41 @@ export default function App({
                             height="191"
                             fill="url(#chartGrid)"
                           />
-                          <path
-                            d={`M0 ${Math.max(0, 190 - (available / 300000) * 190)}H600`}
-                            className="plan-line"
-                          />
+                          {budgetBase > 0 && (
+                            <path
+                              d={`M0 ${Math.max(10, 190 - (budgetBase / chartYMax) * 180)}H600`}
+                              className="plan-line"
+                            />
+                          )}
                           <polyline
-                            points={`15,137 129,119 243,132 357,114 471,122 585,${Math.max(0, 190 - (spent / 300000) * 190)}`}
+                            points={chartPoints
+                              .map((p) => `${p.x},${p.y}`)
+                              .join(" ")}
                             fill="none"
                             className="spend-line"
                           />
-                          {[
-                            [15, 137],
-                            [129, 119],
-                            [243, 132],
-                            [357, 114],
-                            [471, 122],
-                            [585, Math.max(0, 190 - (spent / 300000) * 190)],
-                          ].map(([x, y], i) => (
+                          {chartPoints.map((p, i) => (
                             <circle
-                              key={x}
-                              cx={x}
-                              cy={y}
-                              r={i === 5 ? 6 : 4}
+                              key={p.x}
+                              cx={p.x}
+                              cy={p.y}
+                              r={i === chartPoints.length - 1 ? 6 : 4}
                               className="chart-point"
                             />
                           ))}
                         </svg>
                       </div>
                       <div className="chart-x-axis">
-                        {["May", "Jun", "Jul", "Aug", "Sep", "Oct"].map((m) => (
-                          <span key={m}>{m}</span>
+                        {chartMonths.map((m) => (
+                          <span key={m.label}>{m.label}</span>
                         ))}
                       </div>
                       <div className="chart-summary">
                         <ChartNoAxesCombined size={17} />
                         <p>
-                          October spending is {money(108000 - spent)}{" "}
-                          {spent <= 108000 ? "lower" : "higher"} than September
-                          in this sample history.
+                          {monthName} spending is {money(spent)} across{" "}
+                          {monthTransactions.filter((t) => t.amount < 0).length}{" "}
+                          recorded expense transactions.
                         </p>
                       </div>
                     </section>
@@ -2761,37 +2766,21 @@ export default function App({
                   >
                     <div>
                       <strong style={{ display: "block", color: "var(--ink)", fontSize: "14px" }}>
-                        {dataCleared ? "Empty Dashboard" : "Demo Data"}
+                        Workspace Data
                       </strong>
                       <span style={{ fontSize: "13px", color: "var(--muted)" }}>
-                        {dataCleared
-                          ? `${transactions.length} personal transactions recorded.`
-                          : "Showing sample income and expense transactions."}
+                        {transactions.length === 0
+                          ? "Clean slate — no transactions recorded yet."
+                          : `${transactions.length} personal transactions recorded (${money(spent)} spent in ${monthName}).`}
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      {dataCleared && (
-                        <Button
-                          variant="secondary"
-                          onClick={() => {
-                            setTransactions(initialTransactions)
-                            setDataCleared(false)
-                            try {
-                              localStorage.removeItem("divido-data-cleared")
-                              localStorage.removeItem("divido-transactions")
-                            } catch {}
-                            notify("Sample demo transactions restored.")
-                          }}
-                        >
-                          Restore demo data
-                        </Button>
-                      )}
                       <Button
                         variant="destructive"
                         onClick={() => setModal("clear-data")}
                       >
                         <Trash2 size={16} />
-                        Clear data & restart
+                        Reset workspace & start fresh
                       </Button>
                     </div>
                   </div>
@@ -3000,7 +2989,7 @@ export default function App({
             <span>
               Kakeibo Method
               <span className="footer-dot" />
-              Demo workspace
+              Personal workspace
             </span>
           </footer>
         </main>
@@ -3489,12 +3478,12 @@ export default function App({
       )}
       {modal === "clear-data" && (
         <Modal
-          title="Clear all data?"
+          title="Reset workspace & start fresh?"
           onClose={() => setModal(null)}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             <p className="confirm-content">
-              This will remove all demo and recorded income, expenses, and transactions. Your dashboard will reset to a clean, empty state ready for your real data.
+              This will remove all recorded transactions, planned budgets, and custom allocations. Your workspace will reset to an empty clean slate from the beginning.
             </p>
             <div
               style={{
@@ -3511,7 +3500,7 @@ export default function App({
             >
               <TriangleAlert size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
               <span>
-                All transactions will be cleared. You can restore sample demo transactions anytime from the Settings page.
+                This action resets your local storage data. All transactions and budget plans will be cleared back to zero.
               </span>
             </div>
             <div className="modal-actions">
@@ -3520,18 +3509,24 @@ export default function App({
                 variant="destructive"
                 onClick={() => {
                   setTransactions([])
+                  setPlans({ Needs: 0, Wants: 0, Culture: 0, Unexpected: 0 })
+                  setPlannedIncome(0)
+                  setSavings(0)
                   setDataCleared(true)
                   try {
+                    localStorage.removeItem("divido-transactions")
+                    localStorage.removeItem("divido-group-plans")
+                    localStorage.removeItem("divido-planned-income")
+                    localStorage.removeItem("divido-savings-target")
                     localStorage.setItem("divido-data-cleared", "true")
-                    localStorage.setItem("divido-transactions", JSON.stringify([]))
                   } catch {}
                   setModal(null)
                   setPage("Dashboard")
-                  notify("All data cleared. Welcome to your fresh new dashboard!")
+                  notify("Workspace reset. Starting from a fresh clean slate.")
                 }}
               >
                 <Trash2 size={16} />
-                Clear data & start fresh
+                Reset everything & start fresh
               </Button>
             </div>
           </div>
