@@ -92,9 +92,13 @@ export function TransactionEditForm({ transaction }: TransactionEditFormProps) {
     try {
       await deleteTransaction(transaction.id);
       router.push("/transactions?notice=deleted");
-    } catch {
-      setFormError("Could not delete transaction. Please try again.");
-      setDeleteOpen(false);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        router.push("/transactions?notice=deleted");
+      } else {
+        setFormError("Could not delete transaction. Please try again.");
+        setDeleteOpen(false);
+      }
     } finally {
       setDeleting(false);
     }

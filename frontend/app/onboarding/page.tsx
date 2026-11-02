@@ -6,29 +6,31 @@ import { AuthPageShell } from "@/components/layout/AuthPageShell";
 import { SignOutButton } from "@/features/auth/SignOutButton";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
-/**
- * Placeholder for UX-P03. Onboarding content is not specified or built yet; this
- * page is the signed-in destination until it is.
- */
 function OnboardingPlaceholder() {
   const { user } = useAuth();
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <p className="text-zinc-700 dark:text-zinc-300">
         You&apos;re signed in as <span className="font-medium text-zinc-900 dark:text-zinc-100">{user?.email}</span>.
       </p>
-      <p className="text-zinc-700 dark:text-zinc-300">Account setup is coming soon.</p>
-      <Link href="/transactions" className="font-medium text-[var(--primary-strong)] underline underline-offset-4">
-        Explore transactions
-      </Link>
-      <SignOutButton />
-    </>
+      <div className="flex flex-col gap-2 pt-2">
+        <Link href="/dashboard" className="button button-primary w-full text-center py-2.5 rounded-lg font-medium">
+          Open Divido Dashboard →
+        </Link>
+        <Link href="/transactions" className="text-sm font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 underline underline-offset-4 text-center">
+          Go to Transactions
+        </Link>
+      </div>
+      <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+        <SignOutButton />
+      </div>
+    </div>
   );
 }
 
 export default function OnboardingPage() {
   return (
-    <AuthPageShell title="Set up Divido">
+    <AuthPageShell title="Welcome to Divido">
       <SessionGate require="signed-in" redirectTo="/sign-in">
         <OnboardingPlaceholder />
       </SessionGate>

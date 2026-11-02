@@ -47,7 +47,25 @@ Phase 01 ([plan](../10-phases/PHASE-01-foundation-auth.md)) is **not complete**,
 |---|---|---|
 | DIV-005 — Backend registration endpoint | Implemented and merged into `main` via PR #4 (squash commit `5b84174`, 2026-10-28). Not released. | [PR #4](https://github.com/KasunHerath-dev/divido/pull/4); decisions `DEC-021` to `DEC-026` in the [decision log](decision-log.md) |
 | DIV-006 — Backend authentication (login, sessions, logout, CSRF) | Implemented with integration tests, including the DIV-006A security-review fixes (header-only masked CSRF tokens, `__Host-` cookies, strict CORS origins); merged into `main` via PR #5 (commit `1f83888`, 2026-10-28). Not released. Session, cookie and CSRF settings (`DEC-027`) were approved by the project owner on 2026-10-28. | [PR #5](https://github.com/KasunHerath-dev/divido/pull/5); [Authentication API](../05-api/authentication-api.md); `DEC-025` and `DEC-027` in the [decision log](decision-log.md) |
-| DIV-007 — Frontend authentication (sign-up, sign-in, session detection, sign-out) | Implemented on branch `feature/div-007-frontend-auth`; pending owner review in a pull request. Not merged or released. `/sign-up`, `/sign-in` and a placeholder signed-in `/onboarding` page, with component and flow tests (Vitest) and browser journeys (Playwright) run against a local backend and a disposable database. Onboarding content is not specified yet. | [Frontend README](../../frontend/README.md); [Authentication API](../05-api/authentication-api.md) |
+| DIV-007 — Frontend authentication (sign-up, sign-in, session detection, sign-out) | Implemented, verified with Vitest component/flow tests and Playwright E2E browser journeys, and merged into `main` via PR #6 (commit `21c9e3c`, 2026-10-28). | [PR #6](https://github.com/KasunHerath-dev/divido/pull/6) |
+
+## Phase 02 task status
+
+Phase 02 ([plan](../10-phases/PHASE-02-transactions.md)) is **in progress**.
+
+| Task | Status | Evidence |
+|---|---|---|
+| DIV-008A/B/C — Transaction UI foundation, routes & components | Complete; merged into `main` via PR #7 (`e77ee6f`), PR #8 (`68d7b53`), and PR #9 (`3e7a445`). | [PR #7](https://github.com/KasunHerath-dev/divido/pull/7), [PR #8](https://github.com/KasunHerath-dev/divido/pull/8), [PR #9](https://github.com/KasunHerath-dev/divido/pull/9) |
+| DIV-009A — Finalize Transaction API contract decisions | Complete; DEC-003, DEC-013, and DEC-014 recorded in canonical decision log. | [decision-log.md](decision-log.md) |
+| DIV-010 — Backend Categories & Income Sources foundation | Complete; Flyway V2 migration, categories/income-sources CRUD/deactivate endpoints, 141 tests passing; merged into `main` via PR #10 (`32b5ba2`). | [PR #10](https://github.com/KasunHerath-dev/divido/pull/10) |
+| DIV-011 — Transaction database schema migration (`V3`) | Complete; Flyway V3 migration, constraints, indexes, 162 tests passing; merged into `main` via PR #11 (`5a7760f`). | [PR #11](https://github.com/KasunHerath-dev/divido/pull/11) |
+| DIV-013 — Backend Transaction CRUD APIs & business logic | Complete; endpoints implemented, hard delete per DEC-014, 176 tests passing; merged into `main` via PR #12 (`2f020c0`). | [PR #12](https://github.com/KasunHerath-dev/divido/pull/12) |
+| DIV-014 — Backend Transaction integration & isolation test verification | Complete; 24/24 integration tests and 190/190 full backend suite tests passing; merged into `main` via PR #13 (`4c66c71`). | [PR #13](https://github.com/KasunHerath-dev/divido/pull/13) |
+| DIV-018 — Backend MVP completion audit & hardening | Complete; audit report submitted and gap tasks documented. | [progress-tracker.md](progress-tracker.md) |
+| DIV-019 — Backend authentication rate limiting | In review; PR #14 submitted, 284/284 backend tests passing. | [PR #14](https://github.com/KasunHerath-dev/divido/pull/14) |
+| DIV-015 — Frontend-Backend Transaction integration & live E2E | Planned; pending backend audit completion and rate-limit merge. | [progress-tracker.md](progress-tracker.md) |
+| DIV-024 — Transaction filter UI completion | Planned; category and income source dropdown filters to be added to UI. | [progress-tracker.md](progress-tracker.md) |
+| DIV-020 / DIV-021 — Categories & Income Sources management UI | Planned; management pages (`/categories`, `/income-sources`) to be implemented. | [progress-tracker.md](progress-tracker.md) |
 
 ## Rules
 

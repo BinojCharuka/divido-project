@@ -9,16 +9,19 @@
 ## A. Overall Project Status
 
 - **Current Development Phase:** Phase 02 — Transactions (`docs/10-phases/PHASE-02-transactions.md`)
-- **Current Milestone:** Milestone 02 — Core Transaction Management & API Integration
-- **Current Task ID:** DIV-015 — Frontend-Backend Transaction integration & E2E verification (PLANNED)
+- **Current Milestone:** Milestone 02 — Core Transaction Management, Frontend Filter Completion & Live API Verification
+- **Current Active Tasks:**
+  - Frontend: `DIV-024` — Transaction filter UI completion (`NOT_STARTED`)
+  - Integration: `DIV-015` — Frontend-Backend Transaction integration & live E2E verification (`PLANNED`)
 - **Current Task Owners:** 
   - Backend: Project Owner / Claude Code
   - Frontend: Implementation Assistant / Frontend Developer
 - **Overall Progress Summary:**
   - **Phase 00 (Planning & Baselines):** Complete. Testcontainers baseline verified and merged (PR #1). Documentation cleanups merged (PR #2, PR #3).
   - **Phase 01 (Foundation & Authentication):** Complete. User registration backend (PR #4), session-cookie auth & CSRF hardening (PR #5), and frontend auth UI/integration with E2E tests (PR #6) are implemented, verified, and merged into `main`.
-  - **Phase 02 (Transactions):** In progress. Transaction UI plan/foundation (PR #7/#8) and transaction management UI (PR #9) are merged. API contract decisions are finalized (DIV-009A), Categories & Income Sources backend is merged (DIV-010/PR #10), transaction schema V3 is merged (DIV-011/PR #11), transaction CRUD APIs are merged (DIV-013 / PR #12), and transaction integration/isolation verification is complete (DIV-014 / PR #13). Backend MVP audit (DIV-018) and authentication rate limiting (DIV-019 / PR #14) are complete and merged. Next: begin DIV-015 frontend live-API integration and browser E2E tests.
-  - **Phases 03–05 (Budgets, Dashboard, Insights, Reflection, Release):** Planned for subsequent phases.
+  - **Phase 02 (Transactions):** In progress. Transaction UI foundation (PR #7, #8) and management UI (PR #9) are merged. API contract decisions are finalized (DIV-009A), Categories & Income Sources backend foundation is merged (DIV-010 / PR #10), transaction schema V3 is merged (DIV-011 / PR #11), transaction CRUD APIs are merged (DIV-013 / PR #12), transaction integration/isolation verification is complete (DIV-014 / PR #13), backend MVP completion audit is complete (DIV-018), and authentication rate limiting is merged (DIV-019 / PR #14).
+  - **Reconciliation Audit (2026-11-02):** Reconciled progress tracker against verified repository facts on `main`. Corrected premature `COMPLETED` statuses for Budget, Dashboard, Insights, Reflection, Profile/Settings, and Onboarding to factual `NOT_STARTED` / `DECISION_REQUIRED` states. Corrected Categories and Income Sources frontend statuses to reflect that only in-form dropdown selectors exist, while dedicated management pages (`/categories`, `/income-sources`) remain to be built. Added missing implementation task cards (DIV-020 through DIV-035) covering Category/Income UI, profile preferences, guided onboarding, transaction filter UI completion, budget/dashboard implementation, insights/reflections gates, and release operations. Next: begin DIV-015 frontend live-API integration and browser E2E tests.
+  - **Phases 03–05 (Budgets, Dashboard, Insights, Reflection, Release):** Planned for subsequent phases per canonical dependency order.
 
 ---
 
@@ -26,23 +29,25 @@
 
 | Feature | Planning | API Contract | Database Schema | Backend Impl | Backend Tests | Frontend Impl | Frontend Integration | E2E Tests | PR Status | Overall Status |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Authentication** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Merged (#4, #5, #6) | `COMPLETED` |
+| **Authentication** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Merged (#4, #5, #6); Rate limiting in review (#14) | `COMPLETED` |
 | **Transaction Management** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `PLANNED` | `PLANNED` | Backend APIs and verification merged (#12, #13); schema merged (#11), UI merged (#9) | `IN_PROGRESS` |
-| **Categories** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `IN_PROGRESS` | `PLANNED` | `PLANNED` | Merged (#10) | `COMPLETED` |
-| **Income Sources** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `IN_PROGRESS` | `PLANNED` | `PLANNED` | Merged (#10) | `COMPLETED` |
-| **Budget Management** | `PLANNED` | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED` |
-| **Dashboard** | `PLANNED` | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED` |
-| **Insights** | `PLANNED` | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED` |
-| **Reflection** | `PLANNED` | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED` |
-| **Profile & Settings** | `PLANNED` | `PLANNED` | `IN_PROGRESS` | `NOT_STARTED` | `NOT_STARTED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED` |
-| **Onboarding** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `IN_PROGRESS` | `NOT_STARTED` | `NOT_STARTED` | Merged (#6) | `IN_PROGRESS` |
+| **Categories** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | Backend merged (#10); management UI not built | `IN_PROGRESS` |
+| **Income Sources** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | Backend merged (#10); management UI not built | `IN_PROGRESS` |
+| **Budget Management** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED / DECISION_REQUIRED` |
+| **Dashboard** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `NOT_STARTED` |
+| **Insights** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `DECISION_REQUIRED` |
+| **Reflection** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `DECISION_REQUIRED` |
+| **Profile & Settings** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `NOT_STARTED / DECISION_REQUIRED` |
+| **Onboarding** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | Placeholder route only | `PLACEHOLDER / NOT_STARTED` |
 | **Release Preparation** | `PLANNED` | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED` |
 
 *Notes on sub-statuses:*
-- **Transactions Schema:** Flyway `V3__transactions.sql` applied; `transactions` table created with constraints (`chk_transactions_type`, `chk_transactions_amount`, `chk_transactions_type_references`), foreign keys (`ON DELETE RESTRICT` on categories/income_sources, `ON DELETE CASCADE` on `app_users`), performance indexes, and no `deleted_at` column (`DEC-014`); 162/162 backend tests passing.
-- **Categories:** Flyway `V2__categories_and_income_sources.sql` applied; 3 global default categories seeded (`Groceries`, `Transport`, `Entertainment`); endpoints `GET`, `POST`, `PATCH`, `POST /deactivate` implemented, tested, and merged in PR #10.
-- **Income Sources:** Table created in Flyway `V2__categories_and_income_sources.sql`; endpoints `GET`, `POST`, `PATCH`, `POST /deactivate` implemented, tested, and merged in PR #10.
-- **Transaction Frontend Integration / E2E:** Scheduled under DIV-015 after backend MVP completion and approval to proceed with live frontend integration.
+- **Transaction Management:** Flyway `V3__transactions.sql` applied; transaction CRUD endpoints (`GET /api/v1/transactions`, `POST`, `GET /{id}`, `PATCH /{id}`, `DELETE /{id}`) and comprehensive Testcontainers isolation tests complete and merged (DIV-013 / PR #12, DIV-014 / PR #13); 190/190 backend tests passing. Frontend management UI merged (PR #9). Live frontend-backend integration and real-browser Playwright journeys scheduled under DIV-015.
+- **Categories:** Flyway `V2__categories_and_income_sources.sql` applied; 3 global default categories seeded (`Groceries`, `Transport`, `Entertainment`); backend endpoints `GET`, `POST`, `PATCH`, `POST /deactivate` implemented and merged (PR #10). Frontend active category selector dropdown is integrated into transaction forms; dedicated management UI (`/categories` or `/settings/categories`) and API client methods (`create`, `update`, `deactivate`) are not yet built (scheduled under DIV-020).
+- **Income Sources:** Table created in Flyway `V2__categories_and_income_sources.sql`; backend endpoints `GET`, `POST`, `PATCH`, `POST /deactivate` implemented and merged (PR #10). Frontend active source selector dropdown is integrated into income transaction form; dedicated management UI (`/income-sources` or `/settings/income-sources`) and API client methods are not yet built (scheduled under DIV-021).
+- **Transaction Filters:** Month and transaction type selector controls are implemented and merged (PR #9). Category and income source dropdown filters and "Clear filters" action are to be added under DIV-024.
+- **Budget, Dashboard, Insights, Reflection, Profile & Settings:** No controller, service, entity, or Flyway V4 schema migration exists in `main`. Marked as `NOT_STARTED` / `DECISION_REQUIRED` until decision gates, schemas, contracts, and implementation are approved.
+- **Onboarding:** Route `frontend/app/onboarding/page.tsx` exists as a placeholder only. Backend currently always returns `onboardingComplete: false`. Full multi-step stepper flow scheduled under DIV-023.
 
 ---
 
@@ -63,13 +68,29 @@
 | **DIV-009A** | Finalize Transaction API contract decisions | 02 | P0 | DIV-008A | Project Owner | `COMPLETED` | Recorded DEC-003, DEC-013, and DEC-014 in canonical decision log; updated `transactions-api.md`, `categories-api.md`, and `openapi.yaml`. |
 | **DIV-010** | Backend Categories & Income Sources foundation | 02 | P0 | DIV-009A | Backend (Claude Code) | `COMPLETED` | Flyway V2 migration, category/income-source APIs, ownership protections, 141/141 backend tests passing; merged via PR #10 (squash commit `32b5ba2`). |
 | **DIV-011** | Transaction database schema migration (`V3`) | 02 | P0 | DIV-009A, DIV-010 | Backend (Claude Code) | `COMPLETED` | Added forward-only Flyway V3 migration, schema constraints/indexes, comprehensive Testcontainers migration tests (162/162 backend tests reported passing); merged via PR #11 (squash commit `5a7760f`). |
-| **DIV-013** | Backend Transaction CRUD APIs & business logic | 02 | P0 | DIV-011, DIV-010 | Backend (Claude Code) | `COMPLETED` | Implemented all transaction CRUD endpoints, DEC-003 optional income source, DEC-013 category access, DEC-014 hard delete, PATCH presence tracking, pagination/filtering, and Testcontainers integration coverage (176/176 tests reported by implementation run). Merged via PR #12 (squash commit `2f020c05f936b11201884862b5b879a6ab47b0a0`). GitHub Actions/status checks were not reported. |
-| **DIV-014** | Backend Transaction integration & isolation test verification | 02 | P0 | DIV-013 | Backend (Claude Code) | `COMPLETED` | Audited `TransactionIntegrationTest` across all 8 matrix areas (A-H). Closed 10 test coverage gaps, strengthened the existing CSRF test across POST/PATCH/DELETE, and added service-level `cleanString` validation tests. 24/24 transaction integration tests and 190/190 full backend suite tests reported passing in isolated Testcontainers PostgreSQL. PR #13 squash-merged (`4c66c71d2977820266d505203f066fb56e3f0a26`); zero Neon access. |
-| **DIV-015** | Frontend-Backend Transaction integration & E2E verification | 02 | P0 | DIV-008C, DIV-014 | Frontend & Backend | `PLANNED` | Connect live frontend forms to real backend endpoints; run full real-browser Playwright journey after backend MVP completion. |
+| **DIV-013** | Backend Transaction CRUD APIs & business logic | 02 | P0 | DIV-011, DIV-010 | Backend (Claude Code) | `COMPLETED` | Implemented all transaction CRUD endpoints, DEC-003 optional income source, DEC-013 category access, DEC-014 hard delete, PATCH presence tracking, pagination/filtering, and Testcontainers integration coverage (176/176 tests reported by implementation run). Merged via PR #12 (squash commit `2f020c05f936b11201884862b5b879a6ab47b0a0`). |
+| **DIV-014** | Backend Transaction integration & isolation test verification | 02 | P0 | DIV-013 | Backend (Claude Code) | `COMPLETED` | Audited `TransactionIntegrationTest` across all 8 matrix areas (A-H). Closed 10 test coverage gaps, strengthened CSRF test across POST/PATCH/DELETE, and added service-level `cleanString` validation tests. 24/24 transaction integration tests and 190/190 full backend suite tests reported passing in isolated Testcontainers PostgreSQL. PR #13 squash-merged (`4c66c71d2977820266d505203f066fb56e3f0a26`); zero Neon access. |
+| **DIV-015** | Frontend-Backend Transaction integration & live E2E verification | 02 | P0 | DIV-008C, DIV-014 | Frontend & Backend | `PLANNED` | Connect live frontend forms to real backend endpoints using dedicated local test environment/Testcontainers; run full real-browser Playwright journeys covering expense creation, sourced/sourceless income, filtering, editing, hard delete, cross-user isolation, session expiry, and CSRF retry. Record execution command, commit, and results before marking complete. |
 | **DIV-016** | Reconcile PR #9 routes with `main` & merge PR #9 | 02 | P0 | DIV-008B | Project Owner | `COMPLETED` | Consolidated transaction routes under `frontend/app/transactions/`, resolved branch sync/review findings, and squash-merged PR #9 (`3e7a445567879ff68a8e13f60d8ad8aba9075b46`). |
-| **DIV-017** | Budget & Dashboard planning & API contract | 03 | P1 | DIV-016 | Project Owner | `PLANNED` | Define monthly budget allocation and dashboard calculation specifications (Phase 03). |
+| **DIV-017** | Budget & Dashboard planning & API contract decisions | 03 | P0 | DIV-016 | Project Owner | `PLANNED` | Formulate and approve calculation rules (planned income, recorded income, savings target, group budget remaining), decimal precision, month/timezone boundaries, and OpenAPI contracts (Phase 03). |
 | **DIV-018** | Backend MVP completion audit & hardening | 02 | P0 | DIV-014 | Project Owner / Backend (Claude Code) | `COMPLETED` | Audited in-scope MVP backend requirements against implementation, API contracts, security, data integrity, and tests; identified missing work and split approved gaps into small backend-only tasks. Corrected audit report submitted. |
 | **DIV-019** | Backend authentication rate limiting | 02 | P0 | DIV-018 | Backend (Claude Code) | `COMPLETED` | Implemented in-memory sliding-window rate limiting on `/api/v1/auth/login` and `/api/v1/auth/register` per DEC-022 and DEC-027. Returns HTTP 429 `RATE_LIMIT_EXCEEDED` with `Retry-After` header. Independent per-endpoint and per-client IP limits; right-to-left trusted proxy validation; atomic bucket lifecycle; DNS-free IP parsing; scheduled idle-bucket cleanup. 284/284 backend tests reported passing. Merged via PR #14 (merge commit `81dabf6a919bd72f606c3a341f032de6fd9f5bd9`). GitHub Actions workflow runs/status checks were not present for the merge commit. |
+| **DIV-020** | Category management frontend UI & API integration | 02 | P1 | DIV-010 | Frontend | `NOT_STARTED` | Add `createCategory`, `updateCategory`, and `deactivateCategory` to API client; build protected `/categories` (or `/settings/categories`) management view; visually distinguish 3 global defaults from custom categories; disable mutation controls on defaults; handle duplicate slug/name conflicts gracefully; refresh transaction category selectors on mutation; add component and integration tests. |
+| **DIV-021** | Income source management frontend UI & API integration | 02 | P1 | DIV-010 | Frontend | `NOT_STARTED` | Add `createIncomeSource`, `updateIncomeSource`, and `deactivateIncomeSource` to API client; build protected `/income-sources` (or `/settings/income-sources`) management view; support rename, deactivate confirmation, and `includeInactive=true` toggle; refresh transaction income source selectors; add component and integration tests. |
+| **DIV-022** | Profile preferences vertical slice & schema | 02 | P1 | Project Owner Decision Gate | Full-Stack | `NOT_STARTED / DECISION_REQUIRED` | Decision Gate: Approve editable fields, allowed locales/currencies/timezones, and onboarding completion contract (`GET/PATCH /api/v1/profile`). Add forward-only Flyway migration for persisted profile attributes; implement backend DTOs, service, controller, and isolation tests; build protected `/settings/profile` page with loading, validation, and saved states; add live two-user ownership E2E test. |
+| **DIV-023** | Guided onboarding stepper flow | 02 | P1 | DIV-022, DIV-025 | Full-Stack | `NOT_STARTED / DECISION_REQUIRED` | Decision Gate: Approve mandatory vs skippable steps, saved draft behavior, and completion rule. Replace `/onboarding` placeholder with multi-step stepper (Preferences -> Income Sources -> Initial Budget Plan -> Review/Complete); enforce backend completion tracking; handle session expiry, draft recovery, and redirect logic; cover resume and completion with browser E2E tests. |
+| **DIV-024** | Transaction filter UI completion | 02 | P2 | DIV-008C | Frontend | `NOT_STARTED` | Extend `TransactionFilters.tsx` to include Category and Income Source dropdown controls; wire selected filter IDs to `listTransactions`; implement "Clear filters" action; reset pagination to page 0 on filter change; verify empty and filtered states. |
+| **DIV-025** | Budget management schema, API & UI implementation | 03 | P0 | DIV-017 | Full-Stack | `PLANNED / DECISION_REQUIRED` | Decision Gate: Approve month/timezone policy, decimal precision, zero/missing allocations, and over-allocation warning vs block rule. Create forward Flyway migration for monthly budget table with unique `(user_id, month)` constraint; implement `GET /api/v1/budgets/{month}` and `PUT /api/v1/budgets/{month}`; build monthly-plan UI distinguishing planned vs actual allocations with over-allocation warnings; verify with integration and E2E tests. |
+| **DIV-026** | Dashboard aggregation API, UI & reconciliation tests | 03 | P0 | DIV-025, DIV-015 | Full-Stack | `NOT_STARTED` | Implement `GET /api/v1/dashboard?month=YYYY-MM` with user-scoped aggregates for planned income, recorded income, savings target, group budgets, and remaining balances. Build dashboard summary cards, group progress bars, month navigation, and empty states using server totals only; verify reconciliation rule (API amounts == UI amounts == fixture amounts). |
+| **DIV-027** | Spending insights scope decision & implementation | 04 | P2 | Project Owner Decision Gate, DIV-015 | Full-Stack | `DECISION_REQUIRED` | Decision Gate: Decide whether Spending Insights belongs to MVP. If approved: define 90-day lookback window, minimum 3 distinct spending days threshold, non-judgmental wording guidelines, and privacy safeguards; implement backend rule engine and `GET /api/v1/insights`; build dashboard insight cards with insufficient-data states; add unit and E2E coverage. |
+| **DIV-028** | Monthly reflection scope decision & implementation | 04 | P2 | Project Owner Decision Gate, DIV-025 | Full-Stack | `DECISION_REQUIRED` | Decision Gate: Decide whether Monthly Reflection belongs to MVP. If approved: define reflection question IDs, max length, retention/deletion policy; create Flyway schema migration; implement `GET/PUT /api/v1/reflections/{month}`; build monthly reflection form with retry/recovery UX; add ownership and E2E tests. |
+| **DIV-029** | Account recovery & verification policy | 00 | P2 | Project Owner Decision Gate | Full-Stack | `DECISION_REQUIRED / OUT_OF_CURRENT_SLICE` | Decision Gate: Explicit product/security decision on password reset mechanism. Define identifier, verification channel (email/token), token hashing, short expiry (e.g. 15m), single-use invalidation, rate limits, and timing-attack-safe neutral error responses; build reset UI and security tests. (Marked `OUT_OF_CURRENT_SLICE` until approved). |
+| **DIV-030** | Release preparation: Production configuration & topology | 05 | P1 | None | DevOps / Backend | `PLANNED` | Configure production hosting environment, exact allowed CORS origins, HTTPS redirection, strict cookie attributes (`__Host-` cookies, Secure, HttpOnly, SameSite=Lax), least-privilege Neon database roles, and secure secret store. Verify zero dev-only configurations in production profile. |
+| **DIV-031** | Release preparation: CI/CD pipeline & automated release gates | 05 | P1 | None | DevOps | `PLANNED` | Implement automated CI/CD pipeline running backend unit/integration tests (`mvn clean test`), frontend linting, typechecking, and build (`npm run build`); define deterministic release artifact tagging, migration execution order before app startup, and automated rollback triggers. |
+| **DIV-032** | Release preparation: Structured observability & health probes | 05 | P1 | None | DevOps / Backend | `PLANNED` | Implement structured JSON logging excluding sensitive data (PII, credentials, financial details); configure error monitoring and alerts; add Spring Boot Actuator health/readiness/liveness probes; define log access and retention controls. |
+| **DIV-033** | Release preparation: Database backup & restore drill | 05 | P1 | None | DevOps / Database | `PLANNED` | Define recovery point objective (RPO) and recovery time objective (RTO); execute an end-to-end database restore drill into a staging/test environment using synthetic data; record verification evidence and designate emergency recovery authority. |
+| **DIV-034** | Release preparation: Release QA gate, security & accessibility audit | 05 | P0 | DIV-015, DIV-026 | QA / Security | `PLANNED` | Execute regression test suite, verify security checklist (authentication, CSRF, isolation, rate limiting, SQL injection defense), run automated WCAG 2.1 AA accessibility checks, test mobile responsiveness, and perform post-deployment smoke test. |
+| **DIV-035** | Release preparation: Data lifecycle, retention & account purge | 05 | P1 | None | Backend / Product | `PLANNED` | Document and implement user account deletion policy (`DELETE /api/v1/profile` or admin purge), cascading data cleanup, retention periods for financial logs, and data export capability; verify with synthetic test data. |
 
 ---
 
@@ -79,67 +100,25 @@
 - Phase 00 baseline and Testcontainers setup.
 - Phase 01 complete authentication stack (backend registration, session authentication, CSRF hardening, frontend forms, session gate, and E2E tests).
 - Phase 02 planning (`phase-02-transaction-ui-plan.md` in PR #7) and UI foundation (PR #8).
-- PR #9 scope cleanup and transaction UI implementation completed and merged. The production-routable mock API route and fake-success fallbacks were removed; out-of-scope prototype modules were preserved on `backup/div-008-pre-cleanup`. Route reconciliation, DEC-013 fixtures, PATCH simulation tests, transaction forms/list/edit/delete UI, and loading/error states were merged via PR #9. The implementation run reported lint/typecheck/build success and 74/74 unit tests; live E2E remains deferred to DIV-015 until the backend MVP completion audit and required backend-only work are finished.
-- **DIV-009A (Finalize Transaction API Contract Decisions):**
-  - Canonical decision log updated with owner-approved decisions (DEC-003, DEC-013, DEC-014).
-  - Contract documents updated (`transactions-api.md`, `categories-api.md`, `openapi.yaml`, `seed-data.md`, `data-dictionary.md`).
-- **DIV-010 (Backend Categories & Income Sources):**
-  - Migration `V2__categories_and_income_sources.sql`: extended `categories` table with `is_active` and `updated_at`, partial unique indexes; seeded 3 global default categories (`Groceries` NEED, `Transport` NEED, `Entertainment` WANT); created `income_sources` table with user ownership referencing `app_users(id)`.
-  - Domain entities and enums: `Category`, `IncomeSource`, `KakeiboGroup` enum with JPA `KakeiboGroupConverter` mapping singular DB check values to plural API keys.
-  - Repositories: `CategoryRepository`, `IncomeSourceRepository` with user-scoped isolation and uniqueness queries.
-  - Services: `CategoryService` (kebab-case slug generation with duplicate counter disambiguation, accent/diacritic normalization, ownership enforcement, immutability of defaults), `IncomeSourceService`.
-  - Controllers: `CategoryController` (`GET /api/v1/categories`, `POST`, `PATCH /{id}`, `POST /{id}/deactivate`), `IncomeSourceController` (`GET /api/v1/income-sources`, `POST`, `PATCH /{id}`, `POST /{id}/deactivate`).
-  - Error handling: Custom exceptions (`ResourceNotFoundException` -> 404, `ForbiddenOperationException` -> 403, `ConflictException` -> 409, `DataIntegrityViolationException` mapped to 409 Conflict).
-  - Independent Backend Review: Verified V1 foreign key referencing `app_users(id)`, safe forward-only schema alterations, strict user isolation across endpoints, CSRF and auth protection, and concurrent duplicate creation safety via `saveAndFlush`.
-  - Tests: 141/141 backend tests passing (`KakeiboGroupMappingTest`, `CategorySlugTest`, `CategoryIntegrationTest`, `IncomeSourceIntegrationTest`, `TestDatabaseIsolationTest`). Merged via PR #10 (squash commit `32b5ba29e1d5c8efbabd77b6da1defe5b6e363ea`).
+- PR #9 scope cleanup and transaction UI implementation completed and merged (`3e7a445`). The production-routable mock API route and fake-success fallbacks were removed; out-of-scope prototype modules were preserved on `backup/div-008-pre-cleanup`. Route reconciliation, DEC-013 fixtures, PATCH simulation tests, transaction forms/list/edit/delete UI, and loading/error states were merged via PR #9.
+- **DIV-009A (Finalize Transaction API Contract Decisions):** Canonical decision log updated with owner-approved decisions (DEC-003, DEC-013, DEC-014); contract documents updated (`transactions-api.md`, `categories-api.md`, `openapi.yaml`, `seed-data.md`, `data-dictionary.md`).
+- **DIV-010 (Backend Categories & Income Sources):** Flyway V2 migration applied, seeded 3 defaults (`Groceries`, `Transport`, `Entertainment`), implemented user-scoped categories and income-sources CRUD/deactivate endpoints, 141/141 backend tests passing; merged via PR #10 (`32b5ba2`).
+- **DIV-011 (Transaction Database Schema Migration V3):** Created forward-only Flyway migration `V3__transactions.sql`, constraints, indexes, hard delete per DEC-014, and 19 migration tests; 162/162 backend tests passing; merged via PR #11 (`5a7760f`).
+- **DIV-013 (Backend Transaction CRUD APIs & Business Logic):** Implemented all transaction CRUD endpoints, DEC-003 optional income source, DEC-013 category access, DEC-014 hard delete, PATCH presence tracking, pagination/filtering, and Testcontainers integration coverage; 176/176 tests passing; merged via PR #12 (`2f020c0`).
+- **DIV-014 (Backend Transaction Integration & Isolation Test Verification):** Audited `TransactionIntegrationTest` across all 8 matrix areas (A-H), closed 10 test coverage gaps, strengthened CSRF tests, and added `cleanString` validation tests. 24/24 transaction integration tests and 190/190 full backend suite tests passing; merged via PR #13 (`4c66c71`).
+- **DIV-018 (Backend MVP Completion Audit & Hardening):** Completed comprehensive audit of in-scope MVP backend requirements against implementation, security, and tests.
 
-- **DIV-011 (Transaction Database Schema Migration V3) — COMPLETED:**
-  - Created forward-only Flyway migration `V3__transactions.sql` adding `transactions` table with primary key `gen_random_uuid()`, `user_id REFERENCES app_users(id) ON DELETE CASCADE`, `amount NUMERIC(12,2) CHECK (amount > 0)`, `transaction_date DATE`, `category_id REFERENCES categories(id) ON DELETE RESTRICT`, `income_source_id REFERENCES income_sources(id) ON DELETE RESTRICT`, `description VARCHAR(500)`, `payment_method VARCHAR(50)`, and `created_at`/`updated_at`.
-  - Implemented constraints: `chk_transactions_type` (`INCOME`, `EXPENSE`), `chk_transactions_amount` (`amount > 0`), and `chk_transactions_type_references` (`(type = 'EXPENSE' AND category_id IS NOT NULL AND income_source_id IS NULL) OR (type = 'INCOME' AND category_id IS NULL)`).
-  - Implemented performance indexes: `idx_transactions_user_date`, `idx_transactions_user_type_date`, `idx_transactions_category_id`, `idx_transactions_income_source_id`.
-  - Verified hard deletion per DEC-014; no `deleted_at` column present.
-  - Added comprehensive automated test suite `TransactionSchemaMigrationTest` with 19 tests verifying columns, data types, nullability, constraint rejections, foreign key behaviors (`RESTRICT` on category/income-source, `CASCADE` on user), and hard deletion.
-  - 162/162 backend tests passing against isolated Testcontainers PostgreSQL (as reported by the implementation run). PR #11 squash-merged into `main` as `5a7760f7ba1bc0309354cfd0a7d32d1693ab82eb`.
-
-- **DIV-013 (Backend Transaction CRUD APIs & Business Logic) — COMPLETED:**
-  - Implemented `Transaction` entity, `TransactionType` enum, DTOs (`TransactionCreateRequest`, `TransactionUpdateRequest`, `TransactionResponse`, `TransactionCategoryResponse`, `IncomeSourceRefResponse`, `TransactionPageResponse`).
-  - Added `TransactionRepository` with entity graph eager fetching to prevent N+1 query overhead and user-scoped lookups.
-  - Implemented `TransactionService` enforcing: strict authenticated-user scoping, money safety via `BigDecimal` (scale 2 positive amounts), DEC-013 category accessibility (active defaults or active own custom categories), DEC-003 optional income sources (verified ownership and active status), PATCH presence tracking to distinguish omitted fields from explicit nulls, and hard delete per DEC-014.
-  - Implemented `TransactionController` with `POST /api/v1/transactions`, `GET /api/v1/transactions`, `GET /{transactionId}`, `PATCH /{transactionId}`, and `DELETE /{transactionId}`.
-  - Created `TransactionIntegrationTest` covering CRUD, security/isolation, PATCH semantics, hard delete, category/income-source rules, and money safety.
-  - 176/176 backend tests passing against isolated Testcontainers PostgreSQL; merged via PR #12 (squash commit `2f020c05f936b11201884862b5b879a6ab47b0a0`).
-
-- **DIV-014 (Backend Transaction Integration & Isolation Test Verification) — COMPLETED (PR #13):**
-  - Audited `TransactionIntegrationTest` across all 8 matrix areas (A through H) against approved transaction API requirements.
-  - Identified 10 genuine coverage gaps and 1 defect:
-    - Defect fix: In `TransactionService.java`, aligned `cleanString` validation exception field keys to match JSON property names (`"description"`, `"paymentMethod"`). Added focused unit test in `TransactionServiceTest` directly verifying service-level length validation and field keys.
-    - Added test `nonexistentReferencesAreRejectedOnCreateAndPatch`: verifies 400 Bad Request with fieldErrors under `categoryId` and `incomeSourceId` on nonexistent/inaccessible references per API validation contract.
-    - Added test `patchCannotChangeTransactionType`: verifies that per DEC-026 unknown fields on update DTO are ignored and transaction type remains immutable (`EXPENSE`) in both HTTP response (200 OK) and database via direct JDBC query.
-    - Added test `rejectedPatchDoesNotPartiallyModifyData`: verifies atomic rollback on rejected PATCH; persisted record remains unchanged.
-    - Added test `rejectedCreateDoesNotPersistAnyRecords`: verifies rejected POST creates zero database rows.
-    - Added test `moneySafetyMaxRangeAndMalformedInputs`: verifies maximum supported amount `9999999999.99` accepted, >10 integer digits rejected, and malformed strings rejected with 400.
-    - Added test `missingRequiredFieldsAndInvalidTypesOnCreate`: verifies 400 on missing type (with expected field error), missing amount, missing date, or invalid enum.
-    - Added test `unknownPropertiesIgnoredAndServerControlledFieldsCannotBeOverridden`: verifies DEC-026 unknown field ignore policy and confirms client cannot override id, userId, or createdAt (verified in both response and direct database queries).
-    - Added test `stringLengthBoundariesEnforced`: verifies description boundary (500 ok, 501 rejected) and paymentMethod boundary (50 ok, 51 rejected) on both POST and PATCH.
-    - Added test `exactInclusiveDateBoundariesAndCombinedFilters`: verifies inclusive `from` and `to` date boundary filters and multi-criteria combined filtering.
-    - Added test `paginationDefaultsAndBoundaries`: verifies default page 0 and size 20, rejects size 0 and size 101, and tests multi-record page navigation, distinct records across pages, and page metadata.
-    - Strengthened test `mutatingRequestsRequireCsrf`: verifies CSRF protection on POST, PATCH, and DELETE verbs and rejects invalid CSRF tokens with 403 `CSRF_INVALID`.
-  - Repeatability verification: Executed `TransactionIntegrationTest` twice consecutively with 24/24 passing, proving zero order-dependent or flaky test behavior.
-  - Full suite verification: Executed `mvn clean test` with 190/190 passing across the entire backend suite.
-  - Safety verification: Verified all migrations and tests run exclusively in isolated Testcontainers PostgreSQL (v18.6); verified zero connection to shared Neon database.
-
-### Completed in this milestone
-- **DIV-008C / PR #9:** Transaction frontend UI and review fixes merged. Canonical routes are under `frontend/app/transactions/` and protected by `SessionGate` and `AppShell`; fake category fixtures match the three DEC-013 defaults; fake PATCH behavior updates category and income-source references and is covered by tests.
-
-### Completed in this milestone
-- **DIV-014 (PR #13):** Transaction integration & isolation test verification. 24/24 integration tests and 190/190 full backend suite tests reported passing in isolated Testcontainers PostgreSQL. PR #13 squash-merged (`4c66c71d2977820266d505203f066fb56e3f0a26`).
+### Currently In Progress / In Review
+- **DIV-024 (Transaction Filter UI Completion) — IN_PROGRESS:** Category and Income Source filter dropdowns and Clear Filters action on the frontend transaction page.
+- **DIV-015 (Frontend-Backend Transaction Integration & Live E2E) — PLANNED:** Connect live frontend forms to real backend endpoints and run browser E2E verification.
 
 ### Blocked
 - None.
 
 ### What Must Be Done Next & Why
-- **Next Task:** Begin DIV-015 — Frontend-Backend Transaction Integration & E2E Verification.
-- **Why:** DIV-018 backend MVP audit/hardening and DIV-019 authentication rate limiting are recorded as complete; PR #14 is merged into `main`. Proceed with live frontend API integration and real-browser E2E verification, while keeping unapproved future-phase requirements out of scope.
+1. **Execute DIV-024 (Transaction Filter UI Completion):** Complete Category and Income Source filter dropdowns and Clear Filters action on the frontend transaction page to match backend filter capabilities.
+2. **Execute DIV-015 (Frontend-Backend Transaction Integration & Live E2E):** Connect live frontend forms to real backend endpoints and execute full real-browser Playwright test journeys against a disposable database.
+3. **Execute DIV-020 & DIV-021 (Category & Income Source Management Frontend):** Build protected `/categories` and `/income-sources` management pages so users can manage their custom categories and income sources beyond transaction form dropdowns.
 
 ---
 
@@ -149,13 +128,23 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 
 | Decision ID | Topic | Current Decision / Direction | Status | Impact on Phase 02 |
 |---|---|---|---|---|
+| **DEC-001** | Target audience | Individual users; shared finances deferred | `PROPOSED` | Single-user scoping across all entities |
+| **DEC-002** | Onboarding | Guided onboarding; multi-step stepper | `PROPOSED` | Framework for DIV-023 |
 | **DEC-003** | Income sources | Income source is optional for income transactions; creation works without `incomeSourceId`; if provided, backend validates ownership | `APPROVED` (DIV-009A) | In `POST /api/v1/transactions`, `incomeSourceId` is optional; backend validates ownership if present. |
 | **DEC-004** | Budget groups | Needs, Wants, Culture, Unexpected (Kakeibo) | `PROPOSED` | Used in `categories` check constraint and frontend badges. |
+| **DEC-005** | Money accounts | One overall money view; no account balances | `PROPOSED` | No bank aggregation or balance tracking |
 | **DEC-006** | Expense entry | Quick entry; amount and category first | `PROPOSED` | Reflected in `ExpenseForm.tsx` required fields. |
 | **DEC-007** | Payment methods | Manual, optional | `PROPOSED` | Reflected in transaction DTOs and select inputs. |
+| **DEC-008** | Savings | Monthly savings target | `PROPOSED` | Used in budget planning and dashboard |
+| **DEC-009** | Initial language | English only for MVP; localization deferred | `PROPOSED` | No Sinhala or multilingual UI in MVP |
+| **DEC-010** | Shared expenses | Outside MVP | `PROPOSED` | Excluded from current scope |
+| **DEC-011** | Spending habits | Analyze 90 days; minimum three distinct spending days | `PROPOSED` | Governs conditional Insights feature (DIV-027) |
+| **DEC-012** | Budget allocation | Independent limits; warn if plan exceeds planned income after savings | `PROPOSED` | Warning behavior in monthly budget form |
 | **DEC-013** | Category ownership & defaults | Exactly 3 global default categories (`user_id IS NULL`); user custom categories (`user_id = auth_user.id`); defaults immutable | `APPROVED` (DIV-009A) | Usable categories query returns `user_id IS NULL OR user_id = :authUserId`. Exact 3 default names approved and seeded: Groceries (NEED), Transport (NEED), Entertainment (WANT). |
-| **DEC-014** | Transaction deletion | Hard delete for MVP (`DELETE /api/v1/transactions/{id}` returns `204 No Content`); permanent removal | `APPROVED` (DIV-009A) | In `DELETE /api/v1/transactions/{id}`, permanently removes row. Restore endpoint `TX-006` removed from MVP. No `deleted_at` column in V2. |
+| **DEC-014** | Transaction deletion | Hard delete for MVP (`DELETE /api/v1/transactions/{id}` returns `204 No Content`); permanent removal | `APPROVED` (DIV-009A) | Permanently removes row. Restore endpoint `TX-006` removed from MVP. No `deleted_at` column in V3. |
 | **DEC-015** | Authentication | Cookie-based server-side session | `APPROVED` (DIV-006) | Enforced on all transaction routes and API requests. |
+| **DEC-016** | Money lending tracker | Outside MVP | `PROPOSED` | Excluded from current scope |
+| **DEC-020** | Income planning | Planned income and actual income records | `PROPOSED` | Used in monthly budget plan |
 | **DEC-021** | Display name | Required 1–100 chars at registration | `APPROVED` | Implemented in DIV-005. |
 | **DEC-022** | Conflict response | HTTP 409 `REGISTRATION_CONFLICT` | `APPROVED` | Implemented in DIV-005. |
 | **DEC-023** | Email normalization | Trim and lowercase with `Locale.ROOT` | `APPROVED` | Implemented in DIV-005/006. |
@@ -186,15 +175,53 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 
 *Backup Branches:*
 - `backup/div-008-pre-cleanup` (SHA `fefe3b0`): Preserves full prototype including future-phase budget, dashboard, categories, and settings code.
+- `backup/unapproved-v4-prototype-20261102`: Preserves local prototype experiments and unapproved V4 migration stubs.
 
 ---
 
-## G. Status Definitions
+## G. Implementation Dependency Graph
+
+```text
+Tracker/Doc Reconciliation + Requirement Decisions
+    ├── Category & Income Source Management UI (DIV-020, DIV-021)
+    ├── Transaction Filter UI & Live E2E (DIV-024, DIV-015)
+    └── Profile & Preferences API (DIV-022)
+           ↓
+       Budget Rules + Budget API/UI (DIV-017, DIV-025)
+           ↓
+       Dashboard API/UI + Reconciliation Tests (DIV-026)
+           ↓
+       Onboarding Completion Flow (DIV-023)
+           ↓
+       Insights & Reflections (only if approved for MVP) (DIV-027, DIV-028)
+           ↓
+       Release Configuration, CI/CD, Observability, QA & Security Gates (DIV-030 to DIV-035)
+```
+
+---
+
+## H. Scope Boundaries & Superseded Requirements
+
+The following requirements and proposals are explicitly superseded or declared out of MVP scope per canonical decision records. They must not be reintroduced as active implementation tasks without formal project owner approval:
+
+1. **Transaction Soft-Delete and Restoration:** Superseded by **DEC-014**. The MVP enforces permanent hard deletion (`DELETE /api/v1/transactions/{id}` returns `204 No Content`). Soft-delete mechanisms, restore endpoints (`TX-006`), and `deleted_at` schema columns are excluded.
+2. **Automatic Sign-In After Registration:** Superseded by **DEC-025**. Registration creates an account only; the user is redirected to sign in with their credentials.
+3. **Mandatory Income Source:** Superseded by **DEC-003**. `incomeSourceId` is optional for income transactions.
+4. **Money Lending & Debt Tracking:** Defined as future work in **DEC-016**; excluded from MVP.
+5. **Bank Account Aggregation & Balances:** Excluded by **DEC-005** and **DEC-007**. Divido operates on manual entry; no bank scraping or provider integration.
+6. **Shared Household Collaboration:** Excluded by **DEC-001** and **DEC-010**. Scope is strictly limited to single-user finance.
+7. **Recurring Transactions & Subscriptions:** Excluded from MVP; manual transaction entry only.
+8. **Sinhala & Multilingual Localization:** Excluded by **DEC-009**. English is the sole supported language for the MVP.
+
+---
+
+## I. Status Definitions
 
 - `NOT_STARTED`: Work is specified or backlogged, but no implementation or active preparation has begun.
 - `PLANNED`: Requirements, scope, or design are actively being framed; prerequisites are identified.
 - `IN_PROGRESS`: Active implementation, testing, or review resolution is under way.
-- `BLOCKED`: Work cannot proceed due to an explicit external dependency or unapproved decision.
+- `BLOCKED`: Work cannot proceed due to an explicit external dependency.
 - `IN_REVIEW`: Code or documentation changes have been submitted via pull request awaiting review.
 - `COMPLETED`: Implementation satisfies acceptance criteria, required tests have passed, and changes are merged into `main`.
+- `DECISION_REQUIRED`: Work is blocked pending an explicit product, architecture, or security decision from the project owner.
 - `OUT_OF_MVP`: Formally deferred to post-MVP releases.

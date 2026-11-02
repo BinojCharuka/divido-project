@@ -12,6 +12,7 @@ import {
   formatSignedMoney,
   isValidMoneyAmount,
   normalizeMoneyInput,
+  cleanNumberString,
 } from "@/lib/formatting/money";
 
 describe("Money formatting & validation", () => {
@@ -53,6 +54,18 @@ describe("Money formatting & validation", () => {
     expect(normalizeMoneyInput("100")).toBe("100.00");
     expect(normalizeMoneyInput("2400.5")).toBe("2400.50");
     expect(normalizeMoneyInput("invalid")).toBe("0.00");
+  });
+
+  it("cleans number inputs and strips awkward leading zeros across the site", () => {
+    expect(cleanNumberString("0564")).toBe("564");
+    expect(cleanNumberString("05")).toBe("5");
+    expect(cleanNumberString("007")).toBe("7");
+    expect(cleanNumberString("0")).toBe("0");
+    expect(cleanNumberString("00")).toBe("0");
+    expect(cleanNumberString("0.5")).toBe("0.5");
+    expect(cleanNumberString("0.00")).toBe("0.00");
+    expect(cleanNumberString("150000")).toBe("150000");
+    expect(cleanNumberString("")).toBe("");
   });
 });
 

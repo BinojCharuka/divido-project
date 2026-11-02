@@ -1,17 +1,16 @@
 "use client";
 
-import { PageHeader } from "@/components/layout/PageHeader";
-import { IncomeForm } from "@/features/transactions/IncomeForm";
+import dynamic from "next/dynamic";
+
+const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
+  ssr: false,
+  loading: () => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
+      <p>Loading…</p>
+    </div>
+  ),
+});
 
 export default function NewIncomePage() {
-  return (
-    <div>
-      <PageHeader
-        title="Record Income"
-        subtitle="Log actual income received to track against your planned budget."
-        backHref="/transactions"
-      />
-      <IncomeForm />
-    </div>
-  );
+  return <FigmaApp initialPage="Transactions" />;
 }
