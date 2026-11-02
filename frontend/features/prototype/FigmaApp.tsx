@@ -83,6 +83,7 @@ import type { KakeiboGroup } from "@/types/category"
 import { useAuth } from "@/lib/auth/AuthProvider"
 import { register as authRegister } from "@/lib/auth/api"
 import { ApiError } from "@/lib/api/client"
+import { cleanNumberString } from "@/lib/formatting/money"
 
 type Page = "Dashboard" | "Transactions" | "Budget" | "Insights" | "Monthly Reflection" | "Settings" | "Expense Categories" | "Income Sources"
 const pagePaths: Record<Page, string> = {
@@ -1080,14 +1081,19 @@ export default function App({
           <span>LKR</span>
           <input
             name="amount"
-            type="number"
-            min="1"
-            max="999999999"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
             placeholder="0.00"
             defaultValue={selected ? Math.abs(selected.amount) : ""}
             required
             autoFocus
+            onFocus={(e) => e.target.select()}
+            onChange={(e) => {
+              const cleaned = cleanNumberString(e.target.value)
+              if (cleaned !== e.target.value) {
+                e.target.value = cleaned
+              }
+            }}
           />
         </div>
       </label>
@@ -2043,11 +2049,15 @@ export default function App({
                     <span>LKR</span>
                     <input
                       aria-label="Planned income"
-                      type="number"
-                      min="1"
-                      required
-                      value={draftIncome}
-                      onChange={(e) => setDraftIncome(Number(e.target.value))}
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={draftIncome === 0 ? "" : draftIncome}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const cleaned = cleanNumberString(e.target.value)
+                        setDraftIncome(cleaned === "" ? 0 : Number(cleaned))
+                      }}
                     />
                   </div>
                 </label>
@@ -2057,11 +2067,15 @@ export default function App({
                     <span>LKR</span>
                     <input
                       aria-label="Monthly savings target"
-                      type="number"
-                      min="0"
-                      required
-                      value={draftSavings}
-                      onChange={(e) => setDraftSavings(Number(e.target.value))}
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={draftSavings === 0 ? "" : draftSavings}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const cleaned = cleanNumberString(e.target.value)
+                        setDraftSavings(cleaned === "" ? 0 : Number(cleaned))
+                      }}
                     />
                   </div>
                 </label>
@@ -2112,16 +2126,24 @@ export default function App({
                       <div className="compact-money">
                         <span>LKR</span>
                         <input
-                          type="number"
-                          min="0"
-                          required
-                          value={draftPlan[group.name]}
-                          onChange={(e) =>
+                          aria-label={`${group.name} planned amount`}
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="0"
+                          value={
+                            draftPlan[group.name] === 0
+                              ? ""
+                              : draftPlan[group.name]
+                          }
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => {
+                            const cleaned = cleanNumberString(e.target.value)
                             setDraftPlan({
                               ...draftPlan,
-                              [group.name]: Number(e.target.value),
+                              [group.name]:
+                                cleaned === "" ? 0 : Number(cleaned),
                             })
-                          }
+                          }}
                         />
                       </div>
                     </label>
@@ -3622,12 +3644,16 @@ export default function App({
                     <div className="compact-money">
                       <span>LKR</span>
                       <input
-                        type="number"
-                        min="1"
-                        step="0.01"
-                        required
-                        value={draftIncome}
-                        onChange={(e) => setDraftIncome(Number(e.target.value))}
+                        aria-label="Planned monthly income"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={draftIncome === 0 ? "" : draftIncome}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => {
+                          const cleaned = cleanNumberString(e.target.value)
+                          setDraftIncome(cleaned === "" ? 0 : Number(cleaned))
+                        }}
                       />
                     </div>
                   </label>
@@ -3636,14 +3662,16 @@ export default function App({
                     <div className="compact-money">
                       <span>LKR</span>
                       <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        required
-                        value={draftSavings}
-                        onChange={(e) =>
-                          setDraftSavings(Number(e.target.value))
-                        }
+                        aria-label="Monthly savings target"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={draftSavings === 0 ? "" : draftSavings}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => {
+                          const cleaned = cleanNumberString(e.target.value)
+                          setDraftSavings(cleaned === "" ? 0 : Number(cleaned))
+                        }}
                       />
                     </div>
                   </label>
@@ -3669,17 +3697,20 @@ export default function App({
                         <span>LKR</span>
                         <input
                           aria-label={`${g.name} allocation`}
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          required
-                          value={draftPlan[g.name]}
-                          onChange={(e) =>
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="0"
+                          value={
+                            draftPlan[g.name] === 0 ? "" : draftPlan[g.name]
+                          }
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => {
+                            const cleaned = cleanNumberString(e.target.value)
                             setDraftPlan({
                               ...draftPlan,
-                              [g.name]: Number(e.target.value),
+                              [g.name]: cleaned === "" ? 0 : Number(cleaned),
                             })
-                          }
+                          }}
                         />
                       </div>
                     </label>

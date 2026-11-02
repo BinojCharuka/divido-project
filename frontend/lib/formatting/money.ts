@@ -67,3 +67,21 @@ export function normalizeMoneyInput(value: string): string {
   if (isNaN(num)) return "0.00";
   return num.toFixed(2);
 }
+
+/**
+ * Strips accidental leading zeros while preserving valid numbers, decimals (e.g. "0.5"), and single "0".
+ * Handles cases like "0564" -> "564", "00" -> "0", "007" -> "7".
+ */
+export function cleanNumberString(raw: string): string {
+  if (!raw) return "";
+  let val = raw.replace(/[^0-9.]/g, "");
+  const firstDot = val.indexOf(".");
+  if (firstDot !== -1) {
+    val = val.slice(0, firstDot + 1) + val.slice(firstDot + 1).replace(/\./g, "");
+  }
+  if (val.startsWith("0") && !val.startsWith("0.") && val.length > 1) {
+    val = val.replace(/^0+/, "") || "0";
+  }
+  return val;
+}
+

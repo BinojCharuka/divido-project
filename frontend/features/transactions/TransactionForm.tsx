@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
+import { cleanNumberString } from "@/lib/formatting/money";
 
 type Mode = "expense" | "income";
 
@@ -40,7 +41,18 @@ export function TransactionForm({ mode }: { mode: Mode }) {
           <div>
             <label htmlFor={amountId} className="text-sm font-semibold">Amount <span className="text-[#a64035]">*</span></label>
             <div className="mt-2 flex overflow-hidden rounded-xl border border-[var(--border)] bg-white focus-within:ring-2 focus-within:ring-[var(--focus)]">
-              <input id={amountId} value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" placeholder="0.00" className="min-h-12 min-w-0 flex-1 px-4 outline-none" aria-describedby={`${amountId}-hint`} />
+              <input
+                id={amountId}
+                value={amount}
+                onChange={(event) =>
+                  setAmount(cleanNumberString(event.target.value))
+                }
+                onFocus={(event) => event.target.select()}
+                inputMode="decimal"
+                placeholder="0.00"
+                className="min-h-12 min-w-0 flex-1 px-4 outline-none"
+                aria-describedby={`${amountId}-hint`}
+              />
               <span className="m-1 grid min-w-13 place-items-center rounded-lg bg-[var(--surface-muted)] px-3 text-sm font-semibold text-[var(--text-secondary)]">LKR</span>
             </div>
             <p id={`${amountId}-hint`} className="mt-2 text-sm text-[var(--text-secondary)]">Enter the amount exactly as it appears on your receipt or record.</p>
