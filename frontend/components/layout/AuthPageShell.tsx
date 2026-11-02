@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-/** Centred single-column layout with Figma styling for sign-in, sign-up and setup pages. */
+/** Centred single-column layout with refined styling for sign-in, sign-up and setup pages. */
 export function AuthPageShell({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="auth-page">
@@ -17,14 +17,11 @@ export function AuthPageShell({ title, children }: { title: string; children: Re
         </div>
       </div>
       <div className="auth-card">
-        <span className="eyebrow">A LITTLE CLARITY, EVERY DAY</span>
         <h1>{title}</h1>
-        <p>A more mindful relationship with your money starts here.</p>
         {children}
-        <div className="inline-note flex flex-col gap-2">
-          <span>Connects to your real Divido account and Spring Boot session.</span>
+        <div className="inline-note" style={{ textAlign: "center" }}>
           <Link href="/dashboard" className="text-xs text-teal-600 dark:text-teal-400 underline font-medium">
-            ← Explore Divido Demo Dashboard
+            ← Continue to Dashboard
           </Link>
         </div>
       </div>

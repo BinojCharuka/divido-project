@@ -138,28 +138,28 @@ const groups: {
   {
     name: "Needs",
     icon: House,
-    description: "The everyday essentials",
+    description: "Everyday essentials and living costs",
     planned: 120000,
     spent: 65000,
   },
   {
     name: "Wants",
     icon: Heart,
-    description: "The things you enjoy",
+    description: "Dining out, entertainment, and hobbies",
     planned: 60000,
     spent: 21000,
   },
   {
     name: "Culture",
     icon: BookOpen,
-    description: "Room to learn and grow",
+    description: "Books, education, and personal growth",
     planned: 40000,
     spent: 9100,
   },
   {
     name: "Unexpected",
     icon: Wrench,
-    description: "A little room for surprises",
+    description: "Unplanned expenses and emergencies",
     planned: 35000,
     spent: 5450,
   },
@@ -1220,19 +1220,13 @@ export default function App({
           <Brand />
         </div>
         <div className="auth-card">
-          <span className="eyebrow">A LITTLE CLARITY, EVERY DAY</span>
           <h1>
             {authMode === "Sign in"
-              ? "Sign In to Divido"
+              ? "Sign In"
               : authMode === "Recover access"
-                ? "A fresh start."
+                ? "Recover Access"
                 : "Create Account"}
           </h1>
-          <p>
-            {authMode === "Recover access"
-              ? "This prototype does not send recovery emails."
-              : "A more mindful relationship with your money starts here."}
-          </p>
           {authError && (
             <div
               style={{
@@ -1349,9 +1343,6 @@ export default function App({
               {authMode === "Sign in" ? "Create account" : "Sign in"}
             </button>
           </p>
-          <div className="inline-note">
-            Connects to your real Divido account and Spring Boot session.
-          </div>
           <div style={{ marginTop: "16px", textAlign: "center" }}>
             <button
               className="text-button"
@@ -1362,7 +1353,7 @@ export default function App({
               }}
               style={{ fontSize: "13px", color: "var(--accent-teal, #0D9488)" }}
             >
-              ← Explore Divido Demo (without signing in)
+              ← Continue to Dashboard
             </button>
           </div>
         </div>
@@ -1424,20 +1415,6 @@ export default function App({
           </button>
         </nav>
         <div className="sidebar-bottom">
-          <div className="mindful-card">
-            <span className="mindful-icon">
-              <Leaf size={20} strokeWidth={1.5} />
-            </span>
-            <strong>Small steps. Real clarity.</strong>
-            <p>
-              A little awareness today.
-              <br />
-              More room for tomorrow.
-            </p>
-            <button onClick={() => setModal("help")}>
-              The Divido approach <ArrowUpRight size={14} />
-            </button>
-          </div>
           <button className="help-link" onClick={() => setModal("help")}>
             <CircleHelp size={17} />
             Help & getting started
@@ -1553,42 +1530,19 @@ export default function App({
             }`}
           >
             <div>
-              {page !== "Dashboard" && (
-                <div className="eyebrow">
-                  {page === "Monthly Reflection"
-                    ? "A MOMENT FOR YOURSELF"
-                    : "YOUR PERSONAL SPACE"}
-                </div>
-              )}
               <h1>
                 {page === "Dashboard"
                   ? `Good morning, ${userName}`
                   : page === "Budget"
                     ? "Monthly budget"
                     : page === "Monthly Reflection"
-                      ? `Reflect on ${monthName} 2026`
+                      ? `Monthly Reflection · ${monthName} 2026`
                       : page === "Settings"
-                        ? "Settings & Preferences"
+                        ? "Settings"
                         : page === "Insights"
                           ? "Spending Insights"
                           : page}
-                {page === "Dashboard" && (
-                  <span className="title-period">.</span>
-                )}
               </h1>
-              <p>
-                {page === "Dashboard"
-                  ? "A clear view of your month. A little more peace of mind."
-                  : page === "Transactions"
-                    ? "The little details that make up your month."
-                    : page === "Budget"
-                      ? "Give every part of your month a little room."
-                      : page === "Insights"
-                        ? "A closer look at the way you spend."
-                        : page === "Monthly Reflection"
-                          ? "No right answers. Just a little space to look back and look ahead."
-                          : "Make Divido feel a little more like you."}
-              </p>
             </div>
             <div className="page-heading-actions">
               {![
@@ -1734,31 +1688,27 @@ export default function App({
                     label: "Planned income",
                     value: plannedIncome,
                     icon: Wallet,
-                    hint: "Your plan for this month",
                     className: "",
                   },
                   {
                     label: "Recorded income",
                     value: income,
                     icon: ArrowDownLeft,
-                    hint: "Income you’ve added",
                     className: "",
                   },
                   {
                     label: "Spent this month",
                     value: spent,
                     icon: ArrowUpRight,
-                    hint: "Across all four groups",
                     className: "",
                   },
                   {
                     label: "Savings target",
                     value: savings,
                     icon: Target,
-                    hint: "A little for your future",
                     className: "savings-stat",
                   },
-                ].map(({ label, value, icon: Icon, hint, className }) => (
+                ].map(({ label, value, icon: Icon, className }) => (
                   <div className={`summary-card ${className}`} key={label}>
                     <div className="summary-label">
                       {label}
@@ -1771,10 +1721,6 @@ export default function App({
                         maximumFractionDigits: 2,
                       })}
                     </div>
-                    <div className="summary-hint">
-                      {className && <span className="tiny-dot" />}
-                      {hint}
-                    </div>
                   </div>
                 ))}
               </div>
@@ -1782,10 +1728,9 @@ export default function App({
                 <div className="section-heading">
                   <div>
                     <h2>
-                      Your budget{" "}
+                      Budget Breakdown{" "}
                       <span className="subtle-tag">{monthName}</span>
                     </h2>
-                    <p>A place for what you need, and what matters to you.</p>
                   </div>
                   <button
                     className="text-button"
@@ -1811,7 +1756,6 @@ export default function App({
                   <div className="section-heading panel-heading">
                     <div>
                       <h2>Recent transactions</h2>
-                      <p>A few moments from your month.</p>
                     </div>
                     <button
                       className="text-button"
@@ -1831,10 +1775,6 @@ export default function App({
                     onAdd={() => setModal("add")}
                   />
                   <div className="recent-footer">
-                    <span>
-                      <ShieldCheck size={14} /> Manually recorded. Always in
-                      your control.
-                    </span>
                     <button
                       className="text-button"
                       onClick={() => openAdd("income")}
@@ -1847,7 +1787,7 @@ export default function App({
                 <div className="dashboard-side">
                   <section className="money-summary">
                     <div className="money-summary-heading">
-                      <span>Room for the rest of your month</span>
+                      <span>Remaining budget</span>
                       <span className="dark-icon">
                         <Wallet size={18} strokeWidth={1.5} />
                       </span>
@@ -1857,8 +1797,8 @@ export default function App({
                     </div>
                     <div className="remaining-label">
                       {remaining >= 0
-                        ? "Budget remaining"
-                        : "Over your spending plan"}
+                        ? "Remaining to spend"
+                        : "Over budget"}
                       <span>{spendingPercent}% used</span>
                     </div>
                     <div className="dark-progress">
@@ -1886,9 +1826,6 @@ export default function App({
                         <strong>{money(spent)}</strong>
                       </div>
                     </div>
-                    <div className="money-summary-note">
-                      Based on your plan, not a bank balance.
-                    </div>
                   </section>
                 </div>
               </div>
@@ -1898,27 +1835,26 @@ export default function App({
                     <Sparkles size={21} strokeWidth={1.5} />
                   </span>
                   <div>
-                    <div className="small-overline">A LITTLE PERSPECTIVE</div>
                     <h3>
                       {isSampleMonth
-                        ? "Your everyday essentials, in focus."
-                        : "A fresh month. A fresh perspective."}
-                    </h3>
-                    <p>
-                      {isSampleMonth
-                        ? `Needs make up ${
+                        ? `Needs: ${
                             spent
                               ? Math.round((groupSpent("Needs") / spent) * 100)
                               : 0
-                          }% of your recorded spending this month.`
-                        : "Record expenses to start understanding your spending."}
+                          }% of spending`
+                        : "Spending Breakdown"}
+                    </h3>
+                    <p>
+                      {isSampleMonth
+                        ? `Essential needs account for LKR ${groupSpent("Needs").toLocaleString()} of ${monthName} spending.`
+                        : "Record expenses to start tracking group breakdowns."}
                     </p>
                   </div>
                   <button
                     className="text-button"
                     onClick={() => navigate("Insights")}
                   >
-                    Explore insights <ArrowRight size={15} />
+                    View insights <ArrowRight size={15} />
                   </button>
                 </section>
                 {!reflectionHidden && (
@@ -1929,26 +1865,21 @@ export default function App({
                     <div>
                       <h3>
                         {reflectionSaved
-                          ? "A little reflection goes a long way."
-                          : `How did ${monthName} feel?`}
+                          ? `Reflection saved for ${monthName}`
+                          : `Monthly reflection for ${monthName}`}
                       </h3>
-                      <p>
-                        {reflectionSaved
-                          ? "Your reflection is saved for this session."
-                          : "Look back, learn a little, and look ahead."}
-                      </p>
                       <button
                         className="text-button"
                         onClick={() => navigate("Monthly Reflection")}
                       >
-                        {reflectionSaved ? "View reflection" : "Take a moment"}
+                        {reflectionSaved ? "View reflection" : "Start reflection"}
                         <ArrowRight size={14} />
                       </button>
                     </div>
                     <button
                       className="dismiss-button"
                       onClick={() => setReflectionHidden(true)}
-                      aria-label="Maybe later"
+                      aria-label="Dismiss banner"
                     >
                       <X size={14} />
                     </button>
@@ -2058,10 +1989,7 @@ export default function App({
                   full
                 />
                 <div className="list-footer">
-                  <p>
-                    Recent sample records are shown here; monthly totals include
-                    earlier sample activity.
-                  </p>
+                  <div />
                   <Button
                     onClick={() => {
                       const csv = [
@@ -2145,9 +2073,6 @@ export default function App({
                       onChange={(e) => setDraftSavings(Number(e.target.value))}
                     />
                   </div>
-                  <span className="field-help">
-                    A target, not an automatic transfer.
-                  </span>
                 </label>
                 <div className="budget-unallocated">
                   <span>Unallocated</span>
@@ -2163,17 +2088,14 @@ export default function App({
                       draftSavings -
                       Object.values(draftPlan).reduce((a, b) => a + b, 0) >=
                     0
-                      ? "A little breathing room in your plan"
-                      : "Above your planned income"}
+                      ? "Remaining to allocate"
+                      : "Over planned income"}
                   </span>
                 </div>
               </div>
               <div className="section-heading">
                 <div>
-                  <h2>A little room for everything</h2>
-                  <p>
-                    Your four Kakeibo groups. Adjust them to fit your month.
-                  </p>
+                  <h2>Group Allocations</h2>
                 </div>
                 <span className="subtle-tag">Monthly allocations</span>
               </div>
@@ -2330,13 +2252,6 @@ export default function App({
                   days)
                 </span>
               </div>
-              <div className="inline-note insights-disclaimer">
-                <Sparkles size={17} />
-                <span>
-                  Thoughtful observations, not financial advice. These insights
-                  use illustrative sample history.
-                </span>
-              </div>
               {!isSampleMonth ? (
                 <section className="panel empty-state">
                   <ChartNoAxesCombined size={36} />
@@ -2364,8 +2279,7 @@ export default function App({
                       <span className="group-icon">
                         <Utensils size={21} />
                       </span>
-                      <span className="small-overline">SPENDING PATTERNS</span>
-                      <h3>A little more on dining</h3>
+                      <h3>Dining Spending (+18%)</h3>
                       <GroupBadge group="Wants" />
                       <p>
                         Dining spending is 18% higher than the previous
@@ -2383,10 +2297,7 @@ export default function App({
                       <span className="group-icon">
                         <BookOpen size={21} />
                       </span>
-                      <span className="small-overline">
-                        WHAT MATTERS TO YOU
-                      </span>
-                      <h3>Making space for learning</h3>
+                      <h3>Culture & Learning</h3>
                       <GroupBadge group="Culture" />
                       <p>
                         You’ve recorded {money(groupSpent("Culture"))} for
@@ -2404,8 +2315,7 @@ export default function App({
                       <span className="group-icon">
                         <Wrench size={21} />
                       </span>
-                      <span className="small-overline">YOUR MONTHLY PLAN</span>
-                      <h3>Room for the unexpected</h3>
+                      <h3>Unexpected Allocation</h3>
                       <GroupBadge group="Unexpected" />
                       <p>
                         Unexpected expenses total{" "}
@@ -2427,7 +2337,6 @@ export default function App({
                       <div className="section-heading">
                         <div>
                           <h2>Spending over time</h2>
-                          <p>A wider view of your everyday spending.</p>
                         </div>
                         <span className="subtle-tag">LKR</span>
                       </div>
@@ -2598,14 +2507,9 @@ export default function App({
           {page === "Monthly Reflection" && (
             <div className="reflection-page">
               <div className="reflection-intro">
-                <span className="large-leaf">
-                  <Leaf size={30} strokeWidth={1.3} />
-                </span>
-                <h2>A month of small moments.</h2>
+                <h2>End-of-Month Review</h2>
                 <p>
-                  Numbers tell part of the story. This is a space for the rest.
-                  <br />
-                  Your reflection is just for you, and always optional.
+                  Review your spending patterns and intentions for the upcoming month.
                 </p>
               </div>
               <form
@@ -2650,9 +2554,9 @@ export default function App({
                         }
                         placeholder={
                           [
-                            "A small win, a thoughtful purchase, a little breathing room…",
-                            "Something you hadn’t planned for, or a pattern you noticed…",
-                            "One small thing you’d like to try…",
+                            "What went well with your budget this month...",
+                            "What unexpected expenses or challenges arose...",
+                            "What adjustments would you like to make next month...",
                           ][i]
                         }
                         rows={4}
@@ -2677,11 +2581,6 @@ export default function App({
                   </Button>
                 </div>
               </form>
-              <div className="inline-note">
-                <ShieldCheck size={16} />
-                In this demo, reflections stay in memory only and reset on
-                refresh.
-              </div>
             </div>
           )}
 
@@ -2694,9 +2593,8 @@ export default function App({
                   </span>
                   <div>
                     <h2>Account profile</h2>
-                    <p>Your personal space, at a glance.</p>
                   </div>
-                  <span className="status-badge">Completed · Demo</span>
+                  <span className="status-badge">Completed</span>
                 </div>
                 <div className="account-details">
                   <div>
@@ -2704,12 +2602,12 @@ export default function App({
                     <strong>{email}</strong>
                   </div>
                   <div>
-                    <span>Demo account ID</span>
-                    <code>6e0c8a24-8d9f-4b31-a256-2d47b1d069ab</code>
+                    <span>Account name</span>
+                    <strong>{userName}</strong>
                   </div>
                   <div>
-                    <span>Onboarding status</span>
-                    <strong>Completed</strong>
+                    <span>Status</span>
+                    <strong>Active</strong>
                   </div>
                 </div>
                 <details className="profile-details">
@@ -2755,7 +2653,6 @@ export default function App({
                 <div className="section-heading">
                   <div>
                     <h2>Financial management</h2>
-                    <p>A little organization for your everyday records.</p>
                   </div>
                 </div>
                 <div className="management-links">
@@ -2783,7 +2680,7 @@ export default function App({
                     </span>
                     <div>
                       <h3>Income sources</h3>
-                      <p>Labels for the money you manually record.</p>
+                      <p>Labels for recorded income transactions.</p>
                       <span>
                         Manage income sources <ArrowRight size={14} />
                       </span>
@@ -2798,7 +2695,6 @@ export default function App({
                   </span>
                   <div>
                     <h2>Regional preferences</h2>
-                    <p>A familiar way to read your financial information.</p>
                   </div>
                 </div>
                 <div className="regional-tiles">
@@ -2822,7 +2718,6 @@ export default function App({
                   </span>
                   <div>
                     <h2>Appearance</h2>
-                    <p>Choose a look that feels right. Saved on this device.</p>
                   </div>
                 </div>
                 <div className="theme-options">
@@ -2846,23 +2741,9 @@ export default function App({
                   ))}
                 </div>
               </section>
-              <section className="panel settings-block demo-block">
-                <ShieldCheck size={23} />
-                <div>
-                  <h3>A safe space to explore</h3>
-                  <p>
-                    This is a session-only prototype. No real account or bank
-                    connection is in use.
-                  </p>
-                </div>
-                <Button onClick={() => setOnboardStep(0)}>
-                  Explore setup <ArrowRight size={15} />
-                </Button>
-              </section>
               <section className="panel settings-block data-clear-block">
                 <div className="settings-block-heading">
                   <h2>Data Management</h2>
-                  <p>Reset your dashboard, clear all income and expenses, or start a new personal financial tracker.</p>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "12px" }}>
                   <div
@@ -2880,12 +2761,12 @@ export default function App({
                   >
                     <div>
                       <strong style={{ display: "block", color: "var(--ink)", fontSize: "14px" }}>
-                        {dataCleared ? "Clean Dashboard Active" : "Sample Demo Records Active"}
+                        {dataCleared ? "Empty Dashboard" : "Demo Data"}
                       </strong>
                       <span style={{ fontSize: "13px", color: "var(--muted)" }}>
                         {dataCleared
-                          ? `Currently running on an empty dashboard (${transactions.length} personal transactions recorded).`
-                          : "Currently showing pre-populated demo income and expense transactions."}
+                          ? `${transactions.length} personal transactions recorded.`
+                          : "Showing sample income and expense transactions."}
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -2910,7 +2791,7 @@ export default function App({
                         onClick={() => setModal("clear-data")}
                       >
                         <Trash2 size={16} />
-                        Clear all data & start new dashboard
+                        Clear data & restart
                       </Button>
                     </div>
                   </div>
@@ -2918,8 +2799,7 @@ export default function App({
               </section>
               <section className="panel settings-block danger-zone">
                 <div>
-                  <h2>Danger zone</h2>
-                  <p>Leave this demo and return to the sign-in preview.</p>
+                  <h2>Account session</h2>
                 </div>
                 <Button
                   variant="destructive"
@@ -3115,11 +2995,10 @@ export default function App({
 
           <footer className="page-footer">
             <span>
-              <span className="footer-brand">divido.</span> A little awareness.
-              A little more possibility.
+              <span className="footer-brand">divido.</span> Personal Budgeting
             </span>
             <span>
-              Thoughtfully recorded, by you.
+              Kakeibo Method
               <span className="footer-dot" />
               Demo workspace
             </span>
@@ -3185,7 +3064,6 @@ export default function App({
                 ? "Record Income"
                 : "Record an Expense"
           }
-          subtitle="A small record. A clearer picture."
           onClose={() => {
             setModal(null)
             setSelected(null)
@@ -3204,8 +3082,7 @@ export default function App({
       {modal === "add" && (
         <Modal
           className="quick-add-modal"
-          title="What would you like to add?"
-          subtitle="Make a little more sense of your month."
+          title="Add Transaction"
           onClose={() => setModal(null)}
         >
           <div className="add-options">
@@ -3215,7 +3092,6 @@ export default function App({
               </span>
               <div>
                 <strong>Add Expense</strong>
-                <p>Record something you spent.</p>
               </div>
               <ChevronRight size={19} />
             </button>
@@ -3225,7 +3101,6 @@ export default function App({
               </span>
               <div>
                 <strong>Add Income</strong>
-                <p>Record money you received.</p>
               </div>
               <ChevronRight size={19} />
             </button>
@@ -3323,15 +3198,14 @@ export default function App({
       )}
       {modal === "notifications" && (
         <Modal
-          title="Your updates"
-          subtitle="Just the useful things."
+          title="Notifications"
           onClose={() => setModal(null)}
         >
           <div className="notification-item">
             <BookOpen size={22} />
             <div>
-              <strong>A moment to reflect</strong>
-              <p>Your October reflection is ready whenever you are. No rush.</p>
+              <strong>Monthly Reflection</strong>
+              <p>Your October reflection is ready to review.</p>
               <button
                 className="text-button"
                 onClick={() => {
@@ -3339,50 +3213,46 @@ export default function App({
                   navigate("Monthly Reflection")
                 }}
               >
-                Take a moment <ArrowRight size={15} />
+                Review reflection <ArrowRight size={15} />
               </button>
             </div>
           </div>
           <div className="notification-item">
             <CheckCircle2 size={22} />
             <div>
-              <strong>Your space is ready</strong>
-              <p>
-                Welcome to the Divido demo. All financial information is
-                manually recorded sample data.
-              </p>
+              <strong>Workspace Active</strong>
+              <p>Welcome to Divido. Your financial dashboard is ready.</p>
             </div>
           </div>
         </Modal>
       )}
       {modal === "help" && (
         <Modal
-          title="A little awareness. Real clarity."
-          subtitle="Meet a more mindful way to manage money."
+          title="How Divido Works"
           onClose={() => setModal(null)}
         >
           <div className="help-content">
             <Leaf size={38} strokeWidth={1.4} />
             <p>
-              Divido is inspired by Kakeibo: a thoughtful practice of planning,
-              recording, and reflecting on how you use your money.
+              Divido applies the Kakeibo method to help you plan, track, and
+              reflect on your spending across four core groups.
             </p>
             <div className="help-steps">
               {[
                 [
-                  "01",
-                  "Make a little room",
-                  "Plan your income, savings target, and four spending groups.",
+                  "1",
+                  "Plan your budget",
+                  "Set planned income, savings target, and allocations across the four Kakeibo groups.",
                 ],
                 [
-                  "02",
-                  "Notice the everyday",
-                  "Manually add income and expenses as you go.",
+                  "2",
+                  "Record activity",
+                  "Log expenses and income as transactions occur throughout the month.",
                 ],
                 [
-                  "03",
-                  "Look back with kindness",
-                  "Explore patterns and reflect on what matters to you.",
+                  "3",
+                  "Reflect monthly",
+                  "Review spending patterns and adjust intentions for the upcoming month.",
                 ],
               ].map(([n, t, d]) => (
                 <div key={n}>
@@ -3394,10 +3264,6 @@ export default function App({
                 </div>
               ))}
             </div>
-            <div className="inline-note">
-              No connected accounts. No transfers. No judgment. This is an
-              interactive, session-only prototype.
-            </div>
             <Button
               variant="primary"
               onClick={() => {
@@ -3405,7 +3271,7 @@ export default function App({
                 setOnboardStep(0)
               }}
             >
-              Explore the setup
+              Restart Onboarding
               <ArrowRight size={16} />
             </Button>
           </div>
@@ -3413,18 +3279,17 @@ export default function App({
       )}
       {modal === "insight" && (
         <Modal
-          title="A closer look at your spending"
-          subtitle={`${period} · Illustrative sample history`}
+          title="Spending Insight"
+          subtitle={period}
           onClose={() => setModal(null)}
         >
           <div className="insight-detail">
             <span className="large-leaf">
               <ChartNoAxesCombined size={28} />
             </span>
-            <h3>Small patterns, a clearer perspective.</h3>
             <p>
-              Your dining total increased from LKR 8,000 to LKR 9,440 in the
-              sample comparison period — a difference of LKR 1,440, or 18%.
+              Your dining total increased from LKR 8,000 to LKR 9,440 in this
+              period — a difference of LKR 1,440, or 18%.
             </p>
             <div className="insight-comparison">
               <div>
@@ -3437,10 +3302,6 @@ export default function App({
                 <strong>LKR 9,440</strong>
               </div>
             </div>
-            <p className="muted">
-              Based on 23 illustrative dining records. This is an observation,
-              not a recommendation. Real insights require recorded history.
-            </p>
             <Button
               variant="primary"
               onClick={() => {
@@ -3449,7 +3310,7 @@ export default function App({
                 setSearch("Dining")
               }}
             >
-              Explore transactions <ArrowRight size={16} />
+              View Transactions <ArrowRight size={16} />
             </Button>
           </div>
         </Modal>
@@ -3457,7 +3318,6 @@ export default function App({
       {modal === "category" && (
         <Modal
           title={editingCategory ? "Edit category" : "Add category"}
-          subtitle="Every expense has a place."
           onClose={() => setModal(null)}
         >
           <form
@@ -3548,7 +3408,6 @@ export default function App({
       {modal === "source" && (
         <Modal
           title={editingSource ? "Edit income source" : "Add income source"}
-          subtitle="A simple label, not a connected account."
           onClose={() => setModal(null)}
         >
           <form
@@ -3630,8 +3489,7 @@ export default function App({
       )}
       {modal === "clear-data" && (
         <Modal
-          title="Clear all data and start new dashboard?"
-          subtitle="Reset all income and expenses to start fresh."
+          title="Clear all data?"
           onClose={() => setModal(null)}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -3682,11 +3540,10 @@ export default function App({
       {modal === "signout" && (
         <Modal
           title="Sign out of Divido?"
-          subtitle="You can sign back in at any time."
           onClose={() => setModal(null)}
         >
           <p className="confirm-content">
-            This will end your current session. You will be redirected to the sign-in screen.
+            Are you sure you want to end your current session?
           </p>
           <div className="modal-actions">
             <Button onClick={() => setModal(null)}>Stay here</Button>
@@ -3706,9 +3563,9 @@ export default function App({
           title={
             [
               "Welcome to Divido",
-              "Income & savings target",
-              "Four groups. A thoughtful plan.",
-              "Review your monthly plan",
+              "Income & Savings Target",
+              "Group Allocations",
+              "Review Monthly Plan",
             ][onboardStep]
           }
           subtitle={`Step ${onboardStep + 1} of 4 · ${email}`}
@@ -3738,14 +3595,9 @@ export default function App({
             <div className="onboarding-content">
               {onboardStep === 0 && (
                 <>
-                  <h3>
-                    A little awareness.
-                    <br />A little more possibility.
-                  </h3>
+                  <h3>Kakeibo Budgeting</h3>
                   <p>
-                    Inspired by Kakeibo, Divido helps you plan, record, and
-                    reflect on your money — one month at a time, without
-                    judgment.
+                    Plan, record, and reflect on your finances across four core groups.
                   </p>
                   <div className="onboarding-intro-grid">
                     {groups.map((g) => (
@@ -3768,8 +3620,7 @@ export default function App({
               {onboardStep === 1 && (
                 <>
                   <p>
-                    Start with an estimate of what’s coming in, and what you’d
-                    like to set aside.
+                    Set your planned monthly income and savings target.
                   </p>
                   <label className="field">
                     Planned monthly income
@@ -3800,9 +3651,6 @@ export default function App({
                         }
                       />
                     </div>
-                    <span className="field-help">
-                      This is a target, not an automatic transfer.
-                    </span>
                   </label>
                   <div className="allocation-summary">
                     <span>Remaining to allocate across expenses</span>
@@ -3816,8 +3664,7 @@ export default function App({
               {onboardStep === 2 && (
                 <>
                   <p>
-                    Give the essentials, the extras, and life’s surprises a
-                    little space.
+                    Allocate your budget across the four Kakeibo spending groups.
                   </p>
                   {groups.map((g) => (
                     <label className="field" key={g.name}>
@@ -3857,8 +3704,7 @@ export default function App({
               {onboardStep === 3 && (
                 <>
                   <p>
-                    A little structure. A little breathing room. You can adjust
-                    this plan any time.
+                    Review your monthly plan allocations before completing setup.
                   </p>
                   <dl className="detail-list">
                     {[
