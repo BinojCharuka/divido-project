@@ -1,13 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
-
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => <DividoLoadingScreen message="Loading Categories…" />,
-});
+import { PageHeader } from "@/components/layout/PageHeader";
+import { CategoryManager } from "@/features/categories/CategoryManager";
 
 export default function CategoriesPage() {
-  return <FigmaApp initialPage="Expense Categories" />;
+  return (
+    <div className="max-w-3xl mx-auto">
+      <PageHeader title="Categories" subtitle="Expense categories grouped by Kakeibo: Needs, Wants, Culture and Unexpected." />
+      <CategoryManager />
+    </div>
+  );
 }

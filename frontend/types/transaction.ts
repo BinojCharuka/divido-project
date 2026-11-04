@@ -42,13 +42,18 @@ export interface TransactionCreate {
   paymentMethod?: string;
 }
 
+/**
+ * PATCH body. Omitted fields are left unchanged; `null` clears an optional field
+ * (income source, description, payment method), matching the backend's
+ * presence-tracking update semantics.
+ */
 export interface TransactionUpdate {
   amount?: string;
   date?: string;
   categoryId?: string;
-  incomeSourceId?: string;
-  description?: string;
-  paymentMethod?: string;
+  incomeSourceId?: string | null;
+  description?: string | null;
+  paymentMethod?: string | null;
 }
 
 export interface TransactionPage {

@@ -14,11 +14,14 @@ function OnboardingPlaceholder() {
         You&apos;re signed in as <span className="font-medium text-zinc-900 dark:text-zinc-100">{user?.email}</span>.
       </p>
       <div className="flex flex-col gap-2 pt-2">
-        <Link href="/dashboard" className="button button-primary w-full text-center py-2.5 rounded-lg font-medium">
-          Open Divido Dashboard →
+        <Link href="/transactions" className="button button-primary w-full text-center py-2.5 rounded-lg font-medium">
+          Go to Transactions →
         </Link>
-        <Link href="/transactions" className="text-sm font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 underline underline-offset-4 text-center">
-          Go to Transactions
+        <Link href="/categories" className="text-sm font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 underline underline-offset-4 text-center">
+          Manage categories
+        </Link>
+        <Link href="/income-sources" className="text-sm font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 underline underline-offset-4 text-center">
+          Manage income sources
         </Link>
       </div>
       <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">

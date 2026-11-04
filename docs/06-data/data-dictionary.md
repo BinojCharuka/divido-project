@@ -80,31 +80,28 @@ Do not add duplicate fields if the existing schema already models them under dif
 
 *Note on deletion:* No `deleted_at` column is present. `DEC-014` approved hard delete (`DELETE /api/v1/transactions/{id}` permanently deletes the row and returns `204 No Content`). Foreign keys to categories and income sources use `ON DELETE RESTRICT` to preserve historical financial integrity.
 
-## 6. `monthly_plans` — proposed
+## 6. `monthly_budgets` — IMPLEMENTED (Flyway `V4__monthly_budgets.sql`, DIV-025)
 
-| Logical field | Meaning | Candidate type | Rules / notes |
+One row per user per calendar month (DEC-028). Holds the plan and all four group allocations in one row, replacing the earlier proposal of separate `monthly_plans` and `monthly_group_budgets` tables.
+
+| Column | Meaning | Type | Rules / notes |
 |---|---|---|---|
-| `id` | Plan identifier | UUID | PK |
-| `user_id` | Owner | FK | Required |
-| `month` | Calendar month | `DATE` first-of-month or integer year/month | Choose one representation |
-| `planned_income` | Expected income | `NUMERIC(p,s)` | Scale/max TBD |
-| `savings_target` | Intended savings | `NUMERIC(p,s)` | Not an actual transfer |
-| `created_at`, `updated_at` | Audit timestamps | Timestamp | Server-generated |
-| `version` | Optimistic-lock field | Integer | Optional; useful if concurrent edits matter |
+| `id` | Row identifier | `UUID` | PK, `gen_random_uuid()` |
+| `user_id` | Owner | `UUID` | `NOT NULL`, FK `app_users(id) ON DELETE CASCADE` |
+| `budget_month` | Calendar month | `DATE` | First day of the month; `CHECK (EXTRACT(DAY FROM budget_month) = 1)` |
+| `planned_income` | Expected income (planned, not recorded) | `NUMERIC(12,2)` | `NOT NULL`, `CHECK >= 0` |
+| `savings_target` | Intended savings | `NUMERIC(12,2)` | `NOT NULL`, `CHECK >= 0`; not a transfer or balance |
+| `needs_allocation` | NEEDS group budget | `NUMERIC(12,2)` | `NOT NULL`, `CHECK >= 0` |
+| `wants_allocation` | WANTS group budget | `NUMERIC(12,2)` | `NOT NULL`, `CHECK >= 0` |
+| `culture_allocation` | CULTURE group budget | `NUMERIC(12,2)` | `NOT NULL`, `CHECK >= 0` |
+| `unexpected_allocation` | UNEXPECTED group budget | `NUMERIC(12,2)` | `NOT NULL`, `CHECK >= 0` |
+| `created_at`, `updated_at` | Audit timestamps | `TIMESTAMPTZ` | Database defaults; `updated_at` set by the upsert |
 
-Proposed uniqueness: one plan per user/month. If approved, enforce with a database unique constraint.
+Constraint `uq_monthly_budgets_user_month UNIQUE (user_id, budget_month)`; its index serves the per-user lookup. Writes use `INSERT … ON CONFLICT ON CONSTRAINT uq_monthly_budgets_user_month DO UPDATE` (last write wins; no version column). Derived figures (totals, over-allocation) are not stored; `BudgetCalculator` computes them.
 
-## 7. `monthly_group_budgets` — proposed
+## 7. (removed) `monthly_group_budgets`
 
-| Logical field | Meaning | Candidate type | Rules / notes |
-|---|---|---|---|
-| `id` | Row identifier | UUID | PK, or composite key if chosen |
-| `monthly_plan_id` | Parent plan | FK | Required |
-| `group_key` | One of four Kakeibo groups | Enum/text | Required |
-| `allocated_amount` | Planned allocation | `NUMERIC(p,s)` | Scale/max TBD |
-| `created_at`, `updated_at` | Audit timestamps | Timestamp | Optional per convention |
-
-Proposed uniqueness: `(monthly_plan_id, group_key)` so one group cannot have duplicate allocation rows.
+Superseded by the four allocation columns in `monthly_budgets` (DIV-025).
 
 ## 8. `user_preferences` — proposed if separate table
 

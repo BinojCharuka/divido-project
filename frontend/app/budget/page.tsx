@@ -1,13 +1,18 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
+import { Suspense } from "react";
+import { BudgetPlanner } from "@/features/budget/BudgetPlanner";
+import { useMonthParam } from "@/lib/useMonthParam";
 
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => <DividoLoadingScreen message="Loading Budget…" />,
-});
+function BudgetContent() {
+  const [month, setMonth] = useMonthParam();
+  return <BudgetPlanner month={month} onMonthChange={setMonth} />;
+}
 
 export default function BudgetPage() {
-  return <FigmaApp initialPage="Budget" />;
+  return (
+    <Suspense fallback={<p role="status">Loading budget…</p>}>
+      <BudgetContent />
+    </Suspense>
+  );
 }

@@ -1,13 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
-
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => <DividoLoadingScreen message="Loading Insights…" />,
-});
+import { NotYetAvailablePage } from "@/components/layout/NotYetAvailablePage";
 
 export default function InsightsPage() {
-  return <FigmaApp initialPage="Insights" />;
+  return <NotYetAvailablePage title="Insights" phase="Phase 04" />;
 }

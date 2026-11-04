@@ -4,7 +4,7 @@
 
 ## 1. Existing database facts to verify
 
-Project context indicates PostgreSQL already contains `app_users`, `categories`, and `flyway_schema_history`, and that `V1__init.sql` has been applied. Verify the actual schema and migration status before making changes. Do not infer column names or constraints from these table names alone.
+Read-only inspection of Neon production (`divido` / `production` / `neondb`) on 2026-11-04 confirmed `app_users`, `categories`, `income_sources`, `transactions`, `budgets`, `monthly_reflections`, and `flyway_schema_history`. Production Flyway V4 is `V4__budgets_reflections_profile.sql` (checksum `50311058`), which differs from the current repository's `V4__monthly_budgets.sql`. The production legacy objects and the one existing reflection row must be preserved. See [`Neon Flyway V4 drift runbook`](../09-release-operations/neon-flyway-v4-drift.md).
 
 ## 2. Proposed logical entities
 
@@ -15,8 +15,9 @@ Project context indicates PostgreSQL already contains `app_users`, `categories`,
 | `categories` | Default and/or custom expense categories and group mapping | Custom categories belong to a user; exact default-category ownership model TBD |
 | `income_sources` (candidate) | Labels used to plan/record income | Belongs to a user |
 | `transactions` (candidate) | Recorded income and expenses | Belongs to a user; expense may reference category; income may reference source |
-| `monthly_plans` (candidate) | Per-month planned income and savings target | Belongs to a user; one per month is proposed |
-| `monthly_group_budgets` (candidate) | Allocation per Kakeibo group | Belongs to a monthly plan |
+| `monthly_budgets` (repository V4; production compatibility V5 pending) | Per-month planned income, savings target and the four group allocations | Belongs to a user; `UNIQUE (user_id, budget_month)` |
+| `budgets` (legacy production V4) | Earlier monthly budget representation | Existing production table; do not drop during Phase 03 migration repair |
+| `monthly_reflections` (legacy production V4) | Earlier reflection storage | Existing production table with retained data; not part of Phase 03 changes |
 | `reflections` (candidate) | Optional month-specific reflection answers | Belongs to a user and month |
 | `flyway_schema_history` | Flyway-managed migration metadata | Managed by Flyway |
 
@@ -30,8 +31,7 @@ app_users
   ├── custom categories
   ├── income_sources
   ├── transactions
-  ├── monthly_plans
-  │     └── monthly_group_budgets (four groups proposed)
+  ├── monthly_budgets (one per month; four allocation columns)
   └── reflections (if approved)
 
 transactions ── optional category reference

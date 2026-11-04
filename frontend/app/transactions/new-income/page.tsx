@@ -1,13 +1,17 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
-
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => <DividoLoadingScreen message="Loading Income Editor…" />,
-});
+import { PageHeader } from "@/components/layout/PageHeader";
+import { IncomeForm } from "@/features/transactions/IncomeForm";
 
 export default function NewIncomePage() {
-  return <FigmaApp initialPage="Transactions" />;
+  return (
+    <div>
+      <PageHeader
+        title="Record Income"
+        subtitle="Log actual income received to track against your planned budget."
+        backHref="/transactions"
+      />
+      <IncomeForm />
+    </div>
+  );
 }

@@ -1,15 +1,14 @@
-"use client";
+import { notFound } from "next/navigation";
+import { PrototypeLoader } from "./PrototypeLoader";
 
-import dynamic from "next/dynamic";
-import "@/styles/figma-styles.css";
-import "@/styles/design-system.css";
-import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
-
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => <DividoLoadingScreen message="Loading Divido Prototype…" />,
-});
-
+/**
+ * Design reference only. The Figma prototype keeps sample and browser-stored data
+ * and calls APIs that do not exist yet, so it must never act as the financial data
+ * layer. It is served in development, or when NEXT_PUBLIC_ENABLE_PROTOTYPE=true.
+ */
 export default function PrototypePage() {
-  return <FigmaApp />;
+  if (process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_ENABLE_PROTOTYPE !== "true") {
+    notFound();
+  }
+  return <PrototypeLoader />;
 }

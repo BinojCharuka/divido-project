@@ -3,10 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ExpenseForm } from "@/features/transactions/ExpenseForm";
 import { IncomeForm } from "@/features/transactions/IncomeForm";
-import { TransactionEditForm } from "@/features/transactions/TransactionEditForm";
+import { buildTransactionPatch, TransactionEditForm } from "@/features/transactions/TransactionEditForm";
 import { TransactionFilters } from "@/features/transactions/TransactionFilters";
 import { TransactionRow } from "@/features/transactions/TransactionRow";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
+import { getCurrentMonth } from "@/lib/formatting/dates";
 import type { Transaction } from "@/types/transaction";
 import { installFakeBackend } from "./fakeBackend";
 
@@ -287,26 +288,120 @@ describe("TransactionRow component", () => {
 });
 
 describe("TransactionFilters component", () => {
-  it("allows switching tabs and month", async () => {
-    const user = userEvent.setup();
-    const onTypeChange = vi.fn();
-    const onMonthChange = vi.fn();
+  const categories = [
+    { id: "cat-1", name: "Groceries", group: "NEEDS" as const, isDefault: true, active: true },
+    { id: "cat-c1", name: "Old hobby", group: "WANTS" as const, isDefault: false, active: false },
+  ];
+  const incomeSources = [{ id: "src-1", name: "Monthly Salary", active: true }];
 
+  it("switches type tabs", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<TransactionFilters values={{ month: "2026-10" }} onChange={onChange} />);
+
+    await user.click(screen.getByRole("tab", { name: "Expenses" }));
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ type: "EXPENSE" }));
+
+    await user.click(screen.getByRole("tab", { name: "Income" }));
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ type: "INCOME" }));
+  });
+
+  it("offers category and income source filters, including inactive categories", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
     render(
       <TransactionFilters
-        currentMonth="2026-10"
-        onTypeChange={onTypeChange}
-        onMonthChange={onMonthChange}
+        values={{ month: "2026-10" }}
+        onChange={onChange}
+        categories={categories}
+        incomeSources={incomeSources}
       />,
     );
 
-    const expenseTab = screen.getByRole("tab", { name: "Expenses" });
-    await user.click(expenseTab);
-    expect(onTypeChange).toHaveBeenCalledWith("EXPENSE");
+    expect(screen.getByRole("option", { name: "Old hobby (inactive)" })).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Category:"), "cat-1");
+    expect(onChange).toHaveBeenLastCalledWith({ month: "2026-10", categoryId: "cat-1" });
 
-    const incomeTab = screen.getByRole("tab", { name: "Income" });
-    await user.click(incomeTab);
-    expect(onTypeChange).toHaveBeenCalledWith("INCOME");
+    await user.selectOptions(screen.getByLabelText("Income source:"), "src-1");
+    expect(onChange).toHaveBeenLastCalledWith({ month: "2026-10", incomeSourceId: "src-1" });
+  });
+
+  it("hides the category filter for income and drops a category when switching to income", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <TransactionFilters values={{ month: "2026-10", type: "EXPENSE", categoryId: "cat-1" }} onChange={onChange} categories={categories} />,
+    );
+    expect(screen.queryByLabelText("Income source:")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Income" }));
+    expect(onChange).toHaveBeenLastCalledWith({ month: "2026-10", type: "INCOME", categoryId: undefined, incomeSourceId: undefined });
+
+    rerender(<TransactionFilters values={{ month: "2026-10", type: "INCOME" }} onChange={onChange} categories={categories} />);
+    expect(screen.queryByLabelText("Category:")).not.toBeInTheDocument();
+  });
+
+  it("clears every filter back to the current month", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <TransactionFilters
+        values={{ month: getCurrentMonth(), type: "EXPENSE", categoryId: "cat-1" }}
+        onChange={onChange}
+        categories={categories}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(onChange).toHaveBeenLastCalledWith({ month: getCurrentMonth() });
+  });
+
+  it("shows no clear action when nothing is filtered", () => {
+    render(<TransactionFilters values={{ month: getCurrentMonth() }} onChange={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
+  });
+});
+
+describe("buildTransactionPatch", () => {
+  const expense: Transaction = {
+    id: "tx-1",
+    type: "EXPENSE",
+    amount: "1500.00",
+    date: "2026-10-10",
+    category: { id: "cat-1", name: "Groceries", group: "NEEDS" },
+    description: "Old description",
+    paymentMethod: "CASH",
+    createdAt: "2026-10-10T08:00:00Z",
+    updatedAt: "2026-10-10T08:00:00Z",
+  };
+  const unchanged = {
+    amount: "1500.00",
+    date: "2026-10-10",
+    description: "Old description",
+    categoryId: "cat-1",
+    incomeSourceId: "",
+    paymentMethod: "CASH",
+  };
+
+  it("sends nothing when nothing changed", () => {
+    expect(buildTransactionPatch(expense, unchanged)).toEqual({});
+  });
+
+  it("sends null to clear optional fields instead of omitting them", () => {
+    expect(buildTransactionPatch(expense, { ...unchanged, description: "", paymentMethod: "" })).toEqual({
+      description: null,
+      paymentMethod: null,
+    });
+  });
+
+  it("does not resend an unchanged (possibly inactive) category", () => {
+    expect(buildTransactionPatch(expense, { ...unchanged, amount: "1800.00" })).toEqual({ amount: "1800.00" });
+  });
+
+  it("clears an income source with null (DEC-003)", () => {
+    const income: Transaction = { ...expense, type: "INCOME", category: null, paymentMethod: null, incomeSource: { id: "src-1", name: "Salary" } };
+    expect(
+      buildTransactionPatch(income, { ...unchanged, categoryId: "", paymentMethod: "", incomeSourceId: "" }),
+    ).toEqual({ incomeSourceId: null });
   });
 });
 
@@ -397,6 +492,31 @@ describe("TransactionEditForm component", () => {
     });
 
     expect(backend.state.transactions.has("tx-99")).toBe(false);
+  });
+
+  it("clears the description on the server when the field is emptied", async () => {
+    const user = userEvent.setup();
+    renderWithAuth(<TransactionEditForm transaction={mockTransaction} />);
+
+    await user.clear(screen.getByLabelText(/Description/i));
+    await user.click(screen.getByRole("button", { name: /Save changes/i }));
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/transactions?notice=updated"));
+    const patch = backend.callsTo("/api/v1/transactions/tx-99").find((c) => c.method === "PATCH");
+    expect(patch?.body).toEqual({ description: null });
+    expect(backend.state.transactions.get("tx-99")?.description).toBeNull();
+  });
+
+  it("does not claim a deletion when the transaction no longer exists", async () => {
+    const user = userEvent.setup();
+    backend.state.transactions.delete("tx-99");
+    renderWithAuth(<TransactionEditForm transaction={mockTransaction} />);
+
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(await screen.findByRole("button", { name: /Yes, delete/i }));
+
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/transactions?notice=not-found"));
+    expect(pushMock).not.toHaveBeenCalledWith("/transactions?notice=deleted");
   });
 
   it("displays error and retains transaction when deletion fails", async () => {

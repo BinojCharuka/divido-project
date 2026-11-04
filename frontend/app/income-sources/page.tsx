@@ -1,13 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
-
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => <DividoLoadingScreen message="Loading Income Sources…" />,
-});
+import { PageHeader } from "@/components/layout/PageHeader";
+import { IncomeSourceManager } from "@/features/income-sources/IncomeSourceManager";
 
 export default function IncomeSourcesPage() {
-  return <FigmaApp initialPage="Income Sources" />;
+  return (
+    <div className="max-w-3xl mx-auto">
+      <PageHeader title="Income sources" subtitle="Optional labels for where your income comes from." />
+      <IncomeSourceManager />
+    </div>
+  );
 }

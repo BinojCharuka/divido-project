@@ -32,6 +32,16 @@ public class GlobalExceptionHandler {
         return validationError(Map.of(ex.getField(), ex.getMessage()));
     }
 
+    @ExceptionHandler(ValidationErrorsException.class)
+    public ResponseEntity<ApiError> handleFieldRules(ValidationErrorsException ex) {
+        return validationError(ex.getFieldErrors());
+    }
+
+    @ExceptionHandler(BudgetNotFoundException.class)
+    public ResponseEntity<ApiError> handleBudgetNotFound(BudgetNotFoundException ex) {
+        return error(HttpStatus.NOT_FOUND, "BUDGET_NOT_FOUND", ex.getMessage());
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableBody(HttpMessageNotReadableException ex) {
         return error(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "The request body could not be read.");

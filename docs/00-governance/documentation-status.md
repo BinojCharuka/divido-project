@@ -2,7 +2,7 @@
 
 **Status:** IN PROGRESS
 
-**Last reconciled:** 2026-10-28 (DIV-004 B1)
+**Last reconciled:** 2026-10-28 (DIV-004 B1); Phase 02 task status reconciled 2026-11-04 (PR #17)
 
 This register tracks authoring and review status for each numbered documentation folder (`00`–`10`), which are the single organization scheme. For the file-by-file list and each file's declared status, see the [documentation index](../DOCUMENTATION_INDEX.md).
 
@@ -28,6 +28,8 @@ Exit conditions come from the former set-based register: Set 1 → `00`/`01`; Se
 
 No folder is APPROVED or FROZEN. No owner approval of any folder has been recorded.
 
+> **Current task status is kept in [`progress-tracker.md`](progress-tracker.md).** The Phase 00 and Phase 01 tables below are a historical snapshot from 2026-10-28. The tracker records Phase 00 and Phase 01 as complete. The Phase 02 table was reconciled on 2026-11-04.
+
 ## Phase 00 task status
 
 Phase 00 ([plan](../10-phases/PHASE-00-planning.md)) is **in progress**. Its exit criteria are not yet met.
@@ -51,7 +53,7 @@ Phase 01 ([plan](../10-phases/PHASE-01-foundation-auth.md)) is **not complete**,
 
 ## Phase 02 task status
 
-Phase 02 ([plan](../10-phases/PHASE-02-transactions.md)) is **in progress**.
+Phase 02 ([plan](../10-phases/PHASE-02-transactions.md)) is **complete**: merged via PR #16 (merge commit `0a898a0`) and verified on `main` on 2026-11-04. One test-gate item (month/timezone date policy) is conditional on the DIV-025 decision gate. DIV-022 and DIV-023 are pending owner re-phasing and are not part of the Phase 02 completion record.
 
 | Task | Status | Evidence |
 |---|---|---|
@@ -62,10 +64,10 @@ Phase 02 ([plan](../10-phases/PHASE-02-transactions.md)) is **in progress**.
 | DIV-013 — Backend Transaction CRUD APIs & business logic | Complete; endpoints implemented, hard delete per DEC-014, 176 tests passing; merged into `main` via PR #12 (`2f020c0`). | [PR #12](https://github.com/KasunHerath-dev/divido/pull/12) |
 | DIV-014 — Backend Transaction integration & isolation test verification | Complete; 24/24 integration tests and 190/190 full backend suite tests passing; merged into `main` via PR #13 (`4c66c71`). | [PR #13](https://github.com/KasunHerath-dev/divido/pull/13) |
 | DIV-018 — Backend MVP completion audit & hardening | Complete; audit report submitted and gap tasks documented. | [progress-tracker.md](progress-tracker.md) |
-| DIV-019 — Backend authentication rate limiting | In review; PR #14 submitted, 284/284 backend tests passing. | [PR #14](https://github.com/KasunHerath-dev/divido/pull/14) |
-| DIV-015 — Frontend-Backend Transaction integration & live E2E | Planned; pending backend audit completion and rate-limit merge. | [progress-tracker.md](progress-tracker.md) |
-| DIV-024 — Transaction filter UI completion | Planned; category and income source dropdown filters to be added to UI. | [progress-tracker.md](progress-tracker.md) |
-| DIV-020 / DIV-021 — Categories & Income Sources management UI | Planned; management pages (`/categories`, `/income-sources`) to be implemented. | [progress-tracker.md](progress-tracker.md) |
+| DIV-019 — Backend authentication rate limiting | Complete; merged into `main` via PR #14 (merge commit `81dabf6`), 284/284 backend tests reported passing. | [PR #14](https://github.com/KasunHerath-dev/divido/pull/14) |
+| DIV-015 — Frontend-Backend Transaction integration & live E2E | Complete; live API integration and 15/15 Playwright journeys; merged into `main` via PR #16 (merge commit `0a898a0`). | [PR #16](https://github.com/KasunHerath-dev/divido/pull/16) |
+| DIV-024 — Transaction filter UI completion | Complete; category and income-source filters, Clear filters, page reset, filtered-empty and error states; merged via PR #16. | [PR #16](https://github.com/KasunHerath-dev/divido/pull/16) |
+| DIV-020 / DIV-021 — Categories & Income Sources management UI | Complete; `/categories` and `/income-sources` management pages merged via PR #16. | [PR #16](https://github.com/KasunHerath-dev/divido/pull/16) |
 
 ## Rules
 

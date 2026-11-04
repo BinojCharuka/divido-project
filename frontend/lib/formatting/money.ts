@@ -16,6 +16,17 @@ export function formatMoney(amount: string | number | null | undefined): string 
     return `${CURRENCY_CODE} 0.00`;
   }
 
+  // API amounts are exact decimal strings: format them as text so no binary
+  // floating-point step can change a digit (DIV-017 decimal policy).
+  if (typeof amount === "string") {
+    const exact = amount.trim().match(/^[-+]?(\d+)(?:\.(\d{1,2}))?$/);
+    if (exact) {
+      const whole = exact[1].replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      const cents = (exact[2] ?? "").padEnd(2, "0");
+      return `${CURRENCY_CODE} ${whole}.${cents}`;
+    }
+  }
+
   const num = typeof amount === "number" ? amount : parseFloat(amount);
   if (isNaN(num)) {
     return `${CURRENCY_CODE} 0.00`;

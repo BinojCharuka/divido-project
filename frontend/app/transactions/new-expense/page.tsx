@@ -1,13 +1,17 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
-
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => <DividoLoadingScreen message="Loading Expense Editor…" />,
-});
+import { PageHeader } from "@/components/layout/PageHeader";
+import { ExpenseForm } from "@/features/transactions/ExpenseForm";
 
 export default function NewExpensePage() {
-  return <FigmaApp initialPage="Transactions" />;
+  return (
+    <div>
+      <PageHeader
+        title="Record Expense"
+        subtitle="Log spending and assign it to an approved Kakeibo category."
+        backHref="/transactions"
+      />
+      <ExpenseForm />
+    </div>
+  );
 }
