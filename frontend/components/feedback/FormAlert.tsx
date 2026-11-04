@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 /** A form-level message. Errors are announced immediately; notices politely. */
 export function FormAlert({
@@ -10,16 +11,20 @@ export function FormAlert({
 }) {
   const styles =
     tone === "error"
-      ? "border-red-700 bg-red-50 text-red-900 dark:border-red-400 dark:bg-red-950 dark:text-red-100"
+      ? "border-red-200 bg-red-50/90 text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
       : tone === "warning"
-      ? "border-amber-600 bg-amber-50 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-100"
-      : "border-zinc-400 bg-zinc-50 text-zinc-900 dark:border-zinc-500 dark:bg-zinc-900 dark:text-zinc-100";
+      ? "border-amber-200 bg-amber-50/90 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300"
+      : "border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-950/30 dark:text-emerald-300";
+
+  const Icon = tone === "error" ? AlertCircle : tone === "warning" ? AlertCircle : CheckCircle2;
+
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
-      className={`rounded-md border px-3 py-2 text-sm ${styles}`}
+      className={`rounded-xl border px-3.5 py-2.5 text-xs font-medium flex items-center gap-2.5 transition-all ${styles}`}
     >
-      {children}
+      <Icon size={15} className="shrink-0 opacity-80" aria-hidden="true" />
+      <span className="leading-snug">{children}</span>
     </div>
   );
 }

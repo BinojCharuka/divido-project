@@ -7,7 +7,11 @@ import { SignUpForm } from "@/features/auth/SignUpForm";
 
 export default function SignUpPage() {
   return (
-    <AuthPageShell title="Create your account">
+    <AuthPageShell
+      title="Create your account"
+      subtitle="Start your mindful money journey."
+      eyebrow="YOUR PERSONAL SPACE"
+    >
       <SessionGate require="signed-out" redirectTo={SIGNED_IN_HOME}>
         <SignUpForm />
       </SessionGate>

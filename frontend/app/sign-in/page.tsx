@@ -17,7 +17,11 @@ function SignInWithNotice() {
 
 export default function SignInPage() {
   return (
-    <AuthPageShell title="Sign in">
+    <AuthPageShell
+      title="Welcome back"
+      subtitle="Sign in to a calmer view of your money."
+      eyebrow="YOUR PERSONAL SPACE"
+    >
       <SessionGate require="signed-out" redirectTo={SIGNED_IN_HOME}>
         <Suspense fallback={<SignInForm notice={null} />}>
           <SignInWithNotice />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState, type FormEvent } from "react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import { FormAlert } from "@/components/feedback/FormAlert";
 import { TextField } from "@/components/forms/TextField";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +19,7 @@ export function SignUpForm() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
@@ -31,7 +33,6 @@ export function SignUpForm() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
-    // The password is sent exactly as typed; the backend never trims it.
     const input = { displayName: displayName.trim(), email: email.trim(), password };
     const errors = validateSignUp(input);
     setFieldErrors(errors);
@@ -45,7 +46,6 @@ export function SignUpForm() {
     setPending(true);
     try {
       await register(input);
-      // Start fresh if the user comes back to this page.
       setDisplayName("");
       setEmail("");
       setPassword("");
@@ -76,40 +76,79 @@ export function SignUpForm() {
           )}
         </FormAlert>
       )}
+
       <TextField
         label="Name"
         name="displayName"
         autoComplete="name"
+        placeholder="Your full name"
         value={displayName}
         onChange={(e) => setDisplayName(e.target.value)}
         error={fieldErrors.displayName}
+        icon={<User size={17} />}
       />
+
       <TextField
-        label="Email"
+        label="Email address"
+        aria-label="Email"
         type="email"
         name="email"
         autoComplete="email"
+        placeholder="you@example.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         error={fieldErrors.email}
+        icon={<Mail size={17} />}
       />
+
       <TextField
         label="Password"
-        type="password"
+        type={showPassword ? "text" : "password"}
         name="password"
         autoComplete="new-password"
+        placeholder="At least 8 characters"
         hint="At least 8 characters."
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         error={fieldErrors.password}
+        icon={<Lock size={17} />}
+        rightAction={
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-hidden p-1 transition-colors cursor-pointer"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        }
       />
-      <Button type="submit" variant="primary" size="lg" loading={pending} className="w-full">
-        {pending ? "Creating account…" : "Create account"}
+
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        loading={pending}
+        className="group w-full justify-center text-sm font-semibold py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-sm shadow-emerald-950/20 active:scale-[0.99] transition-all duration-150 cursor-pointer"
+      >
+        {pending ? (
+          "Creating account…"
+        ) : (
+          <span className="flex items-center justify-center gap-2">
+            Create account
+            <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
+          </span>
+        )}
       </Button>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+
+      <p className="text-center text-xs text-zinc-500 dark:text-zinc-400 pt-1">
         Already have an account?{" "}
-        <Link href="/sign-in" className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 underline">
-          Sign in
+        <Link
+          href="/sign-in"
+          className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 underline underline-offset-4 transition-colors"
+        >
+          Sign in ↗
         </Link>
       </p>
     </form>

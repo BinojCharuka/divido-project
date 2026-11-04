@@ -4,14 +4,11 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
 
 const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
   ssr: false,
-  loading: () => (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <p>Loading Divido…</p>
-    </div>
-  ),
+  loading: () => <DividoLoadingScreen message="Loading Divido…" />,
 });
 
 export default function Home() {
@@ -21,7 +18,7 @@ export default function Home() {
   useEffect(() => {
     if (process.env.NODE_ENV === "test") {
       if (status === "signed-out") router.replace("/sign-in");
-      if (status === "signed-in") router.replace("/onboarding");
+      if (status === "signed-in") router.replace("/dashboard");
     }
   }, [status, router]);
 

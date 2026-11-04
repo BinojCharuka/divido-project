@@ -67,7 +67,7 @@ describe("session detection on start-up", () => {
   it("restores the signed-in state after a reload and leaves the public pages", async () => {
     signedIn();
     renderPage(<SignInPage />);
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/onboarding"));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/dashboard"));
     expect(screen.queryByRole("button", { name: "Sign in" })).not.toBeInTheDocument();
   });
 
@@ -201,7 +201,7 @@ describe("sign-in", () => {
     await user.type(screen.getByLabelText("Password"), PASSWORD);
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/onboarding"));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/dashboard"));
     expect(backend.state.signedInAs).toBe("user@example.com");
 
     // The server replaced the token at sign-in; the next write must fetch the new one.
@@ -258,7 +258,7 @@ describe("sign-in", () => {
     // A submit that bypasses the disabled button (e.g. Enter in a field) is ignored too.
     fireEvent.submit(busy.closest("form")!);
     release();
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/onboarding"));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/dashboard"));
     expect(backend.callsTo("/api/v1/auth/login")).toHaveLength(1);
   });
 });

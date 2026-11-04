@@ -52,10 +52,12 @@ import {
   Download,
   ShieldCheck,
   CircleUserRound,
+  Layers,
   Sun,
   Moon,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { useDividoTheme } from "@/lib/theme"
 import {
   listCategories,
   createCategory,
@@ -271,7 +273,12 @@ function Brand({
         <img
           src="/webp/Logo-flavicon - 250px.webp"
           alt="Divido"
-          className="brand-logo-img"
+          className="brand-logo-img light-only"
+        />
+        <img
+          src="/webp/logo-icon-dark.webp"
+          alt="Divido"
+          className="brand-logo-img dark-only"
         />
       </div>
     )
@@ -459,29 +466,13 @@ export default function App({
             Number(window.location.pathname.match(/^\/transactions\/(\d+)/)?.[1]),
         )
       : undefined
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.dataset.theme === "dark" ? "dark" : "light"
-    }
-    return "light"
-  })
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.dataset.theme = theme
-      document.documentElement.style.colorScheme = theme
-      try {
-        localStorage.setItem("divido-theme", theme)
-      } catch {
-        // Theme switching still works when browser storage is unavailable.
-      }
-    }
-  }, [theme])
+  const { theme, setTheme, toggleTheme: handleToggleTheme } = useDividoTheme()
   const themeToggle = (
     <IconButton
       icon={theme === "light" ? Moon : Sun}
       label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
       className="icon-button theme-toggle"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      onClick={handleToggleTheme}
     />
   )
   const [page, setPage] = useState<Page>(() => {
@@ -757,6 +748,23 @@ export default function App({
     return "Sign in"
   })
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("divido-sidebar-collapsed") === "true"
+    }
+    return false
+  })
+
+  function toggleSidebarCollapsed() {
+    setSidebarCollapsed((prev) => {
+      const next = !prev
+      if (typeof window !== "undefined") {
+        localStorage.setItem("divido-sidebar-collapsed", String(next))
+      }
+      return next
+    })
+  }
+
   async function handleSignIn(e: FormEvent) {
     e.preventDefault()
     if (!authEmail.trim() || !authPassword) {
@@ -773,6 +781,8 @@ export default function App({
       setEmail(loggedIn.email)
       setUserName(loggedIn.email.split("@")[0])
       setSignedOut(false)
+      setPage("Dashboard")
+      setOnboardStep(null)
       setAuthPassword("")
       notify(`Welcome back, ${loggedIn.email}!`)
     } catch (err: unknown) {
@@ -1286,162 +1296,295 @@ export default function App({
 
   if (signedOut)
     return (
-      <div className="auth-page">
-        <div className="auth-theme-toggle">{themeToggle}</div>
-        <div className="auth-brand">
-          <Brand />
-        </div>
-        <div className="auth-card">
-          <h1>
-            {authMode === "Sign in"
-              ? "Sign In"
-              : authMode === "Recover access"
-                ? "Recover Access"
-                : "Create Account"}
-          </h1>
-          {authError && (
-            <div
-              style={{
-                padding: "10px 14px",
-                borderRadius: "8px",
-                backgroundColor: "rgba(239, 68, 68, 0.1)",
-                border: "1px solid rgba(239, 68, 68, 0.3)",
-                color: "#ef4444",
-                fontSize: "13px",
-                marginBottom: "16px",
-              }}
-              role="alert"
-            >
-              {authError}
-            </div>
-          )}
-          <form
-            onSubmit={(e) => {
-              if (authMode === "Recover access") {
-                e.preventDefault()
-                notify("Demo only — no recovery email was sent")
-                setAuthMode("Sign in")
-              } else if (authMode === "Sign in") {
-                void handleSignIn(e)
-              } else {
-                void handleCreateAccount(e)
-              }
-            }}
-          >
-            {authMode === "Create account" && (
-              <label className="field">
-                Name
-                <input
-                  required
-                  value={authName}
-                  onChange={(e) => setAuthName(e.target.value)}
-                  placeholder="Your name"
-                />
-              </label>
-            )}
-            <label className="field">
-              Email
-              <input
-                type="email"
-                required
-                value={authEmail}
-                onChange={(e) => setAuthEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
-            </label>
-            {authMode !== "Recover access" && (
-              <label className="field">
-                Password
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  placeholder="At least 8 characters"
-                  autoComplete={authMode === "Sign in" ? "current-password" : "new-password"}
-                />
-              </label>
-            )}
-            {authMode === "Create account" && (
-              <label className="field">
-                Confirm password
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={authConfirmPassword}
-                  onChange={(e) => setAuthConfirmPassword(e.target.value)}
-                  placeholder="Repeat password"
-                  autoComplete="new-password"
-                />
-              </label>
-            )}
-            {authMode === "Sign in" && (
-              <button
-                type="button"
-                className="text-button forgot"
-                onClick={() => setAuthMode("Recover access")}
-              >
-                Recover access
-              </button>
-            )}
-            <Button variant="primary" className="full-width" disabled={authLoading}>
-              {authLoading
-                ? "Please wait…"
-                : authMode === "Recover access"
-                  ? "Back to sign in"
-                  : authMode === "Sign in"
-                    ? "Sign In"
-                    : "Create Account"}
-              <ArrowRight size={17} />
-            </Button>
-          </form>
-          <p className="auth-switch">
-            {authMode === "Sign in"
-              ? "New to Divido?"
-              : "Already have an account?"}{" "}
+      <div className="min-h-screen flex flex-col bg-[#fbfaf6] text-zinc-900 dark:bg-[#0b0e0c] dark:text-zinc-100 antialiased relative transition-colors duration-200 selection:bg-emerald-500/20 selection:text-emerald-900 dark:selection:text-emerald-200">
+        {/* Background ambient lighting */}
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,rgba(16,185,129,0.06),transparent_70%)] dark:bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,rgba(16,185,129,0.08),transparent_70%)]"
+          aria-hidden="true"
+        />
+
+        {/* Top Navbar */}
+        <header className="w-full border-b border-zinc-200/70 dark:border-zinc-800/70 bg-white/70 dark:bg-[#0e120f]/80 backdrop-blur-md sticky top-0 z-30 transition-colors">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
             <button
-              className="text-button"
-              type="button"
-              onClick={() => {
-                setAuthError(null)
-                setAuthMode(
-                  authMode === "Sign in" ? "Create account" : "Sign in",
-                )
-              }}
-            >
-              {authMode === "Sign in" ? "Create account" : "Sign in"}
-            </button>
-          </p>
-          <div style={{ marginTop: "16px", textAlign: "center" }}>
-            <button
-              className="text-button"
               type="button"
               onClick={() => {
                 setSignedOut(false)
                 setPage("Dashboard")
               }}
-              style={{ fontSize: "13px", color: "var(--accent-teal, #0D9488)" }}
+              className="flex items-center gap-2 group cursor-pointer border-none bg-transparent p-0 transition-opacity hover:opacity-90"
             >
-              ← Continue to Dashboard
+              <Brand />
             </button>
+            <div className="flex items-center gap-4">
+              <span className="hidden sm:inline-block text-xs font-medium text-zinc-500 dark:text-zinc-400 tracking-wide">
+                Your personal money space
+              </span>
+              <div className="auth-theme-toggle">{themeToggle}</div>
+            </div>
           </div>
-        </div>
+        </header>
+
+        {/* Main Content Split */}
+        <main className="flex-1 flex items-center justify-center py-8 lg:py-16 px-4 sm:px-6 lg:px-12">
+          <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+            
+            {/* Left Column: Brand Story - Hidden on mobile, clean & minimal on desktop */}
+            <div className="hidden lg:flex lg:col-span-7 flex-col gap-6 max-w-lg">
+              <h2 className="text-4xl lg:text-[46px] font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-[1.15]">
+                A clearer mind.<br />
+                A more mindful<br />
+                <span className="text-emerald-600 dark:text-emerald-400">money life.</span>
+              </h2>
+              <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed font-normal max-w-md">
+                Make room for what matters most.<br />
+                Plan, notice, and reflect — one month at a time.
+              </p>
+
+              <div className="pt-6 border-t border-zinc-200/70 dark:border-white/[0.08] flex flex-col gap-4.5">
+                <div className="flex items-start gap-3.5 group">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <Sparkles size={16} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      The Kakeibo method
+                    </div>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                      Centuries-old Japanese household mindfulness for modern budgeting.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5 group">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <ShieldCheck size={16} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      Private & credential-free
+                    </div>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                      No bank scraping, no passwords stored. Your personal data stays yours.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5 group">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <Layers size={16} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      Four intentional pillars
+                    </div>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                      Clear balance across Needs, Wants, Culture, and Unexpected moments.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Auth Card Island - Centered & Solo on mobile */}
+            <div className="w-full lg:col-span-5 flex justify-center">
+              <div className="w-full max-w-[420px] relative rounded-2xl border border-zinc-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-[#111512]/90 p-7 sm:p-8 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-xl overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-emerald-500/40 before:to-transparent transition-all">
+                <div className="mb-6">
+                  <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+                    {authMode === "Sign in"
+                      ? "Welcome back"
+                      : authMode === "Recover access"
+                        ? "Recover access"
+                        : "Create your account"}
+                    <span className="text-emerald-500 font-serif">.</span>
+                  </h1>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                    {authMode === "Sign in"
+                      ? "Sign in to a calmer view of your money."
+                      : authMode === "Recover access"
+                        ? "Enter your email to receive recovery instructions."
+                        : "Start your mindful money journey."}
+                  </p>
+                </div>
+
+                {authError && (
+                  <div
+                    style={{
+                      padding: "10px 14px",
+                      borderRadius: "10px",
+                      backgroundColor: "rgba(239, 68, 68, 0.1)",
+                      border: "1px solid rgba(239, 68, 68, 0.2)",
+                      color: "#ef4444",
+                      fontSize: "13px",
+                      marginBottom: "16px",
+                    }}
+                    role="alert"
+                  >
+                    {authError}
+                  </div>
+                )}
+
+                <form
+                  className="flex flex-col gap-4"
+                  onSubmit={(e) => {
+                    if (authMode === "Recover access") {
+                      e.preventDefault()
+                      notify("Demo only — no recovery email was sent")
+                      setAuthMode("Sign in")
+                    } else if (authMode === "Sign in") {
+                      void handleSignIn(e)
+                    } else {
+                      void handleCreateAccount(e)
+                    }
+                  }}
+                >
+                  {authMode === "Create account" && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                        Name
+                      </label>
+                      <input
+                        required
+                        className="w-full rounded-xl border border-zinc-200/90 bg-zinc-50/60 px-3.5 py-2.5 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-600/15 dark:border-white/[0.08] dark:bg-[#161c18]/70 dark:text-zinc-100 dark:placeholder:text-zinc-500 hover:dark:border-white/[0.14] dark:focus:border-emerald-400 dark:focus:bg-[#161c18] dark:focus:ring-2 dark:focus:ring-emerald-400/20"
+                        value={authName}
+                        onChange={(e) => setAuthName(e.target.value)}
+                        placeholder="Your name"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                      Email address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      className="w-full rounded-xl border border-zinc-200/90 bg-zinc-50/60 px-3.5 py-2.5 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-600/15 dark:border-white/[0.08] dark:bg-[#161c18]/70 dark:text-zinc-100 dark:placeholder:text-zinc-500 hover:dark:border-white/[0.14] dark:focus:border-emerald-400 dark:focus:bg-[#161c18] dark:focus:ring-2 dark:focus:ring-emerald-400/20"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  {authMode !== "Recover access" && (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                          Password
+                        </label>
+                        {authMode === "Sign in" && (
+                          <button
+                            type="button"
+                            onClick={() => setAuthMode("Recover access")}
+                            className="text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+                          >
+                            Forgot password?
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        type="password"
+                        required
+                        minLength={8}
+                        className="w-full rounded-xl border border-zinc-200/90 bg-zinc-50/60 px-3.5 py-2.5 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-600/15 dark:border-white/[0.08] dark:bg-[#161c18]/70 dark:text-zinc-100 dark:placeholder:text-zinc-500 hover:dark:border-white/[0.14] dark:focus:border-emerald-400 dark:focus:bg-[#161c18] dark:focus:ring-2 dark:focus:ring-emerald-400/20"
+                        value={authPassword}
+                        onChange={(e) => setAuthPassword(e.target.value)}
+                        placeholder="At least 8 characters"
+                        autoComplete={authMode === "Sign in" ? "current-password" : "new-password"}
+                      />
+                    </div>
+                  )}
+
+                  {authMode === "Create account" && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                        Confirm password
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        minLength={8}
+                        className="w-full rounded-xl border border-zinc-200/90 bg-zinc-50/60 px-3.5 py-2.5 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-600/15 dark:border-white/[0.08] dark:bg-[#161c18]/70 dark:text-zinc-100 dark:placeholder:text-zinc-500 hover:dark:border-white/[0.14] dark:focus:border-emerald-400 dark:focus:bg-[#161c18] dark:focus:ring-2 dark:focus:ring-emerald-400/20"
+                        value={authConfirmPassword}
+                        onChange={(e) => setAuthConfirmPassword(e.target.value)}
+                        placeholder="Repeat password"
+                        autoComplete="new-password"
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="w-full inline-flex items-center justify-center gap-2 font-semibold text-sm py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-sm shadow-emerald-950/20 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50 mt-1"
+                  >
+                    <span>
+                      {authLoading
+                        ? "Please wait…"
+                        : authMode === "Recover access"
+                          ? "Send instructions"
+                          : authMode === "Sign in"
+                            ? "Sign in"
+                            : "Create account"}
+                    </span>
+                    <ArrowRight size={16} />
+                  </button>
+                </form>
+
+                <p className="text-center text-xs text-zinc-500 dark:text-zinc-400 mt-4">
+                  {authMode === "Sign in" ? "New to Divido?" : "Already have an account?"}{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthError(null)
+                      setAuthMode(authMode === "Sign in" ? "Create account" : "Sign in")
+                    }}
+                    className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline underline-offset-4 cursor-pointer"
+                  >
+                    {authMode === "Sign in" ? "Create an account ↗" : "Sign in ↗"}
+                  </button>
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="w-full border-t border-zinc-200/70 dark:border-zinc-800/70 py-6 px-6 lg:px-12 mt-auto bg-white/40 dark:bg-zinc-950/30">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400 dark:text-zinc-500">
+            <div>© 2026 Divido</div>
+            <div>A little awareness. A little more possibility.</div>
+            <div>Made for a more mindful month.</div>
+          </div>
+        </footer>
       </div>
     )
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       <aside className="sidebar">
-        <button
-          className="sidebar-brand"
-          aria-label="Divido dashboard"
-          onClick={() => navigate("Dashboard")}
-        >
-          <Brand />
-        </button>
+        <div className="sidebar-header-row">
+          <button
+            className="sidebar-brand"
+            aria-label="Divido dashboard"
+            onClick={() => navigate("Dashboard")}
+            title={sidebarCollapsed ? "Divido Dashboard" : undefined}
+          >
+            <Brand variant={sidebarCollapsed ? "icon" : "full"} />
+          </button>
+          <button
+            type="button"
+            className="sidebar-toggle-btn"
+            onClick={toggleSidebarCollapsed}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
+            title={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
+          >
+            {sidebarCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+          </button>
+        </div>
         <div className="workspace-label">PERSONAL SPACE</div>
         <nav className="desktop-nav" aria-label="Main navigation">
           {navItems.map(({ page: item, icon: Icon }) => (
@@ -1450,6 +1593,7 @@ export default function App({
               className={`nav-item ${page === item ? "active" : ""}`}
               aria-current={page === item ? "page" : undefined}
               onClick={() => navigate(item)}
+              title={sidebarCollapsed ? item : undefined}
             >
               <Icon size={19} strokeWidth={1.7} />
               <span>{item}</span>
@@ -1463,6 +1607,7 @@ export default function App({
             }`}
             aria-current={page === "Monthly Reflection" ? "page" : undefined}
             onClick={() => navigate("Monthly Reflection")}
+            title={sidebarCollapsed ? "Monthly reflection" : undefined}
           >
             <BookOpen size={19} strokeWidth={1.7} />
             <span>Monthly reflection</span>
@@ -1478,6 +1623,7 @@ export default function App({
             }`}
             aria-current={page === "Settings" ? "page" : undefined}
             onClick={() => navigate("Settings")}
+            title={sidebarCollapsed ? "Settings" : undefined}
           >
             <Settings size={19} strokeWidth={1.7} />
             <span>Settings</span>
@@ -1487,9 +1633,9 @@ export default function App({
           </button>
         </nav>
         <div className="sidebar-bottom">
-          <button className="help-link" onClick={() => setModal("help")}>
+          <button className="help-link" onClick={() => setModal("help")} title={sidebarCollapsed ? "Help" : undefined}>
             <CircleHelp size={17} />
-            Help & getting started
+            <span>Help & getting started</span>
             <ArrowUpRight size={14} />
           </button>
           <div className="sidebar-user">
@@ -1596,6 +1742,7 @@ export default function App({
           </div>
         </header>
         <main ref={mainRef} className="main-content">
+          <div key={page} className="page-transition-water-droplet">
           <div
             className={`page-heading ${
               page === "Dashboard" ? "dashboard-heading" : ""
@@ -2831,6 +2978,22 @@ export default function App({
                     </Button>
                   ))}
                 </div>
+                <div className="sidebar-setting-row">
+                  <div>
+                    <h3>Compact sidebar</h3>
+                    <p>Minimize the navigation sidebar to a sleek icon rail.</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={sidebarCollapsed}
+                    onClick={toggleSidebarCollapsed}
+                    className={`setting-switch ${sidebarCollapsed ? "active" : ""}`}
+                    aria-label="Toggle compact sidebar"
+                  >
+                    <span className="setting-switch-handle" />
+                  </button>
+                </div>
               </section>
               <section className="panel settings-block data-clear-block">
                 <div className="settings-block-heading">
@@ -3079,6 +3242,7 @@ export default function App({
               Personal workspace
             </span>
           </footer>
+          </div>
         </main>
       </div>
       <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
@@ -3099,6 +3263,7 @@ export default function App({
         ].map(({ page: item, label, icon: Icon }) => (
           <button
             key={label}
+            type="button"
             className={
               item === null
                 ? "mobile-add"
@@ -3112,7 +3277,7 @@ export default function App({
             aria-current={item === page ? "page" : undefined}
             onClick={() => (item ? navigate(item) : setModal("add"))}
           >
-            <Icon size={item ? 21 : 25} />
+            <Icon size={item ? 19 : 23} />
             {item && <span>{label}</span>}
           </button>
         ))}

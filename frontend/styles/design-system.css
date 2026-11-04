@@ -124,6 +124,101 @@ html[data-theme='dark'],
 .sidebar .sidebar-user strong { font-size: 12px; }
 .sidebar .sidebar-user button > span { font-size: 10px; }
 .main-content { max-width: 1376px; padding: 40px 32px 0; }
+
+/* Page Transition - Water Droplet Ripple Animation */
+.page-transition-water-droplet {
+  width: 100%;
+  position: relative;
+  animation: page-water-droplet-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity, clip-path;
+}
+
+@keyframes page-water-droplet-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.975) translateY(8px);
+    clip-path: circle(0% at 50% 8%);
+    filter: blur(4px);
+  }
+  50% {
+    opacity: 0.95;
+    filter: blur(1px);
+  }
+  99% {
+    clip-path: circle(150% at 50% 8%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    clip-path: none;
+    filter: blur(0px);
+  }
+}
+
+/* Fluid Expanding Water Ripple Ring */
+.page-transition-water-droplet::after {
+  content: "";
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  margin-top: -3px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 20;
+  animation: droplet-water-ripple 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes droplet-water-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55), inset 0 0 0 2px rgba(16, 185, 129, 0.7);
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(140);
+    opacity: 0;
+    box-shadow: 0 0 40px 10px rgba(16, 185, 129, 0), inset 0 0 0 1px rgba(16, 185, 129, 0);
+  }
+}
+
+:root[data-theme='dark'] .page-transition-water-droplet::after,
+.dark .page-transition-water-droplet::after {
+  animation-name: droplet-water-ripple-dark;
+}
+
+@keyframes droplet-water-ripple-dark {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.65), inset 0 0 0 2px rgba(52, 211, 153, 0.8);
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(140);
+    opacity: 0;
+    box-shadow: 0 0 50px 15px rgba(52, 211, 153, 0), inset 0 0 0 1px rgba(52, 211, 153, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-water-droplet {
+    animation: none !important;
+    clip-path: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .page-transition-water-droplet::after {
+    display: none !important;
+  }
+}
 .topbar { height: 88px; padding: 0 32px; position: sticky; top: 0; z-index: 30; background: var(--nav-surface); }
 .header-content { width: 100%; max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 28px; }
 .header-brand { flex-shrink: 0; display: none; }
@@ -349,8 +444,11 @@ html[data-theme='dark'],
   .insight-banner > .text-button { margin-left: 47px; }
 }
 @media (max-width: 900px) {
-  .sidebar { display: none; }
-  .main-shell { margin-left: 0; }
+  .sidebar,
+  .sidebar-collapsed .sidebar { display: none !important; }
+  .sidebar-toggle-btn { display: none !important; }
+  .main-shell,
+  .sidebar-collapsed .main-shell { margin-left: 0 !important; width: 100% !important; }
   .header-brand { display: block; }
   .header-location { display: none; }
   .main-content { padding: 28px 24px 90px; }
@@ -378,10 +476,140 @@ html[data-theme='dark'],
   .full-list .type-badge { display: none; }
   .full-list .transaction-amount { min-width: 150px; }
   .full-list .row-chevron { display: none; }
-  .mobile-bottom-nav { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); position: fixed; bottom: 0; left: 0; right: 0; min-height: 64px; padding: 6px 12px max(6px,env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--nav-surface); z-index: 35; backdrop-filter: blur(12px); align-items: center; }
-  .mobile-bottom-nav > button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 48px; color: var(--muted); border-radius: var(--radius-md); font-size: 10px; }
-  .mobile-bottom-nav > .active { color: var(--active-foreground); background: var(--green-soft); font-weight: 600; }
-  .mobile-bottom-nav > .mobile-add { position: static; margin: -20px auto 0; min-height: 44px; width: 44px; height: 44px; border: 0; border-radius: 9999px; background: var(--green); color: white; box-shadow: 0 0 0 5px var(--page); }
+  .mobile-bottom-nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: fixed !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    bottom: max(12px, env(safe-area-inset-bottom, 12px)) !important;
+    width: calc(100% - 24px) !important;
+    max-width: 384px !important;
+    min-height: 58px !important;
+    padding: 0 6px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(28px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.85) !important;
+    border-radius: 32px !important;
+    box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.95) !important;
+    z-index: 50 !important;
+    pointer-events: auto !important;
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
+  }
+  :root[data-theme='dark'] .mobile-bottom-nav,
+  .dark .mobile-bottom-nav {
+    background: rgba(18, 24, 20, 0.88) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 18px 40px -6px rgba(0, 0, 0, 0.7), 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 1px 1.5px rgba(255, 255, 255, 0.2) !important;
+  }
+  .mobile-bottom-nav > button:not(.mobile-add) {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    height: 48px !important;
+    padding: 2px 2px !important;
+    color: var(--muted) !important;
+    font-size: 9.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.1px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 16px !important;
+    position: relative !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+    transition: color 0.2s ease, transform 0.15s ease !important;
+  }
+  .mobile-bottom-nav > button:not(.mobile-add) span {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    display: block !important;
+    line-height: 1.1 !important;
+  }
+  .mobile-bottom-nav > button:not(.mobile-add) svg {
+    width: 19px !important;
+    height: 19px !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease !important;
+  }
+  .mobile-bottom-nav > button:not(.mobile-add):active {
+    transform: scale(0.92) !important;
+  }
+  .mobile-bottom-nav > button:not(.mobile-add).active {
+    color: var(--green) !important;
+    font-weight: 600 !important;
+  }
+  .mobile-bottom-nav > button:not(.mobile-add).active svg {
+    color: var(--green) !important;
+    transform: translateY(-1px) scale(1.08) !important;
+  }
+  .mobile-bottom-nav > button:not(.mobile-add).active::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 2px 3px !important;
+    background: radial-gradient(circle at 50% 35%, rgba(16, 185, 129, 0.22) 0%, rgba(5, 150, 105, 0.12) 65%, transparent 100%) !important;
+    border-radius: 14px !important;
+    z-index: -1 !important;
+    animation: water-droplet-fill 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  }
+  :root[data-theme='dark'] .mobile-bottom-nav > button:not(.mobile-add).active,
+  .dark .mobile-bottom-nav > button:not(.mobile-add).active {
+    color: #34d399 !important;
+  }
+  :root[data-theme='dark'] .mobile-bottom-nav > button:not(.mobile-add).active svg,
+  .dark .mobile-bottom-nav > button:not(.mobile-add).active svg {
+    color: #34d399 !important;
+  }
+  :root[data-theme='dark'] .mobile-bottom-nav > button:not(.mobile-add).active::before,
+  .dark .mobile-bottom-nav > button:not(.mobile-add).active::before {
+    background: radial-gradient(circle at 50% 35%, rgba(16, 185, 129, 0.32) 0%, rgba(5, 150, 105, 0.16) 65%, transparent 100%) !important;
+    border-color: rgba(52, 211, 153, 0.3) !important;
+  }
+  .mobile-bottom-nav > .mobile-add {
+    position: relative !important;
+    top: -10px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    flex-shrink: 0 !important;
+    margin: 0 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: linear-gradient(145deg, #10b981 0%, #059669 60%, #047857 100%) !important;
+    color: #ffffff !important;
+    border: 3px solid rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 10px 22px -3px rgba(5, 150, 105, 0.55), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 2px 3px rgba(255, 255, 255, 0.5) !important;
+    cursor: pointer !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease !important;
+    z-index: 2 !important;
+  }
+  .mobile-bottom-nav > .mobile-add:hover {
+    transform: translateY(-2px) scale(1.06) !important;
+    box-shadow: 0 14px 26px -3px rgba(5, 150, 105, 0.65), inset 0 2px 3px rgba(255, 255, 255, 0.65) !important;
+  }
+  .mobile-bottom-nav > .mobile-add:active {
+    transform: translateY(1px) scale(0.94) !important;
+    box-shadow: 0 6px 12px rgba(5, 150, 105, 0.45) !important;
+  }
+  :root[data-theme='dark'] .mobile-bottom-nav > .mobile-add,
+  .dark .mobile-bottom-nav > .mobile-add {
+    border-color: rgba(22, 28, 25, 0.95) !important;
+    box-shadow: 0 10px 24px -3px rgba(5, 150, 105, 0.65), 0 4px 10px rgba(0, 0, 0, 0.6), inset 0 2px 3px rgba(255, 255, 255, 0.4) !important;
+  }
   .toast { bottom: 86px; left: 50%; }
   .account-details { grid-template-columns: 1fr; gap: 22px; }
 }
@@ -390,7 +618,7 @@ html[data-theme='dark'],
   .sidebar-bottom { padding-top: 24px; }
 }
 @media (max-width: 600px) {
-  .main-content { padding: 24px 18px 90px; }
+  .main-content { padding: 24px 18px 125px; }
   .topbar { padding: 0 18px; }
   .brand { font-size: 22px; }
   .page-heading { gap: 20px; }

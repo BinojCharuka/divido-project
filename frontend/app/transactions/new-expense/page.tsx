@@ -1,22 +1,12 @@
 "use client";
 
-<<<<<<< HEAD
 import dynamic from "next/dynamic";
+import { DividoLoadingScreen } from "@/components/ui/DividoLoadingScreen";
 
 const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
   ssr: false,
-  loading: () => (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <p>Loading…</p>
-    </div>
-  ),
+  loading: () => <DividoLoadingScreen message="Loading Expense Editor…" />,
 });
-=======
-export const instant = false;
-
-import { PageHeader } from "@/components/layout/PageHeader";
-import { ExpenseForm } from "@/features/transactions/ExpenseForm";
->>>>>>> 0112277 (feat: export instant equals false in transaction pages and layout)
 
 export default function NewExpensePage() {
   return <FigmaApp initialPage="Transactions" />;
