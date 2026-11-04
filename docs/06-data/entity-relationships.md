@@ -9,8 +9,7 @@ erDiagram
     APP_USERS ||--o{ CATEGORIES : owns_custom
     APP_USERS ||--o{ INCOME_SOURCES : owns
     APP_USERS ||--o{ TRANSACTIONS : records
-    APP_USERS ||--o{ MONTHLY_PLANS : plans
-    MONTHLY_PLANS ||--o{ MONTHLY_GROUP_BUDGETS : contains
+    APP_USERS ||--o{ MONTHLY_BUDGETS : plans
     CATEGORIES ||--o{ TRANSACTIONS : classifies_expenses
     INCOME_SOURCES ||--o{ TRANSACTIONS : identifies_income
     APP_USERS ||--o{ REFLECTIONS : writes_if_enabled
@@ -32,11 +31,8 @@ Stores user-managed labels such as salary or freelance work. It is a source labe
 ### `transactions` — proposed
 Stores recorded income and expenses if the single-table design is approved. It may contain a type discriminator and optional category/source foreign keys. Alternative: separate income and expense tables. Do not implement both models.
 
-### `monthly_plans` — proposed
-Stores planned income and savings target for one user and calendar month.
-
-### `monthly_group_budgets` — proposed
-Stores allocations for the four Kakeibo groups for a monthly plan. The expected group set is Needs, Wants, Culture, Unexpected.
+### `monthly_budgets` — implemented (V4, DIV-025)
+One row per user and calendar month holding planned income, savings target and the four Kakeibo group allocations (Needs, Wants, Culture, Unexpected) as columns. Replaces the earlier `monthly_plans` + `monthly_group_budgets` proposal. See the [data dictionary](data-dictionary.md).
 
 ### `user_preferences` — proposed
 Stores editable settings only if they do not fit the approved existing `app_users` design. Avoid duplicating the same preference in multiple places.
@@ -49,8 +45,8 @@ Owned by Flyway. Do not manually insert, update, or delete rows as a normal deve
 
 ## 3. Relationship constraints to decide
 
-- Is each user allowed exactly one monthly plan per month? Proposed yes.
-- Is each monthly plan required to have exactly four group budget rows? Proposed yes, but enforcement may require service-level checks in addition to relational constraints.
+- One monthly plan per user per month: decided (DEC-028), enforced by `UNIQUE (user_id, budget_month)`.
+- Four group allocations per plan: decided, enforced by four `NOT NULL` columns.
 - Can an income transaction omit an income source?
 - Must an expense always reference a category?
 - Are default categories global or user-owned copies?

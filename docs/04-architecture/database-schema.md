@@ -15,8 +15,7 @@ Project context indicates PostgreSQL already contains `app_users`, `categories`,
 | `categories` | Default and/or custom expense categories and group mapping | Custom categories belong to a user; exact default-category ownership model TBD |
 | `income_sources` (candidate) | Labels used to plan/record income | Belongs to a user |
 | `transactions` (candidate) | Recorded income and expenses | Belongs to a user; expense may reference category; income may reference source |
-| `monthly_plans` (candidate) | Per-month planned income and savings target | Belongs to a user; one per month is proposed |
-| `monthly_group_budgets` (candidate) | Allocation per Kakeibo group | Belongs to a monthly plan |
+| `monthly_budgets` (V4, implemented) | Per-month planned income, savings target and the four group allocations | Belongs to a user; `UNIQUE (user_id, budget_month)` |
 | `reflections` (candidate) | Optional month-specific reflection answers | Belongs to a user and month |
 | `flyway_schema_history` | Flyway-managed migration metadata | Managed by Flyway |
 
@@ -30,8 +29,7 @@ app_users
   ├── custom categories
   ├── income_sources
   ├── transactions
-  ├── monthly_plans
-  │     └── monthly_group_budgets (four groups proposed)
+  ├── monthly_budgets (one per month; four allocation columns)
   └── reflections (if approved)
 
 transactions ── optional category reference

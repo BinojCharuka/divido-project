@@ -487,22 +487,29 @@ paths:
         required: true
         schema:
           type: string
-          pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+          pattern: '^[1-9]\d{3}-(0[1-9]|1[0-2])$'
     get:
       tags: [Budgets]
-      summary: Read a monthly plan
+      summary: Read the signed-in user's monthly plan (BUDGET-001, DIV-025)
       responses:
         '200':
-          description: Monthly plan
+          description: Monthly plan with derived figures
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MonthlyBudget'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: No plan for this month (code BUDGET_NOT_FOUND)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
     put:
       tags: [Budgets]
-      summary: Create or replace a monthly plan
+      summary: Create or replace the signed-in user's monthly plan (BUDGET-002, DIV-025)
+      description: Atomic upsert; always 200 with the stored plan. Over-allocation is reported, never blocked (DEC-012). Last write wins under concurrency.
       requestBody:
         required: true
         content:
@@ -511,7 +518,7 @@ paths:
               $ref: '#/components/schemas/MonthlyBudgetInput'
       responses:
         '200':
-          description: Stored monthly plan (upsert status must be finalized)
+          description: Stored monthly plan (created or replaced)
           content:
             application/json:
               schema:
@@ -521,20 +528,24 @@ paths:
   /api/v1/dashboard:
     get:
       tags: [Dashboard]
-      summary: Read monthly dashboard
+      summary: Read the signed-in user's monthly dashboard (DASH-001, DIV-026)
+      description: Omitting month uses the current month in the user's timezone (default Asia/Colombo).
       parameters:
         - name: month
           in: query
+          required: false
           schema:
             type: string
-            pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+            pattern: '^[1-9]\d{3}-(0[1-9]|1[0-2])$'
       responses:
         '200':
-          description: Dashboard summary
+          description: Planned figures beside recorded totals
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dashboard'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/v1/insights:
     get:
       tags: [Insights]
@@ -1081,91 +1092,123 @@ components:
           type: integer
         totalPages:
           type: integer
+    Money:
+      type: string
+      description: Exact decimal string with two places (DEC-028), e.g. "40000.00". Negative only where documented.
+      pattern: '^-?\d+\.\d{2}$'
+    MoneyInput:
+      type: string
+      description: Zero or positive, at most 2 decimal places, at most 9999999999.99.
+      pattern: '^\d+(\.\d{1,2})?$'
+    BudgetAllocations:
+      type: object
+      required: [NEEDS, WANTS, CULTURE, UNEXPECTED]
+      properties:
+        NEEDS: { $ref: '#/components/schemas/Money' }
+        WANTS: { $ref: '#/components/schemas/Money' }
+        CULTURE: { $ref: '#/components/schemas/Money' }
+        UNEXPECTED: { $ref: '#/components/schemas/Money' }
     MonthlyBudget:
       type: object
-      required: [month, plannedIncome, savingsTarget, allocations]
+      required: [month, plannedIncome, savingsTarget, allocations, allocationTotal, plannedTotal, overAllocationAmount, overAllocated, createdAt, updatedAt]
       properties:
         month:
           type: string
-          pattern: '^\d{4}-(0[1-9]|1[0-2])$'
-        plannedIncome:
-          type: string
-        savingsTarget:
-          type: string
-        allocations:
-          type: object
-          required: [NEEDS, WANTS, CULTURE, UNEXPECTED]
-          properties:
-            NEEDS:
-              type: string
-            WANTS:
-              type: string
-            CULTURE:
-              type: string
-            UNEXPECTED:
-              type: string
-        allocationTotal:
-          type: string
+          pattern: '^[1-9]\d{3}-(0[1-9]|1[0-2])$'
+        plannedIncome: { $ref: '#/components/schemas/Money' }
+        savingsTarget: { $ref: '#/components/schemas/Money' }
+        allocations: { $ref: '#/components/schemas/BudgetAllocations' }
+        allocationTotal: { $ref: '#/components/schemas/Money' }
         plannedTotal:
-          type: string
+          $ref: '#/components/schemas/Money'
         overAllocationAmount:
+          description: plannedTotal - plannedIncome; positive means over-allocated, negative means not yet planned
+          allOf: [{ $ref: '#/components/schemas/Money' }]
+        overAllocated:
+          type: boolean
+        createdAt:
           type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     MonthlyBudgetInput:
       type: object
       required: [plannedIncome, savingsTarget, allocations]
+      description: Unknown top-level fields are ignored (DEC-026); allocations must contain exactly the four group keys.
       properties:
-        plannedIncome:
-          type: string
-        savingsTarget:
-          type: string
+        plannedIncome: { $ref: '#/components/schemas/MoneyInput' }
+        savingsTarget: { $ref: '#/components/schemas/MoneyInput' }
         allocations:
           type: object
           required: [NEEDS, WANTS, CULTURE, UNEXPECTED]
+          additionalProperties: false
           properties:
-            NEEDS:
-              type: string
-            WANTS:
-              type: string
-            CULTURE:
-              type: string
-            UNEXPECTED:
-              type: string
-      additionalProperties: false
+            NEEDS: { $ref: '#/components/schemas/MoneyInput' }
+            WANTS: { $ref: '#/components/schemas/MoneyInput' }
+            CULTURE: { $ref: '#/components/schemas/MoneyInput' }
+            UNEXPECTED: { $ref: '#/components/schemas/MoneyInput' }
+    DashboardGroup:
+      type: object
+      required: [group, budget, spent, remaining, percentUsed, overBudget, expenseCount]
+      properties:
+        group:
+          $ref: '#/components/schemas/KakeiboGroup'
+        budget:
+          type: [string, 'null']
+          description: Planned allocation; null without a budget
+        spent:
+          $ref: '#/components/schemas/Money'
+        remaining:
+          type: [string, 'null']
+          description: budget - spent, may be negative; null without a budget
+        percentUsed:
+          type: [string, 'null']
+          description: spent / budget * 100, one decimal, HALF_UP; null without a budget or when budget is 0.00
+        overBudget:
+          type: [boolean, 'null']
+        expenseCount:
+          type: integer
     Dashboard:
       type: object
-      required: [month]
+      required: [month, periodStart, periodEnd, hasBudget, plannedIncome, savingsTarget, allocationTotal, plannedTotal, overAllocationAmount, overAllocated, recordedIncome, incomeTransactionCount, totalSpent, expenseTransactionCount, groups]
       properties:
         month:
           type: string
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+        hasBudget:
+          type: boolean
         plannedIncome:
           type: [string, 'null']
-        recordedIncome:
-          type: string
         savingsTarget:
           type: [string, 'null']
+        allocationTotal:
+          type: [string, 'null']
+        plannedTotal:
+          type: [string, 'null']
+        overAllocationAmount:
+          type: [string, 'null']
+        overAllocated:
+          type: [boolean, 'null']
+        recordedIncome:
+          $ref: '#/components/schemas/Money'
+        incomeTransactionCount:
+          type: integer
+        totalSpent:
+          $ref: '#/components/schemas/Money'
+        expenseTransactionCount:
+          type: integer
         groups:
           type: array
+          minItems: 4
+          maxItems: 4
           items:
-            type: object
-            required: [group, budget, spent, remaining]
-            properties:
-              group:
-                $ref: '#/components/schemas/KakeiboGroup'
-              budget:
-                type: [string, 'null']
-              spent:
-                type: string
-              remaining:
-                type: [string, 'null']
-        recentTransactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transaction'
-        insightPreview:
-          oneOf:
-            - type: object
-              additionalProperties: true
-            - type: 'null'
+            $ref: '#/components/schemas/DashboardGroup'
     InsightsResponse:
       type: object
       required: [from, to, items, insufficientHistory]

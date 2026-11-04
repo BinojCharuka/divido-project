@@ -1,26 +1,9 @@
 import { apiRequest } from "@/lib/api/client";
-import type { Transaction } from "@/types/transaction";
+import type { Dashboard } from "@/types/budget";
 
-export interface DashboardGroupSummary {
-  group: "NEEDS" | "WANTS" | "CULTURE" | "UNEXPECTED";
-  budget: string;
-  spent: string;
-  remaining: string;
-}
+export type { Dashboard, DashboardGroup } from "@/types/budget";
 
-export interface DashboardResponse {
-  month: string;
-  plannedIncome: string;
-  recordedIncome: string;
-  savingsTarget: string;
-  groups: DashboardGroupSummary[];
-  recentTransactions: Transaction[];
-  insightPreview: any;
-}
-
-export async function getDashboard(month?: string): Promise<DashboardResponse> {
-  const query = month ? `?month=${encodeURIComponent(month)}` : "";
-  return apiRequest<DashboardResponse>(`/api/v1/dashboard${query}`, {
-    method: "GET",
-  });
+/** DASH-001. All totals are calculated by the backend; the UI only displays them. */
+export async function getDashboard(month: string): Promise<Dashboard> {
+  return apiRequest<Dashboard>(`/api/v1/dashboard?month=${encodeURIComponent(month)}`, { method: "GET" });
 }

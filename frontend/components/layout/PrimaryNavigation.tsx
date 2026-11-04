@@ -15,6 +15,8 @@ export function PrimaryNavigation({ onOpenQuickAdd }: PrimaryNavigationProps) {
   const { user } = useAuth();
 
   const links = [
+    { href: "/dashboard", label: "Dashboard", active: pathname.startsWith("/dashboard") },
+    { href: "/budget", label: "Budget", active: pathname.startsWith("/budget") },
     { href: "/transactions", label: "Transactions", active: pathname.startsWith("/transactions") },
     { href: "/categories", label: "Categories", active: pathname.startsWith("/categories") },
     { href: "/income-sources", label: "Income sources", active: pathname.startsWith("/income-sources") },
@@ -46,9 +48,6 @@ export function PrimaryNavigation({ onOpenQuickAdd }: PrimaryNavigationProps) {
                 {link.label}
               </Link>
             ))}
-            <span className="px-3 py-2 text-sm text-zinc-400 dark:text-zinc-500 cursor-not-allowed select-none" aria-label="Budget coming soon">
-              Budget
-            </span>
             <span className="px-3 py-2 text-sm text-zinc-400 dark:text-zinc-500 cursor-not-allowed select-none" aria-label="Insights coming soon">
               Insights
             </span>

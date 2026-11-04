@@ -9,6 +9,8 @@ export interface MobileNavigationProps {
 
 export function MobileNavigation({ onOpenQuickAdd }: MobileNavigationProps) {
   const pathname = usePathname();
+  const isDashboard = pathname.startsWith("/dashboard");
+  const isBudget = pathname.startsWith("/budget");
   const isTransactions = pathname.startsWith("/transactions");
   const isCategories = pathname.startsWith("/categories");
   const isSources = pathname.startsWith("/income-sources");
@@ -16,9 +18,39 @@ export function MobileNavigation({ onOpenQuickAdd }: MobileNavigationProps) {
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 px-4 py-2 pb-safe"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 px-2 py-2 pb-safe"
     >
       <div className="flex items-center justify-around max-w-md mx-auto">
+        {/* Dashboard & budget */}
+        <Link
+          href="/dashboard"
+          aria-current={isDashboard ? "page" : undefined}
+          className={`flex flex-col items-center gap-1 p-2 text-xs font-medium transition-colors ${
+            isDashboard
+              ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+              : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          }`}
+        >
+          <span className="text-lg leading-none" aria-hidden="true">
+            ⌂
+          </span>
+          <span>Home</span>
+        </Link>
+        <Link
+          href="/budget"
+          aria-current={isBudget ? "page" : undefined}
+          className={`flex flex-col items-center gap-1 p-2 text-xs font-medium transition-colors ${
+            isBudget
+              ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+              : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+          }`}
+        >
+          <span className="text-lg leading-none" aria-hidden="true">
+            ◎
+          </span>
+          <span>Budget</span>
+        </Link>
+
         {/* Transactions */}
         <Link
           href="/transactions"

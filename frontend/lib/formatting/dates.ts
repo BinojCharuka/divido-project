@@ -1,25 +1,33 @@
 /**
  * Date formatting and calculation utilities for Divido.
- * Follows docs/02-ux-ui/wireframes.md and timezone considerations.
+ * Follows docs/02-ux-ui/wireframes.md and the DIV-017 month/timezone policy:
+ * "today" and "the current month" are taken in the application timezone
+ * (Asia/Colombo, the default user timezone), never the browser's local zone, so the
+ * UI and the backend agree on which month is current. Transaction dates and months
+ * are calendar values (YYYY-MM-DD, YYYY-MM) and are never shifted between zones.
  */
 
-/** Returns today's date in local ISO YYYY-MM-DD format. */
-export function getTodayIso(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+/** DIV-017: the default user timezone; users cannot change it in the MVP yet. */
+export const APP_TIME_ZONE = "Asia/Colombo";
+
+/** The calendar date in {@link APP_TIME_ZONE} at `now`, as YYYY-MM-DD. */
+export function getTodayIso(now: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
-/** Returns yesterday's date in local ISO YYYY-MM-DD format. */
-export function getYesterdayIso(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+/** The day before today in {@link APP_TIME_ZONE}, as YYYY-MM-DD. */
+export function getYesterdayIso(now: Date = new Date()): string {
+  const [year, month, day] = getTodayIso(now).split("-").map(Number);
+  // Pure calendar arithmetic in UTC, so no local DST or offset can shift the day.
+  const d = new Date(Date.UTC(year, month - 1, day - 1));
+  return d.toISOString().slice(0, 10);
 }
 
 /** Formats a YYYY-MM-DD string into a human-readable format like "Oct 12, 2026". */
@@ -57,9 +65,25 @@ export function formatMonthYear(monthStr: string): string {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
-/** Gets the current month in "YYYY-MM" format. */
-export function getCurrentMonth(): string {
-  return getTodayIso().slice(0, 7);
+/** The current month in {@link APP_TIME_ZONE}, as YYYY-MM. */
+export function getCurrentMonth(now: Date = new Date()): string {
+  return getTodayIso(now).slice(0, 7);
+}
+
+const MONTH_PATTERN = /^[1-9]\d{3}-(0[1-9]|1[0-2])$/;
+
+/** Same rule as the backend: YYYY-MM with a four-digit year from 1000. */
+export function isValidMonth(value: string | null | undefined): value is string {
+  return !!value && MONTH_PATTERN.test(value);
+}
+
+/** Moves a YYYY-MM month by `delta` months, crossing year boundaries correctly. */
+export function shiftMonth(month: string, delta: number): string {
+  const [year, m] = month.split("-").map(Number);
+  const index = year * 12 + (m - 1) + delta;
+  const nextYear = Math.floor(index / 12);
+  const nextMonth = (index % 12) + 1;
+  return `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
 }
 
 /** Returns start and end dates for a given month "YYYY-MM". */
@@ -75,11 +99,11 @@ export function getMonthDateRange(yearMonth: string): { from: string; to: string
 
 /** Returns recent months list safely avoiding day-31 rollover bugs. */
 export function getRecentMonths(count = 6): { val: string; label: string }[] {
-  const now = new Date();
+  const current = getCurrentMonth();
   return Array.from({ length: count }).map((_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    const val = shiftMonth(current, -i);
+    const [year, month] = val.split("-").map(Number);
+    const label = new Date(year, month - 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
     return { val, label };
   });
 }
