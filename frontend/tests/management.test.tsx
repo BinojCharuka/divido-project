@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import TransactionsPage from "@/app/transactions/page";
+import { TransactionsView } from "@/features/transactions/TransactionsView";
 import { CategoryManager } from "@/features/categories/CategoryManager";
 import { IncomeSourceManager } from "@/features/income-sources/IncomeSourceManager";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
@@ -212,7 +212,7 @@ describe("Transactions page filters", () => {
 
   it("sends the category filter to the API and shows only the matching records", async () => {
     const user = userEvent.setup();
-    renderWithAuth(<TransactionsPage />);
+    renderWithAuth(<TransactionsView />);
     expect(await screen.findByText("Rice")).toBeInTheDocument();
     expect(screen.getByText("Bus")).toBeInTheDocument();
 
@@ -228,7 +228,7 @@ describe("Transactions page filters", () => {
 
   it("shows a filtered empty state with a working clear action", async () => {
     const user = userEvent.setup();
-    renderWithAuth(<TransactionsPage />);
+    renderWithAuth(<TransactionsView />);
     await screen.findByText("Rice");
 
     await user.click(screen.getByRole("tab", { name: "Income" }));
@@ -242,7 +242,7 @@ describe("Transactions page filters", () => {
   it("shows an error with retry, never stale or sample records, when loading fails", async () => {
     const user = userEvent.setup();
     backend.state.overrides.set("/api/v1/transactions", serverError("Something went wrong on our side."));
-    renderWithAuth(<TransactionsPage />);
+    renderWithAuth(<TransactionsView />);
 
     expect(await screen.findByText(/Could not load transactions/i)).toBeInTheDocument();
     expect(screen.queryByText("Rice")).not.toBeInTheDocument();

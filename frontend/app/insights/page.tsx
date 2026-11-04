@@ -1,7 +1,7 @@
 "use client";
 
-import { NotYetAvailablePage } from "@/components/layout/NotYetAvailablePage";
+import { DividoApp } from "@/components/app/DividoApp";
 
 export default function InsightsPage() {
-  return <NotYetAvailablePage title="Insights" phase="Phase 04" />;
+  return <DividoApp initialPage="Insights" />;
 }

@@ -7,7 +7,6 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
-import { createPortal } from "react-dom"
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -483,6 +482,12 @@ export default function App({
     }
     return "Dashboard"
   })
+
+  useEffect(() => {
+    if (initialPage && initialPage !== page) {
+      setPage(initialPage)
+    }
+  }, [initialPage])
   const [dataCleared, setDataCleared] = useState<boolean>(true)
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
@@ -554,8 +559,9 @@ export default function App({
   const [month, setMonth] = useState(() => new Date().getMonth())
   const [modal, setModal] =
     useState<"expense" | "income" | "add" | "detail" | "delete" | "notifications" | "help" | "insight" | "category" | "source" | "signout" | "clear-data" | null>(
-      () =>
-        window.location.pathname.endsWith("/edit") && initialTransaction
+      () => {
+        if (typeof window === "undefined") return null
+        return window.location.pathname.endsWith("/edit") && initialTransaction
           ? initialTransaction.amount > 0
             ? "income"
             : "expense"
@@ -565,7 +571,8 @@ export default function App({
               ? "income"
               : initialTransaction
                 ? "detail"
-                : null,
+                : null
+      },
     )
   const [selected, setSelected] = useState<Transaction | null>(
     initialTransaction ?? null,
@@ -615,7 +622,7 @@ export default function App({
     async function syncBackendData() {
       try {
         const monthStr = formatYearMonth(month)
-        const [backendCats, backendSources, backendProfile, backendTx, backendBudget, backendReflection] =
+        const [backendCats, backendSources, backendProfile, backendTx, backendBudget, backendReflection, backendDashboard] =
           await Promise.allSettled([
             listCategories(true),
             listIncomeSources(true),
@@ -623,6 +630,7 @@ export default function App({
             listTransactions({ size: 100 }),
             getBudget(monthStr),
             getReflection(monthStr),
+            getDashboard(monthStr),
           ])
 
         if (!active) return
@@ -701,6 +709,20 @@ export default function App({
           }
         }
 
+        if (backendDashboard.status === "fulfilled" && backendDashboard.value) {
+          const d = backendDashboard.value
+          if (d.plannedIncome) setPlannedIncome(Number(d.plannedIncome))
+          if (d.savingsTarget) setSavings(Number(d.savingsTarget))
+          if (Array.isArray(d.groups) && d.groups.length > 0) {
+            setPlans({
+              Needs: Number(d.groups.find((g) => g.group === "NEEDS")?.budget ?? 0),
+              Wants: Number(d.groups.find((g) => g.group === "WANTS")?.budget ?? 0),
+              Culture: Number(d.groups.find((g) => g.group === "CULTURE")?.budget ?? 0),
+              Unexpected: Number(d.groups.find((g) => g.group === "UNEXPECTED")?.budget ?? 0),
+            })
+          }
+        }
+
         if (backendReflection.status === "fulfilled" && backendReflection.value) {
           const r = backendReflection.value
           if (r.answers && r.answers.length > 0) {
@@ -732,7 +754,7 @@ export default function App({
   )
   const [period, setPeriod] = useState("Last 90 days")
   const [onboardStep, setOnboardStep] = useState<number | null>(() =>
-    window.location.pathname === "/onboarding" ? 0 : null,
+    typeof window !== "undefined" && window.location.pathname === "/onboarding" ? 0 : null,
   )
   const [signedOut, setSignedOut] = useState(() => {
     if (initialSignedOut !== undefined) return initialSignedOut
@@ -749,10 +771,17 @@ export default function App({
     return "Sign in"
   })
 
-  const [mounted, setMounted] = useState(false)
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    if (initialSignedOut !== undefined) {
+      setSignedOut(initialSignedOut)
+    }
+  }, [initialSignedOut])
+
+  useEffect(() => {
+    if (initialAuthMode) {
+      setAuthMode(initialAuthMode)
+    }
+  }, [initialAuthMode])
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
@@ -1789,14 +1818,6 @@ export default function App({
                   >
                     <Plus size={17} />
                     Add Income
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setModal("clear-data")}
-                    title={dataCleared ? "Restart clean dashboard" : "Clear income and expenses data"}
-                  >
-                    <Trash2 size={16} />
-                    Clear Data
                   </Button>
                 </>
               ) : page === "Transactions" ? (
@@ -3251,51 +3272,43 @@ export default function App({
           </div>
         </main>
       </div>
-      {(() => {
-        const nav = (
-          <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
-            {[
-              {
-                page: "Dashboard" as Page,
-                label: "Overview",
-                icon: LayoutDashboard,
-              },
-              {
-                page: "Transactions" as Page,
-                label: "History",
-                icon: ArrowLeftRight,
-              },
-              { page: null, label: "Add transaction", icon: Plus },
-              { page: "Budget" as Page, label: "Budget", icon: Wallet },
-              { page: "Settings" as Page, label: "Settings", icon: Settings },
-            ].map(({ page: item, label, icon: Icon }) => (
-              <button
-                key={label}
-                type="button"
-                className={
-                  item === null
-                    ? "mobile-add"
-                    : page === item ||
-                        (item === "Settings" &&
-                          ["Expense Categories", "Income Sources"].includes(page))
-                      ? "active"
-                      : ""
-                }
-                aria-label={label}
-                aria-current={item === page ? "page" : undefined}
-                onClick={() => (item ? navigate(item) : setModal("add"))}
-              >
-                <Icon size={item ? 19 : 23} />
-                {item && <span>{label}</span>}
-              </button>
-            ))}
-          </nav>
-        );
-        if (mounted && typeof document !== "undefined") {
-          return createPortal(nav, document.body);
-        }
-        return nav;
-      })()}
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+        {[
+          {
+            page: "Dashboard" as Page,
+            label: "Overview",
+            icon: LayoutDashboard,
+          },
+          {
+            page: "Transactions" as Page,
+            label: "History",
+            icon: ArrowLeftRight,
+          },
+          { page: null, label: "Add transaction", icon: Plus },
+          { page: "Budget" as Page, label: "Budget", icon: Wallet },
+          { page: "Settings" as Page, label: "Settings", icon: Settings },
+        ].map(({ page: item, label, icon: Icon }) => (
+          <button
+            key={label}
+            type="button"
+            className={
+              item === null
+                ? "mobile-add"
+                : page === item ||
+                    (item === "Settings" &&
+                      ["Expense Categories", "Income Sources"].includes(page))
+                  ? "active"
+                  : ""
+            }
+            aria-label={label}
+            aria-current={item === page ? "page" : undefined}
+            onClick={() => (item ? navigate(item) : setModal("add"))}
+          >
+            <Icon size={item ? 19 : 23} />
+            {item && <span>{label}</span>}
+          </button>
+        ))}
+      </nav>
 
       {toast && (
         <div className="toast" role="status">

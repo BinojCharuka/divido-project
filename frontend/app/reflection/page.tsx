@@ -1,7 +1,7 @@
 "use client";
 
-import { NotYetAvailablePage } from "@/components/layout/NotYetAvailablePage";
+import { DividoApp } from "@/components/app/DividoApp";
 
 export default function ReflectionPage() {
-  return <NotYetAvailablePage title="Reflection" phase="Phase 04" />;
+  return <DividoApp initialPage="Monthly Reflection" />;
 }
