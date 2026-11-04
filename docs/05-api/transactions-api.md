@@ -124,6 +124,7 @@ Rules:
 - If `categoryId` is changed on an expense, backend verifies category accessibility (DEC-013).
 - If `incomeSourceId` is changed on income, backend verifies income source ownership (DEC-003).
 - Changing `type` is not supported on update (type is immutable; use delete + create instead).
+- Field presence matters (implemented in DIV-013): an omitted field is left unchanged; an explicit `null` clears an optional field (`description`, `paymentMethod`, and `incomeSourceId` on income). `amount`, `date` and an expense's `categoryId` cannot be cleared. Clients must send `null`, not omit the key, when a user empties an optional field.
 - Recompute summaries from persisted data; do not trust client-calculated totals.
 
 ## TX-005 — Delete transaction (Hard delete per DEC-014)
