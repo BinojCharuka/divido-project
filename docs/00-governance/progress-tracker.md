@@ -32,7 +32,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|
 | **Authentication** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Merged (#4, #5, #6); Rate limiting in review (#14) | `COMPLETED` |
 | **Transaction Management** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `IN_REVIEW` | `IN_REVIEW` | `IN_REVIEW` | Backend merged (#11–#13); real routes restored, edit/filter fixes and live E2E on `feature/div-015-phase-02-completion` | `IN_REVIEW` |
-| **Categories** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `IN_REVIEW` | `IN_REVIEW` | `IN_REVIEW` | Backend merged (#10); `/categories` management UI on DIV-015 branch; default names/groups need decision-log reconciliation (see Section E, DEC-013) | `IN_REVIEW` |
+| **Categories** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `IN_REVIEW` | `IN_REVIEW` | `IN_REVIEW` | Backend merged (#10); `/categories` management UI on DIV-015 branch; defaults per DEC-013 (approved 2026-11-04) | `IN_REVIEW` |
 | **Income Sources** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `IN_REVIEW` | `IN_REVIEW` | `IN_REVIEW` | Backend merged (#10); `/income-sources` management UI on DIV-015 branch | `IN_REVIEW` |
 | **Budget Management** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED / DECISION_REQUIRED` |
 | **Dashboard** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `NOT_STARTED` |
@@ -125,12 +125,11 @@
 - None.
 
 ### Decision Required
-- **DEC-013 default categories:** the decision log still says the exact names and group mappings of the 3 defaults are "pending owner specification", while V2 seeds `Groceries` (NEED), `Transport` (NEED), `Entertainment` (WANT) and Section E below calls them approved. The owner needs to confirm the seeded names and update the decision log (or ask for a new forward migration).
+- None for Phase 02. **DEC-013** default names and mappings were approved by the project owner on 2026-11-04 and recorded in `decision-log.md`.
 
 ### What Must Be Done Next & Why
 1. **Review and merge `feature/div-015-phase-02-completion`:** `main` does not build until this (or an equivalent fix) is merged.
-2. **Reconcile DEC-013 default category names** in `decision-log.md`.
-3. **Then close Phase 02** and start DIV-017 (Phase 03 budget/dashboard decisions).
+2. **Verify `main` after merge, then close Phase 02** and start DIV-017 (Phase 03 budget/dashboard decisions).
 
 ---
 
@@ -152,7 +151,7 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **DEC-010** | Shared expenses | Outside MVP | `PROPOSED` | Excluded from current scope |
 | **DEC-011** | Spending habits | Analyze 90 days; minimum three distinct spending days | `PROPOSED` | Governs conditional Insights feature (DIV-027) |
 | **DEC-012** | Budget allocation | Independent limits; warn if plan exceeds planned income after savings | `PROPOSED` | Warning behavior in monthly budget form |
-| **DEC-013** | Category ownership & defaults | Exactly 3 global default categories (`user_id IS NULL`); user custom categories (`user_id = auth_user.id`); defaults immutable | `APPROVED` (DIV-009A) | Usable categories query returns `user_id IS NULL OR user_id = :authUserId`. Seeded in V2: Groceries (NEED), Transport (NEED), Entertainment (WANT). **Discrepancy:** `decision-log.md` still lists the exact names and mappings as pending owner specification. `DECISION_REQUIRED`: confirm and record. |
+| **DEC-013** | Category ownership & defaults | Exactly 3 global default categories (`user_id IS NULL`); user custom categories (`user_id = auth_user.id`); defaults immutable | `APPROVED` (DIV-009A) | Usable categories query returns `user_id IS NULL OR user_id = :authUserId`. Exact defaults approved by the project owner on 2026-11-04 and seeded in V2: Groceries (NEED), Transport (NEED), Entertainment (WANT). Defaults are immutable; custom user categories remain supported. |
 | **DEC-014** | Transaction deletion | Hard delete for MVP (`DELETE /api/v1/transactions/{id}` returns `204 No Content`); permanent removal | `APPROVED` (DIV-009A) | Permanently removes row. Restore endpoint `TX-006` removed from MVP. No `deleted_at` column in V3. |
 | **DEC-015** | Authentication | Cookie-based server-side session | `APPROVED` (DIV-006) | Enforced on all transaction routes and API requests. |
 | **DEC-016** | Money lending tracker | Outside MVP | `PROPOSED` | Excluded from current scope |

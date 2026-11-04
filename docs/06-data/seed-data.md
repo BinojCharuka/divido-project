@@ -1,6 +1,6 @@
 # Seed Data Policy
 
-**Status:** Proposed — default categories and mappings require owner approval
+**Status:** Proposed — default categories and mappings approved (DEC-013, 2026-11-04); Kakeibo group display copy still needs owner review
 
 ## 1. Purpose
 
@@ -24,7 +24,7 @@ Display descriptions and examples need owner review. Keep stable internal enum k
 
 ## 3. Default categories
 
-Per **DEC-013 (Approved)** and seeded in `V2__categories_and_income_sources.sql`:
+Per **DEC-013 (Approved; names and mappings approved by the project owner on 2026-11-04)** and seeded in `V2__categories_and_income_sources.sql`:
 - Exactly 3 shared global default categories are stored with `user_id IS NULL`:
   1. `Groceries` (category_type: `NEED`, slug: `groceries`, active: `true`)
   2. `Transport` (category_type: `NEED`, slug: `transport`, active: `true`)

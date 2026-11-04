@@ -32,7 +32,7 @@ This table predates the canonical decision log and uses its own numbering. Its I
 ## Open product decisions
 
 1. Exact onboarding fields and when monthly planning is required.
-2. Exact built-in category names and default Kakeibo group mapping (exactly 3 defaults approved per DEC-013; names/groups pending specification).
+2. ~~Exact built-in category names and default Kakeibo group mapping~~ — resolved 2026-11-04 by DEC-013: `Groceries` (Needs), `Transport` (Needs), `Entertainment` (Wants).
 3. Whether categories can be moved between groups after they have transactions.
 4. Exact calculation and display of planned income, actual income, expenses, net savings, and remaining budget.
 5. Whether the user must enter all four group budgets or can leave one at zero/unset.
