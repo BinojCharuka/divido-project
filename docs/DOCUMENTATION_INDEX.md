@@ -1,7 +1,7 @@
 # Documentation Index
 
 **Status:** PROPOSED / IN PROGRESS  
-**Last reconciled:** 2026-11-02 against repository files.
+**Last reconciled:** 2026-11-02 against repository files; Phase 02 closeout entries updated 2026-11-04 (PR #16, PR #17).
 
 This index lists every documentation file that exists in the repository, grouped by the numbered folders `00`–`10`, which are the single organization scheme for Divido documentation. The **Declared status** column summarizes each file's own status line, often abbreviated; the source file remains authoritative. It is not an approval record: a document is approved only when the project owner explicitly approves it (see [`DOCUMENTATION_RULES.md`](DOCUMENTATION_RULES.md)). Planned files that do not exist are listed separately as `NOT CREATED`.
 
@@ -108,7 +108,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`06-data/entity-relationships.md`](06-data/entity-relationships.md) | Logical entity relationships | Proposed logical ERD |
 | [`06-data/data-dictionary.md`](06-data/data-dictionary.md) | Field catalogue | Proposed field catalogue |
 | [`06-data/migration-policy.md`](06-data/migration-policy.md) | Flyway migration policy | Required development rule |
-| [`06-data/seed-data.md`](06-data/seed-data.md) | Seed data policy | Proposed — owner approval required |
+| [`06-data/seed-data.md`](06-data/seed-data.md) | Seed data policy | Proposed — default categories approved (DEC-013, 2026-11-04); Kakeibo group display copy needs owner review |
 | [`06-data/data-retention.md`](06-data/data-retention.md) | Data retention and lifecycle | Proposed policy |
 
 ## 07 — Development
@@ -157,7 +157,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`10-phases/README.md`](10-phases/README.md) | Section entry point | Proposed implementation roadmap |
 | [`10-phases/PHASE-00-planning.md`](10-phases/PHASE-00-planning.md) | Phase 00: planning and decisions | Proposed |
 | [`10-phases/PHASE-01-foundation-auth.md`](10-phases/PHASE-01-foundation-auth.md) | Phase 01: foundation and authentication | Proposed sequence |
-| [`10-phases/PHASE-02-transactions.md`](10-phases/PHASE-02-transactions.md) | Phase 02: transactions | Proposed sequence |
+| [`10-phases/PHASE-02-transactions.md`](10-phases/PHASE-02-transactions.md) | Phase 02: transactions | COMPLETED — PR #16, verified on `main` 2026-11-04; one test-gate item conditional on the pending month/timezone policy |
 | [`10-phases/PHASE-03-budget-dashboard.md`](10-phases/PHASE-03-budget-dashboard.md) | Phase 03: budgets and dashboard | Proposed sequence |
 | [`10-phases/PHASE-04-insights-reflection.md`](10-phases/PHASE-04-insights-reflection.md) | Phase 04: insights and reflection | Conditional proposed phase |
 | [`10-phases/PHASE-05-release.md`](10-phases/PHASE-05-release.md) | Phase 05: release readiness | Proposed |
