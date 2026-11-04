@@ -1,6 +1,6 @@
 # Phase 03 — Monthly Budgets and Dashboard
 
-**Status:** IN_REVIEW — DIV-017 rules approved (DEC-028, DEC-012, 2026-11-04); DIV-025 and DIV-026 implemented and verified on `feature/div-017-phase-03-budget-dashboard`, awaiting PR review and merge  
+**Status:** MERGED — PR #18 squash-merged to `main` as `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d` on 2026-11-04. PR-local checks reported passing; post-merge `main` verification and Neon V4 application evidence remain pending  
 **Primary outcome:** Users can plan a month and compare planned amounts with actual transactions.
 
 ## Goal
@@ -62,7 +62,9 @@ Deliver a trustworthy monthly view. Financial totals must be defined precisely b
 - [x] Ownership isolation passes for budgets and aggregates.
 - [x] Warning behavior matches approved business rules.
 - [x] UI and API tests pass; docs reflect actual calculations.
-- [ ] PR merged into `main` and re-verified there (required before Phase 03 is `COMPLETED`).
+- [x] PR #18 merged into `main` (squash commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`).
+- [ ] Re-run backend, frontend, build and E2E verification on the exact merged `main` commit (required before Phase 03 is `COMPLETED`).
+- [ ] Apply V4 to the intended Neon project/branch and verify Flyway history plus `monthly_budgets` schema; owner approval granted 2026-11-04, execution evidence pending.
 
 ## Risk note
 
@@ -75,4 +77,5 @@ A visually attractive dashboard with incorrect or ambiguous financial arithmetic
 - API: [Budgets API](../05-api/budgets-api.md) (`GET`/`PUT /api/v1/budgets/{month}`), [Dashboard API](../05-api/dashboard-api.md) (`GET /api/v1/dashboard`).
 - UI: `/budget` (`features/budget/BudgetPlanner.tsx`), `/dashboard` (`features/dashboard/DashboardView.tsx`), shared `MonthNavigator`; month kept in `?month=YYYY-MM`.
 - Tests: backend `BudgetCalculatorTest`, `BudgetMonthTest`, `BudgetIntegrationTest`, `DashboardIntegrationTest`, `DashboardDefaultMonthIntegrationTest`; frontend `tests/budget-plan.test.ts`, `tests/budget.test.tsx`, `tests/dashboard.test.tsx`; E2E `e2e/budget-dashboard.spec.ts`.
-- Known limitations: no optimistic-lock/version check (last write wins); dashboard uses each category's current group, so regrouping a category moves its past expenses; timezone is not user-editable yet (DIV-022), so the UI uses the `Asia/Colombo` default.
+- PR-reported verification (branch, not post-merge): backend `./mvnw test` 354/354; frontend typecheck pass, `npm test` 137/137, E2E 22/22 against isolated backend/disposable Postgres, production build pass. `npm run lint` reports pre-existing findings only (7 errors / 15 warnings in prototype, insights API and AuthPageShell). No GitHub Actions checks exist.
+- Known limitations: no optimistic-lock/version check (last write wins); dashboard uses each category's current group, so regrouping a category moves its past expenses; timezone is not user-editable yet (DIV-022), so the UI uses the `Asia/Colombo` default. Neon migration status must not be described as applied until verified.
