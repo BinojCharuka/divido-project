@@ -16,6 +16,8 @@ export function PrimaryNavigation({ onOpenQuickAdd }: PrimaryNavigationProps) {
 
   const links = [
     { href: "/transactions", label: "Transactions", active: pathname.startsWith("/transactions") },
+    { href: "/categories", label: "Categories", active: pathname.startsWith("/categories") },
+    { href: "/income-sources", label: "Income sources", active: pathname.startsWith("/income-sources") },
   ];
 
   return (

@@ -6,7 +6,7 @@ export function AuthPageShell({ title, children }: { title: string; children: Re
   return (
     <div className="auth-page">
       <div className="auth-brand">
-        <Link href="/dashboard" aria-label="Divido Home">
+        <Link href="/" aria-label="Divido Home">
           <div className="brand brand-full">
             <img
               src="/webp/logo-fulls.webp"
@@ -26,11 +26,6 @@ export function AuthPageShell({ title, children }: { title: string; children: Re
       <div className="auth-card">
         <h1>{title}</h1>
         {children}
-        <div className="inline-note" style={{ textAlign: "center" }}>
-          <Link href="/dashboard" className="text-xs text-teal-600 dark:text-teal-400 underline font-medium">
-            ← Continue to Dashboard
-          </Link>
-        </div>
       </div>
     </div>
   );

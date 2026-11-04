@@ -72,6 +72,8 @@ export function installFakeBackend() {
     transactions: new Map<string, Transaction>(),
     customCategories: [] as FakeCategory[],
     customIncomeSources: [] as FakeIncomeSource[],
+    /** Per-install copies, so a test that deactivates one does not leak into the next. */
+    baseIncomeSources: DEFAULT_INCOME_SOURCES.map((source) => ({ ...source })),
     /** Return this response for the next call to `path`, once. */
     overrides: new Map<string, () => Response | Promise<Response>>(),
   };
@@ -134,28 +136,76 @@ export function installFakeBackend() {
       return new Response(null, { status: 204 });
     }
 
-    // Categories endpoint (DEC-013: exactly 3 global default categories)
-    if (method === "GET" && path === "/api/v1/categories") {
-      return json(200, {
-        items: [
-          { id: "cat-1", name: "Groceries", group: "NEEDS", isDefault: true, active: true },
-          { id: "cat-2", name: "Transport", group: "NEEDS", isDefault: true, active: true },
-          { id: "cat-3", name: "Entertainment", group: "WANTS", isDefault: true, active: true },
-          ...state.customCategories,
-        ],
-      });
+    const searchParams = new URL(url, "http://frontend.test").searchParams;
+    const includeInactive = searchParams.get("includeInactive") === "true";
+
+    // Categories (DEC-013: exactly 3 global default categories, immutable)
+    if (path === "/api/v1/categories" || path.startsWith("/api/v1/categories/")) {
+      if (!state.signedInAs) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
+      const all = [...DEFAULT_CATEGORIES, ...state.customCategories];
+      if (method === "GET" && path === "/api/v1/categories") {
+        return json(200, { items: all.filter((c) => includeInactive || c.active !== false) });
+      }
+      if (method === "POST" && path === "/api/v1/categories") {
+        const { name, group } = body as { name: string; group: FakeCategory["group"] };
+        if (all.some((c) => c.name.toLowerCase() === name.trim().toLowerCase())) {
+          return error(409, "CONFLICT", `A category named '${name.trim()}' already exists.`);
+        }
+        const created = { id: `cat-c${state.customCategories.length + 1}`, name: name.trim(), group, isDefault: false, active: true };
+        state.customCategories.push(created);
+        return json(201, created);
+      }
+      const match = path.match(/^\/api\/v1\/categories\/([^/]+)(\/deactivate)?$/);
+      if (match) {
+        const [, id, deactivate] = match;
+        if (DEFAULT_CATEGORIES.some((c) => c.id === id)) {
+          return error(403, "FORBIDDEN", "Global default categories cannot be modified.");
+        }
+        const target = state.customCategories.find((c) => c.id === id);
+        if (!target) return error(404, "NOT_FOUND", "Category not found.");
+        if (method === "POST" && deactivate) {
+          target.active = false;
+          return new Response(null, { status: 204 });
+        }
+        if (method === "PATCH" && !deactivate) {
+          const changes = body as Partial<FakeCategory>;
+          if (changes.name !== undefined) target.name = changes.name;
+          if (changes.group !== undefined) target.group = changes.group;
+          return json(200, target);
+        }
+      }
     }
 
-    // Income sources endpoint
-    if (method === "GET" && path === "/api/v1/income-sources") {
-      return json(200, {
-        items: [
-          { id: "src-1", name: "Monthly Salary", active: true },
-          { id: "src-2", name: "Freelance", active: true },
-          { id: "src-3", name: "Investments", active: true },
-          ...state.customIncomeSources,
-        ],
-      });
+    // Income sources (always user-owned)
+    if (path === "/api/v1/income-sources" || path.startsWith("/api/v1/income-sources/")) {
+      if (!state.signedInAs) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
+      const all = [...state.baseIncomeSources, ...state.customIncomeSources];
+      if (method === "GET" && path === "/api/v1/income-sources") {
+        return json(200, { items: all.filter((s) => includeInactive || s.active !== false) });
+      }
+      if (method === "POST" && path === "/api/v1/income-sources") {
+        const { name } = body as { name: string };
+        if (all.some((s) => s.name.toLowerCase() === name.trim().toLowerCase())) {
+          return error(409, "CONFLICT", `An income source named '${name.trim()}' already exists.`);
+        }
+        const created = { id: `src-c${state.customIncomeSources.length + 1}`, name: name.trim(), active: true };
+        state.customIncomeSources.push(created);
+        return json(201, created);
+      }
+      const match = path.match(/^\/api\/v1\/income-sources\/([^/]+)(\/deactivate)?$/);
+      if (match) {
+        const [, id, deactivate] = match;
+        const target = all.find((s) => s.id === id);
+        if (!target) return error(404, "NOT_FOUND", "Income source not found.");
+        if (method === "POST" && deactivate) {
+          target.active = false;
+          return new Response(null, { status: 204 });
+        }
+        if (method === "PATCH" && !deactivate) {
+          target.name = (body as { name: string }).name;
+          return json(200, target);
+        }
+      }
     }
 
     // Transactions list & create
@@ -163,11 +213,13 @@ export function installFakeBackend() {
       if (!state.signedInAs) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
 
       if (method === "GET") {
-        const typeFilter = new URL(url, "http://frontend.test").searchParams.get("type");
+        const typeFilter = searchParams.get("type");
+        const categoryFilter = searchParams.get("categoryId");
+        const sourceFilter = searchParams.get("incomeSourceId");
         let items = Array.from(state.transactions.values());
-        if (typeFilter) {
-          items = items.filter((tx) => tx.type === typeFilter);
-        }
+        if (typeFilter) items = items.filter((tx) => tx.type === typeFilter);
+        if (categoryFilter) items = items.filter((tx) => tx.category?.id === categoryFilter);
+        if (sourceFilter) items = items.filter((tx) => tx.incomeSource?.id === sourceFilter);
         return json(200, {
           items,
           page: 0,
