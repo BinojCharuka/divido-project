@@ -23,8 +23,10 @@ export function IncomeSourceSelect({ value, onChange, error, className = "" }: I
       try {
         setLoading(true);
         setLoadError(null);
-        const items = await listIncomeSources();
-        if (active) setSources(items.filter((s) => s.active));
+        // Inactive sources are loaded only so an existing transaction that still
+        // uses one can display it; they are never offered for a new choice.
+        const items = await listIncomeSources({ includeInactive: true });
+        if (active) setSources(items);
       } catch {
         if (active) setLoadError("Unable to load income sources.");
       } finally {
@@ -48,9 +50,11 @@ export function IncomeSourceSelect({ value, onChange, error, className = "" }: I
         disabled={loading}
       >
         <option value="">{loading ? "Loading sources…" : "Select source (optional)"}</option>
-        {sources.map((source) => (
+        {sources
+          .filter((source) => source.active || source.id === value)
+          .map((source) => (
           <option key={source.id} value={source.id}>
-            {source.name}
+            {source.active ? source.name : `${source.name} (inactive)`}
           </option>
         ))}
       </SelectField>

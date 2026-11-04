@@ -17,7 +17,7 @@ import { ApiError } from "@/lib/api/client";
 import { deleteTransaction, updateTransaction } from "@/lib/api/transactions";
 import { normalizeMoneyInput } from "@/lib/formatting/money";
 import { validateExpense, validateIncome, type FieldErrors } from "@/lib/validation/transactions";
-import type { Transaction } from "@/types/transaction";
+import type { Transaction, TransactionUpdate } from "@/types/transaction";
 
 export interface TransactionEditFormProps {
   transaction: Transaction;
@@ -30,6 +30,35 @@ const PAYMENT_METHODS = [
   { id: "BANK_TRANSFER", label: "Bank Transfer" },
   { id: "OTHER", label: "Other" },
 ];
+
+interface EditableValues {
+  amount: string;
+  date: string;
+  description: string;
+  categoryId: string;
+  incomeSourceId: string;
+  paymentMethod: string;
+}
+
+/**
+ * Sends only the fields that changed. A cleared optional field is sent as `null`,
+ * because the backend leaves omitted fields untouched; sending `undefined` would
+ * drop the key and silently keep the old value.
+ */
+export function buildTransactionPatch(original: Transaction, next: EditableValues): TransactionUpdate {
+  const patch: TransactionUpdate = {};
+  if (next.amount !== normalizeMoneyInput(original.amount)) patch.amount = next.amount;
+  if (next.date !== original.date) patch.date = next.date;
+  if (next.description !== (original.description ?? "")) patch.description = next.description || null;
+
+  if (original.type === "EXPENSE") {
+    if (next.categoryId !== (original.category?.id ?? "")) patch.categoryId = next.categoryId;
+    if (next.paymentMethod !== (original.paymentMethod ?? "")) patch.paymentMethod = next.paymentMethod || null;
+  } else if (next.incomeSourceId !== (original.incomeSource?.id ?? "")) {
+    patch.incomeSourceId = next.incomeSourceId || null;
+  }
+  return patch;
+}
 
 export function TransactionEditForm({ transaction }: TransactionEditFormProps) {
   const router = useRouter();
@@ -68,12 +97,23 @@ export function TransactionEditForm({ transaction }: TransactionEditFormProps) {
 
     if (Object.keys(errors).length > 0) return;
 
+    const changes = buildTransactionPatch(transaction, {
+      amount: normalizeMoneyInput(amount),
+      date,
+      description: description.trim(),
+      categoryId,
+      incomeSourceId,
+      paymentMethod,
+    });
+
+    if (Object.keys(changes).length === 0) {
+      router.push("/transactions");
+      return;
+    }
+
     setPending(true);
     try {
-      await updateTransaction(transaction.id, {
-        ...input,
-        amount: normalizeMoneyInput(amount),
-      });
+      await updateTransaction(transaction.id, changes);
       router.push("/transactions?notice=updated");
     } catch (error) {
       if (error instanceof ApiError) {
@@ -93,8 +133,10 @@ export function TransactionEditForm({ transaction }: TransactionEditFormProps) {
       await deleteTransaction(transaction.id);
       router.push("/transactions?notice=deleted");
     } catch (err) {
-      if (err instanceof ApiError && err.status === 404) {
-        router.push("/transactions?notice=deleted");
+      if (err instanceof ApiError && err.kind === "not-found") {
+        // The record is not there (for example, deleted in another tab). Say so
+        // instead of claiming this request deleted it.
+        router.push("/transactions?notice=not-found");
       } else {
         setFormError("Could not delete transaction. Please try again.");
         setDeleteOpen(false);

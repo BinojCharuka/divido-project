@@ -22,8 +22,10 @@ export function CategorySelect({ value, onChange, error, className = "" }: Categ
     async function load() {
       try {
         setLoading(true);
-        const items = await listCategories();
-        if (active) setCategories(items.filter((c) => c.active));
+        // Inactive categories are loaded only so an existing transaction that still
+        // uses one can display it; they are never offered for a new choice.
+        const items = await listCategories({ includeInactive: true });
+        if (active) setCategories(items);
       } catch {
         if (active) setLoadError("Unable to load categories. Please refresh.");
       } finally {
@@ -36,7 +38,8 @@ export function CategorySelect({ value, onChange, error, className = "" }: Categ
     };
   }, []);
 
-  const selectedCategory = categories.find((c) => c.id === value);
+  const selectable = categories.filter((c) => c.active || c.id === value);
+  const selectedCategory = selectable.find((c) => c.id === value);
   const selectedGroupInfo = selectedCategory
     ? KAKEIBO_GROUPS.find((g) => g.id === selectedCategory.group)
     : null;
@@ -44,7 +47,7 @@ export function CategorySelect({ value, onChange, error, className = "" }: Categ
   // Group categories by Kakeibo group
   const groupedCategories = KAKEIBO_GROUPS.map((group) => ({
     group,
-    categories: categories.filter((c) => c.group === group.id),
+    categories: selectable.filter((c) => c.group === group.id),
   })).filter((g) => g.categories.length > 0);
 
   return (
@@ -66,7 +69,7 @@ export function CategorySelect({ value, onChange, error, className = "" }: Categ
           <optgroup key={group.id} label={`${group.label} (${group.description.split(" ")[0]}…)`}>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
-                {cat.name}
+                {cat.active ? cat.name : `${cat.name} (inactive)`}
               </option>
             ))}
           </optgroup>

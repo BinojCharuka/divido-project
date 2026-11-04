@@ -1,16 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <p>Loading Income Sources…</p>
-    </div>
-  ),
-});
+import { PageHeader } from "@/components/layout/PageHeader";
+import { IncomeSourceManager } from "@/features/income-sources/IncomeSourceManager";
 
 export default function IncomeSourcesPage() {
-  return <FigmaApp initialPage="Income Sources" />;
+  return (
+    <div className="max-w-3xl mx-auto">
+      <PageHeader title="Income sources" subtitle="Optional labels for where your income comes from." />
+      <IncomeSourceManager />
+    </div>
+  );
 }

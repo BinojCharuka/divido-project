@@ -1,16 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const FigmaApp = dynamic(() => import("@/features/prototype/FigmaApp"), {
-  ssr: false,
-  loading: () => (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif" }}>
-      <p>Loading Expense Categories…</p>
-    </div>
-  ),
-});
+import { PageHeader } from "@/components/layout/PageHeader";
+import { CategoryManager } from "@/features/categories/CategoryManager";
 
 export default function CategoriesPage() {
-  return <FigmaApp initialPage="Expense Categories" />;
+  return (
+    <div className="max-w-3xl mx-auto">
+      <PageHeader title="Categories" subtitle="Expense categories grouped by Kakeibo: Needs, Wants, Culture and Unexpected." />
+      <CategoryManager />
+    </div>
+  );
 }
