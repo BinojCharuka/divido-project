@@ -1724,7 +1724,6 @@ export default function App({
                   <span className="avatar avatar-small">
                     {userName ? userName.slice(0, 2).toUpperCase() : "DV"}
                   </span>
-                  <ChevronDown size={15} />
                 </button>
                 {profileOpen && (
                   <div className="profile-dropdown">
