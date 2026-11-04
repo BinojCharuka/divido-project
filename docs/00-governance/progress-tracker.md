@@ -10,7 +10,7 @@
 
 - **Current Development Phase:** Phase 03 — Budget & Dashboard is merged to `main` via PR #18 (merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`); post-merge verification is pending. Phase 02 — Transactions is `COMPLETED` (PR #16, merge commit `0a898a0`).
 - **Current Milestone:** Milestone 03 — Budget & Dashboard: `MERGED — POST-MERGE VERIFICATION PENDING` (PR #18, merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`).
-- **Current Active Tasks:** DIV-017, DIV-025, DIV-026 — implementation merged via PR #18; the PR's local verification is recorded, but re-running checks against the merged `main` commit is still required before these tasks become `COMPLETED`.
+- **Current Active Tasks:** DIV-017, DIV-025, DIV-026 — implementation merged via PR #18; post-merge checks remain pending. DIV-036 tracks the production Flyway V4 history drift and the V5 compatibility migration.
 - **Current Task Owners:** 
   - Backend: Project Owner / Claude Code
   - Frontend: Implementation Assistant / Frontend Developer
@@ -20,7 +20,7 @@
   - **Phase 02 (Transactions):** Complete. DIV-015, DIV-020, DIV-021 and DIV-024 merged via PR #16 (merge commit `0a898a0`). Earlier: Transaction UI foundation (PR #7, #8) and management UI (PR #9) are merged. API contract decisions are finalized (DIV-009A), Categories & Income Sources backend foundation is merged (DIV-010 / PR #10), transaction schema V3 is merged (DIV-011 / PR #11), transaction CRUD APIs are merged (DIV-013 / PR #12), transaction integration/isolation verification is complete (DIV-014 / PR #13), backend MVP completion audit is complete (DIV-018), and authentication rate limiting is merged (DIV-019 / PR #14).
   - **Reconciliation Audit (2026-11-02) — historical:** Corrected premature `COMPLETED` statuses for Budget, Dashboard, Insights, Reflection, Profile/Settings and Onboarding to `NOT_STARTED` / `DECISION_REQUIRED`, and added task cards DIV-020 through DIV-035. Its findings on the Categories and Income Sources frontends and its "next: DIV-015" step are superseded by PR #16 (2026-11-04), which delivered DIV-015, DIV-020, DIV-021 and DIV-024.
   - **Phase 02 completion audit (2026-11-04):** `main` at `cf13e39` was broken: four transaction route files contained committed merge-conflict markers (typecheck/build failed), and commit `4569144` had mounted the Figma prototype (`features/prototype/FigmaApp.tsx`) on every production route, including transactions, categories, income sources, dashboard and budget. The prototype keeps transactions in `localStorage`, falls back to sample data on API failure and swallows category/income-source mutation errors (`.catch(() => {})`). Branch `feature/div-015-phase-02-completion` restores the real PR #9 transaction routes, builds real `/categories` and `/income-sources` management pages, completes filters, fixes a PATCH bug where cleared optional fields were silently kept, replaces Phase 03+ prototype routes with honest "not available yet" pages, and limits `/prototype` to development builds. Verified on the branch, merged via PR #16 (merge commit `0a898a0`), and re-verified on `main` (see Section B notes).
-  - **Phase 03 (Budget & Dashboard):** DIV-017, DIV-025 and DIV-026 merged via PR #18 (squash commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`). The PR reports backend 354/354, frontend 137/137, typecheck, build and E2E 22/22 passing on its branch. Post-merge `main` verification remains pending; Neon V4 application is tracked separately and requires the approved Neon connection.
+  - **Phase 03 (Budget & Dashboard):** DIV-017, DIV-025 and DIV-026 merged via PR #18 (squash commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`). The PR reports backend 354/354, frontend 137/137, typecheck, build and E2E 22/22 passing on its branch. Post-merge `main` verification remains pending. Read-only Neon inspection found production V4 history drift: production has V4 script `V4__budgets_reflections_profile.sql` (checksum `50311058`) while `main` has `V4__monthly_budgets.sql`; legacy `budgets` and `monthly_reflections` objects remain in production. A guarded V5 compatibility migration and supervised repair runbook are being proposed in PR #20; no production changes have been applied.
 
 ---
 
@@ -92,6 +92,7 @@
 | **DIV-033** | Release preparation: Database backup & restore drill | 05 | P1 | None | DevOps / Database | `PLANNED` | Define recovery point objective (RPO) and recovery time objective (RTO); execute an end-to-end database restore drill into a staging/test environment using synthetic data; record verification evidence and designate emergency recovery authority. |
 | **DIV-034** | Release preparation: Release QA gate, security & accessibility audit | 05 | P0 | DIV-015, DIV-026 | QA / Security | `PLANNED` | Execute regression test suite, verify security checklist (authentication, CSRF, isolation, rate limiting, SQL injection defense), run automated WCAG 2.1 AA accessibility checks, test mobile responsiveness, and perform post-deployment smoke test. |
 | **DIV-035** | Release preparation: Data lifecycle, retention & account purge | 05 | P1 | None | Backend / Product | `PLANNED` | Document and implement user account deletion policy (`DELETE /api/v1/profile` or admin purge), cascading data cleanup, retention periods for financial logs, and data export capability; verify with synthetic test data. |
+| **DIV-036** | Reconcile Neon production Flyway V4 history drift | 05 | P0 | DIV-025, DIV-026 | Project Owner / Backend / Database | `IN REVIEW — PR #20` | Preserve the already-applied production V4 objects/data, add a compatibility-safe V5 `monthly_budgets` migration for both fresh and existing V4 histories, and document a supervised Flyway `repair`/`migrate` sequence with preflight, backup, and post-migration checks. PR #20; production repair/migration and post-merge `main` verification are not yet executed. |
 
 ---
 
@@ -121,7 +122,8 @@
 - **DEC-013 default categories:** names and mappings approved by the project owner on 2026-11-04 and recorded in `decision-log.md` (PR #16).
 
 ### Currently In Progress / In Review
-- **DIV-017, DIV-025, DIV-026 (Phase 03) — PR #18:** local verification on the branch: backend `./mvnw test` 354/354; frontend typecheck pass, `npm test` 137/137, `npm run test:e2e` 22/22 against an isolated backend and disposable Postgres, production build pass. `npm run lint` still reports pre-existing findings only (prototype, `insights.ts`, `AuthPageShell.tsx`). V4 was not applied to Neon.
+- **DIV-017, DIV-025, DIV-026 (Phase 03) — PR #18:** PR-local verification reported backend `./mvnw test` 354/354; frontend typecheck pass, `npm test` 137/137, `npm run test:e2e` 22/22 against an isolated backend and disposable Postgres, production build pass. `npm run lint` reports pre-existing findings only (prototype, `insights.ts`, `AuthPageShell.tsx`). No post-merge `main` re-run yet.
+- **DIV-036 — PR #20:** Read-only production inspection confirmed V4 history mismatch and existing legacy objects. V5 migration and recovery runbook are proposed. A disposable Neon branch previously verified the target `monthly_budgets` table structure; production has not been changed.
 
 ### Blocked
 - None.
@@ -131,7 +133,7 @@
 - **Month/timezone date policy:** resolved by `DEC-028` (2026-11-04). Transactions belong to the calendar month of their date-only date; "today"/"current month" use `Asia/Colombo` in backend and frontend (PR #18).
 
 ### What Must Be Done Next & Why
-1. **Phase 03 closeout:** PR #18 is merged. Re-run backend, frontend and E2E checks on the exact `main` merge commit; only then mark DIV-017/025/026 `COMPLETED`. Apply Flyway V4 to the intended Neon project/branch only after confirming the Neon connection and migration history; owner approval was granted on 2026-11-04. Record the resulting Flyway version and verification evidence.
+1. **Phase 03 closeout:** PR #18 is merged. Re-run backend, frontend and E2E checks on the exact `main` merge commit; only then mark DIV-017/025/026 `COMPLETED`. Production V4 history differs from current repository V4. Review/merge PR #20, take/verify a backup, obtain explicit approval for the repair operation, run the documented Flyway `repair` then `migrate` sequence, and verify the legacy data plus V5 schema. Do not claim the migration is applied before those checks.
 2. **DIV-031 (CI):** the repository has no CI workflows, so PR checks are run locally only.
 
 ---

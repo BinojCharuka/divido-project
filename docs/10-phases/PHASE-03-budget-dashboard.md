@@ -1,6 +1,6 @@
 # Phase 03 — Monthly Budgets and Dashboard
 
-**Status:** MERGED — PR #18 squash-merged to `main` as `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d` on 2026-11-04. PR-local checks reported passing; post-merge `main` verification and Neon V4 application evidence remain pending  
+**Status:** MERGED — PR #18 squash-merged to `main` as `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d` on 2026-11-04. PR-local checks reported passing; post-merge `main` verification and Neon schema deployment remain pending. Production V4 history drift is tracked by DIV-036 / PR #20  
 **Primary outcome:** Users can plan a month and compare planned amounts with actual transactions.
 
 ## Goal
@@ -64,7 +64,8 @@ Deliver a trustworthy monthly view. Financial totals must be defined precisely b
 - [x] UI and API tests pass; docs reflect actual calculations.
 - [x] PR #18 merged into `main` (squash commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`).
 - [ ] Re-run backend, frontend, build and E2E verification on the exact merged `main` commit (required before Phase 03 is `COMPLETED`).
-- [ ] Apply V4 to the intended Neon project/branch and verify Flyway history plus `monthly_budgets` schema; owner approval granted 2026-11-04, execution evidence pending.
+- [ ] Resolve production V4 history drift using the reviewed DIV-036 runbook; do not re-run V4 SQL on production.
+- [ ] After explicit approval, perform supervised Flyway `repair` then `migrate` (V5) on the intended Neon production branch; verify Flyway history, `monthly_budgets`, and preservation of legacy `budgets` / `monthly_reflections` data.
 
 ## Risk note
 
@@ -73,9 +74,9 @@ A visually attractive dashboard with incorrect or ambiguous financial arithmetic
 ## Implementation record (DIV-017 / DIV-025 / DIV-026)
 
 - Rules: [`DEC-028`](../00-governance/decision-log.md) (formulas, precision, required fields, month/timezone, missing plan, contract scope) and `DEC-012` (warn, never block, on over-allocation).
-- Schema: `monthly_budgets`, Flyway `V4__monthly_budgets.sql`.
+- Schema: `monthly_budgets`, repository Flyway `V4__monthly_budgets.sql` on fresh databases; production compatibility bridge `V5__monthly_budgets.sql` is proposed in PR #20 because Neon already records a different V4 script.
 - API: [Budgets API](../05-api/budgets-api.md) (`GET`/`PUT /api/v1/budgets/{month}`), [Dashboard API](../05-api/dashboard-api.md) (`GET /api/v1/dashboard`).
 - UI: `/budget` (`features/budget/BudgetPlanner.tsx`), `/dashboard` (`features/dashboard/DashboardView.tsx`), shared `MonthNavigator`; month kept in `?month=YYYY-MM`.
 - Tests: backend `BudgetCalculatorTest`, `BudgetMonthTest`, `BudgetIntegrationTest`, `DashboardIntegrationTest`, `DashboardDefaultMonthIntegrationTest`; frontend `tests/budget-plan.test.ts`, `tests/budget.test.tsx`, `tests/dashboard.test.tsx`; E2E `e2e/budget-dashboard.spec.ts`.
 - PR-reported verification (branch, not post-merge): backend `./mvnw test` 354/354; frontend typecheck pass, `npm test` 137/137, E2E 22/22 against isolated backend/disposable Postgres, production build pass. `npm run lint` reports pre-existing findings only (7 errors / 15 warnings in prototype, insights API and AuthPageShell). No GitHub Actions checks exist.
-- Known limitations: no optimistic-lock/version check (last write wins); dashboard uses each category's current group, so regrouping a category moves its past expenses; timezone is not user-editable yet (DIV-022), so the UI uses the `Asia/Colombo` default. Neon migration status must not be described as applied until verified.
+- Known limitations: no optimistic-lock/version check (last write wins); dashboard uses each category's current group, so regrouping a category moves its past expenses; timezone is not user-editable yet (DIV-022), so the UI uses the `Asia/Colombo` default. Neon migration status must not be described as applied until verified. Production's earlier V4 created legacy `budgets`, `monthly_reflections` and profile columns; preserve these objects and the existing reflection row.

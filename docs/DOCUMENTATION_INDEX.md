@@ -149,6 +149,8 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`09-release-operations/configuration-and-secrets.md`](09-release-operations/configuration-and-secrets.md) | Configuration and secrets | Proposed security baseline |
 | [`09-release-operations/logging-and-monitoring.md`](09-release-operations/logging-and-monitoring.md) | Logging and monitoring | Proposed operational baseline |
 | [`09-release-operations/release-checklist.md`](09-release-operations/release-checklist.md) | Go/no-go checklist | Proposed |
+| [`09-release-operations/neon-flyway-v4-drift.md`](09-release-operations/neon-flyway-v4-drift.md) | Supervised recovery plan for production V4 history drift and V5 rollout | Operational plan — not executed |
+| [`09-release-operations/neon-flyway-v4-drift.md`](09-release-operations/neon-flyway-v4-drift.md) | Supervised recovery plan for production V4 history drift and V5 rollout | Operational plan — not executed |
 
 ## 10 — Phases
 
