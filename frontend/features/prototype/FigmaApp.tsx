@@ -7,6 +7,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
+import { createPortal } from "react-dom"
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -747,6 +748,11 @@ export default function App({
     }
     return "Sign in"
   })
+
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
@@ -3245,43 +3251,51 @@ export default function App({
           </div>
         </main>
       </div>
-      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
-        {[
-          {
-            page: "Dashboard" as Page,
-            label: "Overview",
-            icon: LayoutDashboard,
-          },
-          {
-            page: "Transactions" as Page,
-            label: "History",
-            icon: ArrowLeftRight,
-          },
-          { page: null, label: "Add transaction", icon: Plus },
-          { page: "Budget" as Page, label: "Budget", icon: Wallet },
-          { page: "Settings" as Page, label: "Settings", icon: Settings },
-        ].map(({ page: item, label, icon: Icon }) => (
-          <button
-            key={label}
-            type="button"
-            className={
-              item === null
-                ? "mobile-add"
-                : page === item ||
-                    (item === "Settings" &&
-                      ["Expense Categories", "Income Sources"].includes(page))
-                  ? "active"
-                  : ""
-            }
-            aria-label={label}
-            aria-current={item === page ? "page" : undefined}
-            onClick={() => (item ? navigate(item) : setModal("add"))}
-          >
-            <Icon size={item ? 19 : 23} />
-            {item && <span>{label}</span>}
-          </button>
-        ))}
-      </nav>
+      {(() => {
+        const nav = (
+          <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+            {[
+              {
+                page: "Dashboard" as Page,
+                label: "Overview",
+                icon: LayoutDashboard,
+              },
+              {
+                page: "Transactions" as Page,
+                label: "History",
+                icon: ArrowLeftRight,
+              },
+              { page: null, label: "Add transaction", icon: Plus },
+              { page: "Budget" as Page, label: "Budget", icon: Wallet },
+              { page: "Settings" as Page, label: "Settings", icon: Settings },
+            ].map(({ page: item, label, icon: Icon }) => (
+              <button
+                key={label}
+                type="button"
+                className={
+                  item === null
+                    ? "mobile-add"
+                    : page === item ||
+                        (item === "Settings" &&
+                          ["Expense Categories", "Income Sources"].includes(page))
+                      ? "active"
+                      : ""
+                }
+                aria-label={label}
+                aria-current={item === page ? "page" : undefined}
+                onClick={() => (item ? navigate(item) : setModal("add"))}
+              >
+                <Icon size={item ? 19 : 23} />
+                {item && <span>{label}</span>}
+              </button>
+            ))}
+          </nav>
+        );
+        if (mounted && typeof document !== "undefined") {
+          return createPortal(nav, document.body);
+        }
+        return nav;
+      })()}
 
       {toast && (
         <div className="toast" role="status">

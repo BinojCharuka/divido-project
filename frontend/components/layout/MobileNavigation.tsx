@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeftRight, LayoutDashboard, PieChart, Plus, Tags, TrendingUp } from "lucide-react";
 
 export interface MobileNavigationProps {
@@ -10,16 +12,22 @@ export interface MobileNavigationProps {
 
 export function MobileNavigation({ onOpenQuickAdd }: MobileNavigationProps) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isDashboard = pathname.startsWith("/dashboard");
   const isBudget = pathname.startsWith("/budget");
   const isTransactions = pathname.startsWith("/transactions");
   const isCategories = pathname.startsWith("/categories");
   const isSources = pathname.startsWith("/income-sources");
 
-  return (
+  const navContent = (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed left-0 right-0 mx-auto bottom-3.5 z-40 w-[calc(100%-24px)] max-w-md h-[58px] px-2 bg-white/94 dark:bg-zinc-950/94 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-full shadow-[0_16px_36px_-6px_rgba(15,23,42,0.16)] dark:shadow-[0_18px_40px_-6px_rgba(0,0,0,0.7)] flex items-center justify-around"
+      className="md:hidden fixed left-1/2 -translate-x-1/2 bottom-3.5 z-50 w-[calc(100vw-24px)] max-w-md h-[58px] px-2 bg-white/94 dark:bg-zinc-950/94 backdrop-blur-xl border border-white/80 dark:border-white/10 rounded-full shadow-[0_16px_36px_-6px_rgba(15,23,42,0.16)] dark:shadow-[0_18px_40px_-6px_rgba(0,0,0,0.7)] flex items-center justify-around"
     >
       <div className="flex items-center justify-around w-full">
         {/* Dashboard & budget */}
@@ -100,4 +108,9 @@ export function MobileNavigation({ onOpenQuickAdd }: MobileNavigationProps) {
       </div>
     </nav>
   );
+
+  if (mounted && typeof document !== "undefined") {
+    return createPortal(navContent, document.body);
+  }
+  return navContent;
 }
