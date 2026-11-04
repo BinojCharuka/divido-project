@@ -91,5 +91,16 @@ html[data-theme='dark'] .dark-only,
   animation: divido-shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+/* Suppress Next.js dev tools floating indicator so it does not block navigation */
+nextjs-portal,
+[data-nextjs-toast],
+[data-nextjs-dev-tools],
+#next-dev-tools,
+div[data-nextjs-dev-tools-button],
+[data-nextjs-route-announcer] {
+  display: none !important;
+}
+
+
 
 

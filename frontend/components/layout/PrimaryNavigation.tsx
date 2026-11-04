@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SignOutButton } from "@/features/auth/SignOutButton";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
@@ -26,11 +27,17 @@ export function PrimaryNavigation({ onOpenQuickAdd }: PrimaryNavigationProps) {
     <header className="sticky top-0 z-30 hidden md:block bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/transactions" className="flex items-center gap-2 font-bold text-xl text-zinc-900 dark:text-zinc-100 tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-base">
-              D
-            </span>
-            <span>Divido</span>
+          <Link href="/dashboard" aria-label="Divido Dashboard" className="flex items-center gap-2 group transition-opacity hover:opacity-90">
+            <img
+              src="/webp/logo-fulls.webp"
+              alt="Divido"
+              className="h-8 w-auto light-only dark:hidden"
+            />
+            <img
+              src="/webp/logo-fulls-dark.webp"
+              alt="Divido"
+              className="h-8 w-auto dark-only hidden dark:block"
+            />
           </Link>
 
           <nav aria-label="Desktop Navigation" className="flex items-center gap-1">
@@ -68,6 +75,10 @@ export function PrimaryNavigation({ onOpenQuickAdd }: PrimaryNavigationProps) {
           >
             Add Transaction
           </Button>
+
+          <div className="h-5 w-px bg-zinc-200 dark:bg-zinc-800" aria-hidden="true" />
+
+          <ThemeToggle />
 
           <div className="h-5 w-px bg-zinc-200 dark:bg-zinc-800" aria-hidden="true" />
 

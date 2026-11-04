@@ -476,34 +476,39 @@ html[data-theme='dark'],
   .full-list .type-badge { display: none; }
   .full-list .transaction-amount { min-width: 150px; }
   .full-list .row-chevron { display: none; }
+  /* Floating Liquid Glass Mobile Bottom Navigation */
   .mobile-bottom-nav {
     display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
+    justify-content: space-around !important;
     position: fixed !important;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) !important;
-    bottom: max(12px, env(safe-area-inset-bottom, 12px)) !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    transform: none !important;
+    bottom: max(14px, env(safe-area-inset-bottom, 14px)) !important;
     width: calc(100% - 24px) !important;
     max-width: 384px !important;
     min-height: 58px !important;
+    height: 58px !important;
     padding: 0 6px !important;
-    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
     box-sizing: border-box !important;
-    background: rgba(255, 255, 255, 0.88) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
     backdrop-filter: blur(28px) saturate(190%) !important;
     -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
     border: 1px solid rgba(255, 255, 255, 0.85) !important;
-    border-radius: 32px !important;
+    border-radius: 9999px !important;
     box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.95) !important;
-    z-index: 50 !important;
+    z-index: 100 !important;
     pointer-events: auto !important;
     transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
   }
   :root[data-theme='dark'] .mobile-bottom-nav,
   .dark .mobile-bottom-nav {
-    background: rgba(18, 24, 20, 0.88) !important;
+    background: rgba(18, 24, 20, 0.94) !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     box-shadow: 0 18px 40px -6px rgba(0, 0, 0, 0.7), 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 1px 1.5px rgba(255, 255, 255, 0.2) !important;
   }
@@ -523,11 +528,12 @@ html[data-theme='dark'],
     letter-spacing: -0.1px !important;
     background: transparent !important;
     border: none !important;
-    border-radius: 16px !important;
+    border-radius: 9999px !important;
     position: relative !important;
     cursor: pointer !important;
     box-sizing: border-box !important;
     transition: color 0.2s ease, transform 0.15s ease !important;
+    -webkit-tap-highlight-color: transparent !important;
   }
   .mobile-bottom-nav > button:not(.mobile-add) span {
     white-space: nowrap !important;
@@ -554,12 +560,13 @@ html[data-theme='dark'],
     color: var(--green) !important;
     transform: translateY(-1px) scale(1.08) !important;
   }
+  /* Floating fill water droplet animation */
   .mobile-bottom-nav > button:not(.mobile-add).active::before {
     content: "" !important;
     position: absolute !important;
     inset: 2px 3px !important;
     background: radial-gradient(circle at 50% 35%, rgba(16, 185, 129, 0.22) 0%, rgba(5, 150, 105, 0.12) 65%, transparent 100%) !important;
-    border-radius: 14px !important;
+    border-radius: 9999px !important;
     z-index: -1 !important;
     animation: water-droplet-fill 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
     border: 1px solid rgba(16, 185, 129, 0.25) !important;
@@ -577,12 +584,18 @@ html[data-theme='dark'],
     background: radial-gradient(circle at 50% 35%, rgba(16, 185, 129, 0.32) 0%, rgba(5, 150, 105, 0.16) 65%, transparent 100%) !important;
     border-color: rgba(52, 211, 153, 0.3) !important;
   }
+  @keyframes water-droplet-fill {
+    0% { transform: scale(0.35); opacity: 0; border-radius: 50%; }
+    65% { transform: scale(1.08); opacity: 0.95; }
+    100% { transform: scale(1); opacity: 1; border-radius: 9999px; }
+  }
+  /* Center Action Button - Floating Dewdrop Button */
   .mobile-bottom-nav > .mobile-add {
     position: relative !important;
     top: -10px !important;
-    width: 44px !important;
-    height: 44px !important;
-    min-height: 44px !important;
+    width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
     flex-shrink: 0 !important;
     margin: 0 4px !important;
     display: flex !important;
@@ -596,6 +609,7 @@ html[data-theme='dark'],
     cursor: pointer !important;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease !important;
     z-index: 2 !important;
+    -webkit-tap-highlight-color: transparent !important;
   }
   .mobile-bottom-nav > .mobile-add:hover {
     transform: translateY(-2px) scale(1.06) !important;
@@ -708,7 +722,7 @@ html[data-theme='dark'],
   .onboarding-intro-grid .group-badge { padding: 3px 6px; font-size: 10px; }
   .onboarding-modal .modal-actions { flex-wrap: wrap; }
   .onboarding-modal .modal-actions > .button { flex: 1; white-space: normal; font-size: 12px; }
-  .page-footer { font-size: 10px; line-height: 18px; }
+  .page-footer { font-size: 10px; line-height: 18px; padding-bottom: 75px !important; }
   .page-footer > span { flex-wrap: wrap; }
 }
 @keyframes sheet-in {
