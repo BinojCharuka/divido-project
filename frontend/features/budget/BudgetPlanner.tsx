@@ -167,7 +167,7 @@ export function BudgetPlanner({ month, onMonthChange }: BudgetPlannerProps) {
     <div>
       <PageHeader
         title="Budget"
-        subtitle="Plan your month: expected income, a savings target and four Kakeibo groups."
+        subtitle="Plan your month: expected income, a savings target and four spending groups."
         action={<MonthNavigator month={month} onChange={onMonthChange} disabled={saving} />}
       />
 
@@ -242,7 +242,7 @@ export function BudgetPlanner({ month, onMonthChange }: BudgetPlannerProps) {
             <Card>
               <fieldset className="flex flex-col gap-4">
                 <legend className="mb-1 text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                  Kakeibo group budgets (planned)
+                  Group budgets (planned)
                 </legend>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {BUDGET_GROUPS.map((group) => (

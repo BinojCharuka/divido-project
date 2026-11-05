@@ -1383,10 +1383,10 @@ export default function App({
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      The Kakeibo method
+                      Mindful budgeting
                     </div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
-                      Centuries-old Japanese household mindfulness for modern budgeting.
+                      Thoughtful, stress-free mindfulness for modern budgeting.
                     </p>
                   </div>
                 </div>
@@ -2690,7 +2690,7 @@ export default function App({
                     </section>
                     <section className="panel chart-panel group-chart">
                       <h2>Where your money went</h2>
-                      <p>Spending by Kakeibo group · {monthName}</p>
+                      <p>Spending by group · {monthName}</p>
                       <div className="donut-layout">
                         <div
                           className="donut-chart"
@@ -2929,7 +2929,7 @@ export default function App({
                     </span>
                     <div>
                       <h3>Expense categories</h3>
-                      <p>Organize spending across your four Kakeibo groups.</p>
+                      <p>Organize spending across your four groups.</p>
                       <span>
                         Manage categories <ArrowRight size={14} />
                       </span>
@@ -3263,8 +3263,6 @@ export default function App({
               <span className="footer-tagline">Personal Budgeting</span>
             </span>
             <span>
-              Kakeibo Method
-              <span className="footer-dot" />
               Personal workspace
             </span>
           </footer>
@@ -3389,7 +3387,7 @@ export default function App({
           <dl className="detail-list">
             {[
               ["Category", selected.category],
-              ["Kakeibo group", selected.group],
+              ["Group", selected.group],
               [
                 "Date",
                 new Date(`${selected.date}T12:00:00`).toLocaleDateString(
@@ -3505,15 +3503,15 @@ export default function App({
           <div className="help-content">
             <Leaf size={38} strokeWidth={1.4} />
             <p>
-              Divido applies the Kakeibo method to help you plan, track, and
-              reflect on your spending across four core groups.
+              Divido helps you plan, track, and reflect on your spending across
+              four core groups.
             </p>
             <div className="help-steps">
               {[
                 [
                   "1",
                   "Plan your budget",
-                  "Set planned income, savings target, and allocations across the four Kakeibo groups.",
+                  "Set planned income, savings target, and allocations across the four groups.",
                 ],
                 [
                   "2",
@@ -3648,7 +3646,7 @@ export default function App({
               />
             </label>
             <label className="field">
-              Kakeibo group
+              Spending group
               <select name="group" defaultValue={editingCategory?.group}>
                 {groups.map((g) => (
                   <option key={g.name}>{g.name}</option>
@@ -3872,7 +3870,7 @@ export default function App({
             <div className="onboarding-content">
               {onboardStep === 0 && (
                 <>
-                  <h3>Kakeibo Budgeting</h3>
+                  <h3>Monthly Budgeting</h3>
                   <p>
                     Plan, record, and reflect on your finances across four core groups.
                   </p>
@@ -3947,7 +3945,7 @@ export default function App({
               {onboardStep === 2 && (
                 <>
                   <p>
-                    Allocate your budget across the four Kakeibo spending groups.
+                    Allocate your budget across the four spending groups.
                   </p>
                   {groups.map((g) => (
                     <label className="field" key={g.name}>

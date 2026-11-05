@@ -8,7 +8,7 @@ export default function NewExpensePage() {
     <div>
       <PageHeader
         title="Record Expense"
-        subtitle="Log spending and assign it to an approved Kakeibo category."
+        subtitle="Log spending and assign it to an approved category."
         backHref="/transactions"
       />
       <ExpenseForm />
