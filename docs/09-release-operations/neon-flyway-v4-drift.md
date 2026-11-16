@@ -45,6 +45,7 @@ After the preflight is reviewed and separately approved by the project owner:
 1. Configure the Flyway CLI with the production direct (non-pooled) JDBC URL, role and secret through environment variables/secret manager. Never commit credentials or paste them into shell history.
 2. Run `flyway info` and retain the output for the change record.
 3. Run `flyway repair` against `backend/src/main/resources/db/migration`. This aligns the already-applied V4 history row's description/checksum with the current repository's V4 script identity; it does **not** execute V4.
+   The row's `script` column keeps the value `V4__budgets_reflections_profile.sql` after repair; only `description` and `checksum` change. This is expected, so do not treat it as a failed repair or edit it by hand. A disposable-database rehearsal of this behavior is in `LegacyProductionHistoryMigrationTest`.
 4. Run `flyway info` again. Confirm V1–V4 are applied/validated and V5 is pending.
 5. Run `flyway migrate` once. V5 creates `monthly_budgets` on this production schema.
 6. Run the post-migration verification queries below before restoring application traffic.

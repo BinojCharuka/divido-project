@@ -1,13 +1,16 @@
 package com.divido;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 import javax.sql.DataSource;
+import org.assertj.core.groups.Tuple;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationInfoService;
+import org.flywaydb.core.api.MigrationState;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,29 +64,52 @@ class TestDatabaseIsolationTest {
 		assertThat(POISON_URL.equals(configured)).as("spring.datasource.url must be the test-only fail-safe value").isTrue();
 	}
 
-	@Test
-	void containerHasV1ToV4Applied() {
-		List<Map<String, Object>> history = new JdbcTemplate(dataSource).queryForList(
-				"SELECT version, script, checksum, success FROM flyway_schema_history ORDER BY installed_rank");
+	/**
+	 * Migrations already in a release, by script and checksum. A mismatch means an applied
+	 * migration was edited, which is forbidden. Add to this list when a migration ships;
+	 * the checks below do not need changing when a new migration file is added.
+	 */
+	private static final List<Tuple> RELEASED_MIGRATIONS = List.of(
+			tuple("1", "V1__init.sql", 920031765),
+			tuple("2", "V2__categories_and_income_sources.sql", -208851208),
+			tuple("3", "V3__transactions.sql", -1778493884),
+			tuple("4", "V4__monthly_budgets.sql", 1669268844),
+			tuple("5", "V5__monthly_budgets.sql", 1608422391));
 
-		assertThat(history).hasSize(4);
-		assertThat(history.get(0))
-				.containsEntry("version", "1")
-				.containsEntry("script", "V1__init.sql")
-				.containsEntry("checksum", 920031765)
-				.containsEntry("success", true);
-		assertThat(history.get(1))
-				.containsEntry("version", "2")
-				.containsEntry("script", "V2__categories_and_income_sources.sql")
-				.containsEntry("success", true);
-		assertThat(history.get(2))
-				.containsEntry("version", "3")
-				.containsEntry("script", "V3__transactions.sql")
-				.containsEntry("success", true);
-		assertThat(history.get(3))
-				.containsEntry("version", "4")
-				.containsEntry("script", "V4__monthly_budgets.sql")
-				.containsEntry("success", true);
+	@Test
+	void everyRepositoryMigrationAppliedSuccessfully() {
+		MigrationInfoService info = flyway.info();
+
+		assertThat(info.pending()).as("no repository migration may be left pending").isEmpty();
+		assertThat(info.all()).isNotEmpty();
+		assertThat(info.all())
+				.as("every migration on a clean database must succeed")
+				.allSatisfy(migration -> assertThat(migration.getState()).isEqualTo(MigrationState.SUCCESS));
+		assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
+	}
+
+	@Test
+	void releasedMigrationsAreUnchangedAndInOrder() {
+		List<Tuple> history = new JdbcTemplate(dataSource).query(
+				"SELECT version, script, checksum FROM flyway_schema_history ORDER BY installed_rank",
+				(row, rowNum) -> tuple(row.getString("version"), row.getString("script"), row.getInt("checksum")));
+
+		assertThat(history).startsWith(RELEASED_MIGRATIONS.toArray(Tuple[]::new));
+	}
+
+	@Test
+	void cleanDatabaseHasMonthlyBudgetsAndNoLegacyProductionObjects() {
+		JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+
+		assertThat(jdbc.queryForObject(
+				"SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'monthly_budgets'",
+				Integer.class)).isEqualTo(11);
+		assertThat(jdbc.queryForObject(
+				"SELECT count(*) FROM pg_constraint WHERE conname = 'uq_monthly_budgets_user_month'",
+				Integer.class)).isEqualTo(1);
+		assertThat(jdbc.queryForObject(
+				"SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('budgets', 'monthly_reflections')",
+				Integer.class)).as("legacy objects exist only in production's history").isZero();
 	}
 
 	private static String connectionUrl(DataSource source) throws SQLException {
