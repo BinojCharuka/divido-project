@@ -1,7 +1,7 @@
 # Phase 04 — Spending Insights and Reflection
 
 **Status:** Conditional proposed phase — MVP inclusion must be approved  
-**Gates:** Decisions are pending in [`PHASE-04-decisions.md`](PHASE-04-decisions.md). V6 must not be written until those decisions are approved and DIV-036 is completed and verified.  
+**Gates:** Decisions are pending in [`PHASE-04-decisions.md`](PHASE-04-decisions.md). V6 must not be written until those decisions are approved and DIV-036 is completed and verified (DIV-036 done 2026-11-16).  
 **Primary outcome:** If approved, provide explainable spending-pattern observations and reflection tools without overstating what the data proves.
 
 ## Goal

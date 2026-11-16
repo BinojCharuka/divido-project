@@ -11,7 +11,7 @@ The "Recommended" lines are proposals from the Phase 04 audit. They are not appr
 | Feature | Blocked until |
 |---|---|
 | DIV-027 Spending Insights | DEC-030, DEC-031, DEC-032, DEC-033, DEC-041 and existing DEC-004, DEC-011 are decided |
-| DIV-028 Monthly Reflection | DEC-030, DEC-034, DEC-035, DEC-036, DEC-038, DEC-039, DEC-040 are decided **and** DIV-036 is completed and verified. V6 must not be written before then |
+| DIV-028 Monthly Reflection | DEC-030, DEC-034, DEC-035, DEC-036, DEC-038, DEC-039, DEC-040 are decided **and** DIV-036 is completed and verified (done 2026-11-16). V6 must not be written before then |
 | Copy for both features | DEC-042 |
 
 Existing proposed decisions these features rely on: `DEC-004` (the four groups, used by every insight), `DEC-011` (90 days, three distinct spending days), `DEC-005`, `DEC-008` and `DEC-020` (no account balances; savings target; planned and actual income).

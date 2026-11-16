@@ -149,7 +149,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`09-release-operations/configuration-and-secrets.md`](09-release-operations/configuration-and-secrets.md) | Configuration and secrets | Proposed security baseline |
 | [`09-release-operations/logging-and-monitoring.md`](09-release-operations/logging-and-monitoring.md) | Logging and monitoring | Proposed operational baseline |
 | [`09-release-operations/release-checklist.md`](09-release-operations/release-checklist.md) | Go/no-go checklist | Proposed |
-| [`09-release-operations/neon-flyway-v4-drift.md`](09-release-operations/neon-flyway-v4-drift.md) | Supervised recovery plan for production V4 history drift and V5 rollout | Operational plan — not executed |
+| [`09-release-operations/neon-flyway-v4-drift.md`](09-release-operations/neon-flyway-v4-drift.md) | Supervised recovery plan for production V4 history drift and V5 rollout, with the 2026-11-16 verification record | COMPLETED — production verified 2026-11-16 |
 
 ## 10 — Phases
 
@@ -159,7 +159,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`10-phases/PHASE-00-planning.md`](10-phases/PHASE-00-planning.md) | Phase 00: planning and decisions | Proposed |
 | [`10-phases/PHASE-01-foundation-auth.md`](10-phases/PHASE-01-foundation-auth.md) | Phase 01: foundation and authentication | Proposed sequence |
 | [`10-phases/PHASE-02-transactions.md`](10-phases/PHASE-02-transactions.md) | Phase 02: transactions | COMPLETED — PR #16, verified on `main` 2026-11-04; one test-gate item conditional on the pending month/timezone policy |
-| [`10-phases/PHASE-03-budget-dashboard.md`](10-phases/PHASE-03-budget-dashboard.md) | Phase 03: budgets and dashboard | Proposed sequence |
+| [`10-phases/PHASE-03-budget-dashboard.md`](10-phases/PHASE-03-budget-dashboard.md) | Phase 03: budgets and dashboard | COMPLETED (2026-11-16) |
 | [`10-phases/PHASE-04-insights-reflection.md`](10-phases/PHASE-04-insights-reflection.md) | Phase 04: insights and reflection | Conditional proposed phase |
 | [`10-phases/PHASE-04-decisions.md`](10-phases/PHASE-04-decisions.md) | Phase 04 decision summary (DEC-029 to DEC-042) | DEC-029 approved 2026-11-16; others proposed, owner approval required |
 | [`10-phases/PHASE-05-release.md`](10-phases/PHASE-05-release.md) | Phase 05: release readiness | Proposed |

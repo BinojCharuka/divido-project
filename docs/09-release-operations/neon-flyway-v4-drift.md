@@ -1,6 +1,6 @@
 # Neon Flyway V4 Drift — Phase 03 Recovery Runbook
 
-**Status:** Operational plan only. Production repair/migration has not been executed.
+**Status:** COMPLETED — production verified 2026-11-16. The V4 repair and V5 migration had already been applied on 2026-11-04 (see Section 7); no repair or migrate was run on 2026-11-16.
 
 ## 1. Observed production state
 
@@ -99,3 +99,20 @@ SELECT 'monthly_budgets', count(*) FROM public.monthly_budgets;
 - If V5 fails, leave the legacy objects intact, keep application traffic paused if startup/validation is affected, capture the error, and investigate. Do not manually mark V5 successful.
 - Any rollback must use a verified Neon restore point or a reviewed forward-only corrective migration; do not drop `monthly_budgets` casually.
 - Phase 03 tasks remain `MERGED — VERIFICATION PENDING` until production schema verification and post-merge `main` test execution are evidenced.
+
+## 7. Verification record (2026-11-16)
+
+Owner-supervised, read-only. Target: project `divido`, branch `production`, direct endpoint `ep-winter-mud-b4yn8fj0`, database `neondb`, PostgreSQL 18.7, Flyway CLI 12.4.0 (matches `flyway-core` 12.4.0). A Neon backup was confirmed by the owner before connecting.
+
+The preflight in Section 3 found a state different from Section 1: the repair and V5 had already been applied. Per Section 3 step 6, no `repair` or `migrate` was run. The Section 5 checks were run instead:
+
+| Check | Result |
+|---|---|
+| Flyway history | Versions 1–5 successful. V4: description `monthly budgets`, checksum `1669268844`, script `V4__budgets_reflections_profile.sql` (expected after repair). V5: `V5__monthly_budgets.sql`, checksum `1608422391`, installed 2026-11-04 18:15:36 by `neondb_owner` |
+| `flyway validate` against `main` migrations | Passed, 5 migrations |
+| `monthly_budgets` columns | 11 columns; six `NUMERIC(12,2)` money columns; all `NOT NULL` |
+| `monthly_budgets` constraints | PK, FK to `app_users(id) ON DELETE CASCADE`, first-day check, six non-negative checks, `UNIQUE (user_id, budget_month)` |
+| Legacy objects | `budgets` 0 rows, `monthly_reflections` 1 row (same as 2026-11-04), `app_users.locale` and `onboarding_complete` present |
+| `monthly_budgets` rows | 1 (application traffic) |
+
+Not recorded: who ran the 2026-11-04 repair and V5. Not done: a smoke test of the deployed backend against production with a dedicated test user (tracked under DIV-034).
