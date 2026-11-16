@@ -1,18 +1,18 @@
 # Phase 04 — Decision Summary
 
-**Status:** PROPOSED — none of these decisions is approved. Approval requires the project owner's explicit choice, recorded with date and approver in the [decision log](../00-governance/decision-log.md).
-**Last updated:** 2026-11-05
+**Status:** APPROVED — the project owner approved DEC-029 to DEC-042 on 2026-11-16, recorded in the [decision log](../00-governance/decision-log.md). DIV-027 and DIV-028 implement them.
+**Last updated:** 2026-11-16
 **Applies to:** DIV-027 (Spending Insights), DIV-028 (Monthly Reflection)
 
-The "Recommended" lines are proposals from the Phase 04 audit. They are not approvals.
+The "Recommended" lines are the proposals from the Phase 04 audit. The "Owner approval" line of each decision records what was approved.
 
 ## What each feature needs
 
 | Feature | Blocked until |
 |---|---|
-| DIV-027 Spending Insights | DEC-030, DEC-031, DEC-032, DEC-033, DEC-041 and existing DEC-004, DEC-011 are decided |
-| DIV-028 Monthly Reflection | DEC-030, DEC-034, DEC-035, DEC-036, DEC-038, DEC-039, DEC-040 are decided **and** DIV-036 is completed and verified (done 2026-11-16). V6 must not be written before then |
-| Copy for both features | DEC-042 |
+| DIV-027 Spending Insights | DEC-030, DEC-031, DEC-032, DEC-033, DEC-041 (approved 2026-11-16). DEC-004 and DEC-011 stay `PROPOSED`; DIV-027 uses the four groups and the 90-day / 3-day figures as refined by DEC-031 and DEC-032 |
+| DIV-028 Monthly Reflection | DEC-030, DEC-034, DEC-035, DEC-036, DEC-038, DEC-039, DEC-040 (approved 2026-11-16) and DIV-036 (done 2026-11-16). V6 is `V6__reflections.sql` |
+| Copy for both features | DEC-042 (approved 2026-11-16) |
 
 Existing proposed decisions these features rely on: `DEC-004` (the four groups, used by every insight), `DEC-011` (90 days, three distinct spending days), `DEC-005`, `DEC-008` and `DEC-020` (no account balances; savings target; planned and actual income).
 
@@ -36,7 +36,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** Reflections add sensitive free text to what is stored.
 - **Migration impact:** Reflection requires V6 (see DEC-036). Insights requires none.
 - **Recommended:** Include both, and set priorities to match.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-031 — Insight observation types and thresholds
 - **Proposed behavior:** Only these, as deterministic templates from server-computed facts:
@@ -50,7 +50,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** Derived on request from the user's own records. Nothing stored. Descriptions and payment methods unused.
 - **Migration impact:** None.
 - **Recommended:** Approve these four. Exclude predictions, scores, advice and causal claims.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-032 — Lookback boundaries (refines DEC-011)
 - **Proposed behavior:** 90 calendar days inclusive, ending on the earlier of today or the selected month's last day. "Today" uses the user's stored timezone (default `Asia/Colombo`). Transaction dates are not shifted.
@@ -60,7 +60,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** None.
 - **Migration impact:** None.
 - **Recommended:** As proposed.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-033 — Insights API shape
 - **Proposed behavior:** `GET /api/v1/insights?month=YYYY-MM`, replacing the proposed `from`/`to`. No user-selected ranges in MVP. Computed on request.
@@ -70,7 +70,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** None.
 - **Migration impact:** None.
 - **Recommended:** As proposed.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-034 — Reflection questions
 - **Proposed behavior:** Version 1 question set, all optional:
@@ -83,7 +83,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** Prompts invite personal content.
 - **Migration impact:** `question_set_version` allows later changes without rewriting answers.
 - **Recommended:** Approve or edit the wording.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-035 — Maximum answer length
 - **Proposed behavior:** 2,000 characters per answer, in both API and UI.
@@ -93,7 +93,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** Less stored free text.
 - **Migration impact:** None if enforced in the service.
 - **Recommended:** 2,000.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-036 — Legacy `monthly_reflections` table
 - **Proposed behavior:** New table `reflections` in V6. The legacy table stays untouched. Whether to convert its one known row is decided only after a read-only inspection of its structure and content.
@@ -103,7 +103,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** That row may hold personal text and stays in place. Later retention must account for it.
 - **Migration impact:** V6 creates a separate table, after DIV-036.
 - **Recommended:** As proposed. Inspect once valid credentials exist.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-037 — Dependency on profile and onboarding
 - **Proposed behavior:** Phase 04 doesn't wait for DIV-022 and DIV-023.
@@ -113,7 +113,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** None.
 - **Migration impact:** None.
 - **Recommended:** Remove the dependency.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-038 — Reflection editing, deletion and retention
 - **Proposed behavior:** Editable at any time. Permanent user-initiated delete. Kept until deleted or the account is removed. No server drafts and no browser drafts. No analytics over answers. History lists never include answer text.
@@ -123,7 +123,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** Strongest control for the user. Backups may retain content until their own expiry (DIV-033, DIV-035).
 - **Migration impact:** `ON DELETE CASCADE` from `app_users`.
 - **Recommended:** As proposed.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-039 — Concurrent reflection edits
 - **Proposed behavior:** Optimistic version check. A stale save returns `409 REFLECTION_CONFLICT`; two simultaneous first saves can't overwrite each other.
@@ -133,7 +133,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** None.
 - **Migration impact:** A `version` column in V6.
 - **Recommended:** Version check.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-040 — Blank submissions and future months
 - **Proposed behavior:** Blank answers are dropped. An all-blank save and any future month return `400`. "Skip" saves nothing.
@@ -143,7 +143,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** None.
 - **Migration impact:** None.
 - **Recommended:** As proposed.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-041 — Insight calculation rules
 - **Proposed behavior:**
@@ -158,7 +158,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** None.
 - **Migration impact:** None.
 - **Recommended:** As proposed.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner (recommended option).
 
 ## DEC-042 — User-facing "Kakeibo" wording
 - **Proposed behavior:** Owner decides whether the UI names the Kakeibo method. Internal group identifiers (`NEEDS`, `WANTS`, `CULTURE`, `UNEXPECTED`) don't change either way.
@@ -168,4 +168,4 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** None.
 - **Migration impact:** None.
 - **Recommended:** No recommendation; this is a brand decision between the owner and the other developer. New Phase 04 copy will follow the decision and in the meantime uses the four group names alone.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16 by the project owner: option (c). The UI uses plain group labels, and the Monthly reflection page is the one place that names the Kakeibo method.

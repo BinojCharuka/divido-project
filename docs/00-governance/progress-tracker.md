@@ -10,7 +10,7 @@
 
 - **Current Development Phase:** Phase 03 — Budget & Dashboard is merged to `main` via PR #18 (merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`); post-merge checks passed on `main` at `2779a5e` (2026-11-16, see Section B) and the production schema was verified on 2026-11-16 (DIV-036). Phase 03 is `COMPLETED`. Phase 02 — Transactions is `COMPLETED` (PR #16, merge commit `0a898a0`).
 - **Current Milestone:** Milestone 03 — Budget & Dashboard: `COMPLETED` (2026-11-16; PR #18, merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`; production schema verified under DIV-036).
-- **Current Active Tasks:** DIV-041 merged to `main` via PR #25 (squash commit `2779a5e`, 2026-11-16); PR #23 (DIV-039) closed as superseded. DEC-029 approved 2026-11-16. DIV-036 completed 2026-11-16 (production already had V5; verified read-only). DIV-027 and DIV-028 await DEC-030 to DEC-042.
+- **Current Active Tasks:** DIV-041 merged to `main` via PR #25 (squash commit `2779a5e`, 2026-11-16); PR #23 (DIV-039) closed as superseded. DEC-029 approved 2026-11-16. DIV-036 completed 2026-11-16 (production already had V5; verified read-only). DEC-030 to DEC-042 approved 2026-11-16. DIV-027 (Insights) and DIV-028 (Reflection) implemented on branch `feature/div-027-028-insights-reflection`, not yet committed, merged or deployed.
 - **Current Task Owners:** 
   - Backend: Project Owner / Claude Code
   - Frontend: Implementation Assistant / Frontend Developer
@@ -36,8 +36,8 @@
 | **Income Sources** | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Backend merged (#10); `/income-sources` management UI merged (#16) | `COMPLETED` |
 | **Budget Management** | `COMPLETED` | `COMPLETED` | `COMPLETED` (V4; production V5, DIV-036) | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Merged (#18); UI rebuilt (#25); production schema verified 2026-11-16 | `COMPLETED` |
 | **Dashboard** | `COMPLETED` | `COMPLETED` | Uses V4/V5 + V1–V3 | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Merged (#18); UI rebuilt (#25) | `COMPLETED` |
-| **Insights** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `DECISION_REQUIRED` |
-| **Reflection** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `DECISION_REQUIRED` |
+| **Insights** | `COMPLETED` | `COMPLETED` | None stored (computed) | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Component tests only; no E2E spec yet | Not yet opened (feature branch) | `IN_REVIEW` |
+| **Reflection** | `COMPLETED` | `COMPLETED` | `COMPLETED` (V6; not applied to production) | `COMPLETED` | `COMPLETED` | `COMPLETED` | `COMPLETED` | Component tests only; no E2E spec yet | Not yet opened (feature branch) | `IN_REVIEW` |
 | **Profile & Settings** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `NOT_STARTED / DECISION_REQUIRED` |
 | **Onboarding** | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | Placeholder route only | `PLACEHOLDER / NOT_STARTED` |
 | **Release Preparation** | `PLANNED` | `PLANNED` | `PLANNED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | `NOT_STARTED` | — | `PLANNED` |
@@ -88,8 +88,8 @@
 | **DIV-024** | Transaction filter UI completion | 02 | P2 | DIV-008C | Frontend | `COMPLETED` | Extend `TransactionFilters.tsx` to include Category and Income Source dropdown controls; wire selected filter IDs to `listTransactions`; implement "Clear filters" action; reset pagination to page 0 on filter change; verify empty and filtered states. Merged via PR #16 (merge commit `0a898a0b8fd0a018b115cb13cd48e986476496fb`); verified on `main`. |
 | **DIV-025** | Budget management schema, API & UI implementation | 03 | P0 | DIV-017 | Full-Stack | `COMPLETED` (2026-11-16) | Flyway `V4__monthly_budgets.sql` (`UNIQUE (user_id, budget_month)`), `GET/PUT /api/v1/budgets/{month}` (atomic upsert), `/budget` planner with exact preview and over-allocation warning. Unit, Testcontainers, component and E2E tests pass. PR #18. |
 | **DIV-026** | Dashboard aggregation API, UI & reconciliation tests | 03 | P0 | DIV-025, DIV-015 | Full-Stack | `COMPLETED` (2026-11-16) | `GET /api/v1/dashboard?month=YYYY-MM` (one grouped user-scoped query), `/dashboard` planned-vs-recorded cards, group progress, empty/error states. Reconciliation fixture == DB == API == UI verified. PR #18. |
-| **DIV-027** | Spending insights scope decision & implementation | 04 | P2 (priority conflict, see DEC-030) | Project Owner Decision Gate, DIV-015, DIV-039 | Full-Stack | `DECISION_REQUIRED` | Decision Gate: Decide whether Spending Insights belongs to MVP. If approved: define 90-day lookback window, minimum 3 distinct spending days threshold, non-judgmental wording guidelines, and privacy safeguards; implement backend rule engine and `GET /api/v1/insights`; build dashboard insight cards with insufficient-data states; add unit and E2E coverage. |
-| **DIV-028** | Monthly reflection scope decision & implementation | 04 | P2 (priority conflict, see DEC-030) | Project Owner Decision Gate, DIV-025, DIV-036, DIV-039 | Full-Stack | `DECISION_REQUIRED` | Decision Gate: Decide whether Monthly Reflection belongs to MVP. If approved: define reflection question IDs, max length, retention/deletion policy; create Flyway schema migration; implement `GET/PUT /api/v1/reflections/{month}`; build monthly reflection form with retry/recovery UX; add ownership and E2E tests. |
+| **DIV-027** | Spending insights | 04 | P1 (DEC-030) | DEC-030 to DEC-033, DEC-041 (approved 2026-11-16), DIV-015, DIV-041 | Full-Stack | `IN_REVIEW` | Implemented `GET /api/v1/insights?month` (`InsightsController`, `InsightsService`, `InsightCalculator`) with four factual observation types, 3-day threshold, 90-day lookback, partial-month comparison and six-month trend; `/insights` UI with insufficient-history state. See `docs/05-api/insights-api.md`. |
+| **DIV-028** | Monthly reflection | 04 | P1 (DEC-030) | DEC-030, DEC-034 to DEC-040 (approved 2026-11-16), DIV-036, DIV-041 | Full-Stack | `IN_REVIEW` | Implemented Flyway `V6__reflections.sql` (`reflections`, `reflection_answers`), `GET/PUT/DELETE /api/v1/reflections/{month}` and `GET /api/v1/reflections` with optimistic versioning; `/reflection` UI with counters, conflict recovery, delete confirmation and history. See `docs/05-api/reflections-api.md`. |
 | **DIV-029** | Account recovery & verification policy | 00 | P2 | Project Owner Decision Gate | Full-Stack | `DECISION_REQUIRED / OUT_OF_CURRENT_SLICE` | Decision Gate: Explicit product/security decision on password reset mechanism. Define identifier, verification channel (email/token), token hashing, short expiry (e.g. 15m), single-use invalidation, rate limits, and timing-attack-safe neutral error responses; build reset UI and security tests. (Marked `OUT_OF_CURRENT_SLICE` until approved). |
 | **DIV-030** | Release preparation: Production configuration & topology | 05 | P1 | None | DevOps / Backend | `PLANNED` | Configure production hosting environment, exact allowed CORS origins, HTTPS redirection, strict cookie attributes (`__Host-` cookies, Secure, HttpOnly, SameSite=Lax), least-privilege Neon database roles, and secure secret store. Verify zero dev-only configurations in production profile. |
 | **DIV-031** | Release preparation: CI/CD pipeline & automated release gates | 05 | P1 | None | DevOps | `PLANNED` | Implement automated CI/CD pipeline running backend unit/integration tests (`mvn clean test`), frontend linting, typechecking, and build (`npm run build`); define deterministic release artifact tagging, migration execution order before app startup, and automated rollback triggers. |
@@ -108,7 +108,7 @@
 ## D. Current Work Breakdown
 
 ### Completed
-- **DIV-041 — Figma UI as the production UI (PR #25, `2779a5e`, 2026-11-16):** old UI and prototype removed; Figma design rebuilt as layered, API-backed components; component and E2E tests rewritten; checks pass on `main` (Section B). Insights and Reflection show "coming in a later update" until DEC-030 is decided.
+- **DIV-041 — Figma UI as the production UI (PR #25, `2779a5e`, 2026-11-16):** old UI and prototype removed; Figma design rebuilt as layered, API-backed components; component and E2E tests rewritten; checks pass on `main` (Section B). Insights and Reflection showed "coming in a later update" until DIV-027/DIV-028 replaced those pages.
 - Phase 00 baseline and Testcontainers setup.
 - Phase 01 complete authentication stack (backend registration, session authentication, CSRF hardening, frontend forms, session gate, and E2E tests).
 - Phase 02 planning (`phase-02-transaction-ui-plan.md` in PR #7) and UI foundation (PR #8).
@@ -132,21 +132,22 @@
 - **DEC-013 default categories:** names and mappings approved by the project owner on 2026-11-04 and recorded in `decision-log.md` (PR #16).
 
 ### Currently In Progress / In Review
+- **DIV-027, DIV-028 (Phase 04) — branch `feature/div-027-028-insights-reflection`, 2026-11-16, uncommitted:** decisions DEC-030 to DEC-042 approved by the owner the same day. Local checks run: backend `./mvnw verify` 403/403 BUILD SUCCESS (includes `InsightCalculatorTest` 7, `InsightsIntegrationTest` 14, `ReflectionIntegrationTest` 22, updated `LegacyProductionHistoryMigrationTest`); frontend `npm run typecheck` clean, `npm test` 137/137 (12 files, incl. `insights.test.tsx` 6, `reflection.test.tsx` 10), `npm run lint` 0 errors (2 old `img` warnings in `DividoLoadingScreen`), `npm run build` pass. Manual browser check on an isolated local stack with synthetic data: insights, reflection save/edit and mobile width. Not done: PR and review, CI (none exists, DIV-031), E2E specs for the two pages, V6 apply to Neon production, production smoke test. The legacy `monthly_reflections` row was not inspected or converted (DEC-036).
 - **DIV-017, DIV-025, DIV-026 (Phase 03) — PR #18:** PR-local verification reported backend `./mvnw test` 354/354; frontend typecheck pass, `npm test` 137/137, `npm run test:e2e` 22/22 against an isolated backend and disposable Postgres, production build pass. `npm run lint` reports pre-existing findings only (prototype, `insights.ts`, `AuthPageShell.tsx`). No post-merge `main` re-run yet.
 - **DIV-036 — PR #20:** Read-only check on 2026-11-16 (Neon `production` direct endpoint `ep-winter-mud-b4yn8fj0`, database `neondb`, Flyway CLI 12.4.0): versions 1–5 successful; V4 history row already repaired (description `monthly budgets`, checksum `1669268844`, script name still `V4__budgets_reflections_profile.sql` as the runbook expects); V5 `V5__monthly_budgets.sql` applied 2026-11-04 18:15:36 by `neondb_owner`; `flyway validate` passes for all 5 migrations against `main`; `monthly_budgets` has the 11 expected columns, six `NUMERIC(12,2)` money columns, the user FK, the first-day check and `UNIQUE (user_id, budget_month)`; legacy `budgets` (0 rows), `monthly_reflections` (1 row) and `app_users.locale` / `onboarding_complete` are intact. No `repair` or `migrate` was run on 2026-11-16 because nothing was pending. Who ran the 2026-11-04 repair and V5 is not recorded.
 
 ### Blocked
 - **Deployed-app smoke test:** budget GET/PUT and dashboard against production with a dedicated test user (runbook Section 5) is not done; tracked under DIV-034.
-- **DIV-028 V6 migration:** DIV-036 is done; must wait for owner decisions. Not written.
+- **V6 on production:** `V6__reflections.sql` is written and tested on the legacy history; applying it to Neon production waits for the merge and an owner-supervised release step.
 
 ### Decision Required
 - **Re-phase DIV-022 and DIV-023:** both were tagged Phase 02 but are decision-gated, outside the scope of `PHASE-02-transactions.md`, and DIV-023 depends on DIV-025 (Phase 03). Their phase is shown as "Pending owner re-phasing" in Section C until the owner decides; their status is unchanged. They do not block Phase 02 completion.
-- **Phase 04 decisions:** DEC-029 was approved on 2026-11-16. DEC-030 to DEC-042 and existing DEC-004 and DEC-011 are pending in `docs/10-phases/PHASE-04-decisions.md`. DIV-027 and DIV-028 have not started.
+- **Phase 04 decisions:** DEC-029 to DEC-042 approved on 2026-11-16. Existing DEC-004 and DEC-011 remain `PROPOSED`; DEC-031 to DEC-033 and DEC-041 now define the insight rules that DEC-011 described.
 - **Month/timezone date policy:** resolved by `DEC-028` (2026-11-04). Transactions belong to the calendar month of their date-only date; "today"/"current month" use `Asia/Colombo` in backend and frontend (PR #18).
 
 ### What Must Be Done Next & Why
 1. **Done: DIV-041 merged (PR #25) and PR #23 closed.** Production routes on `main` now serve the API-backed Figma UI behind the session gate.
-2. **Decide DEC-030 to DEC-042.** DIV-027 and DIV-028 can't start without them. DEC-029 is approved.
+2. **Review and merge DIV-027/DIV-028.** DEC-030 to DEC-042 approved 2026-11-16 and both features are implemented on `feature/div-027-028-insights-reflection`. Then apply V6 to production (owner-supervised) and smoke-test `/insights` and `/reflection`; hand UI polish to the frontend developer.
 3. **Agree a PR-only rule for `main`.** It has no branch protection, and direct commits have twice changed production routes without review or doc updates.
 4. ~~Owner-supervised DIV-036~~ — done 2026-11-16; production already had V5 and verified read-only.
 5. ~~Phase 03 closeout~~ — DIV-017/025/026 `COMPLETED` 2026-11-16.
@@ -185,7 +186,7 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **DEC-027** | Session, cookie & CSRF | 30m idle timeout, `X-XSRF-TOKEN` header, `__Host-` cookies | `APPROVED` | Required for all state-changing transaction mutations. |
 | **DEC-028** | Budget & dashboard rules | Formulas, decimal precision, required fields, month/timezone, missing-plan representation, contract scope | `APPROVED` (2026-11-04, DIV-017) | Implemented by DIV-025/DIV-026 (PR #18) |
 | **DEC-029** | Production UI direction | Figma UI is the production UI; old UI removed; layered API-backed components (DIV-041) | `APPROVED` | Approved by the owner on 2026-11-16 |
-| **DEC-030 to DEC-042** | Phase 04 proposals | See `docs/10-phases/PHASE-04-decisions.md` | `PROPOSED` | Not approved; govern DIV-027 and DIV-028 |
+| **DEC-030 to DEC-042** | Phase 04 decisions | See `docs/10-phases/PHASE-04-decisions.md` and `decision-log.md` | `APPROVED` (2026-11-16) | Implemented by DIV-027 and DIV-028 |
 
 ---
 
@@ -235,7 +236,7 @@ Tracker/Doc Reconciliation + Requirement Decisions
            ↓
        Onboarding Completion Flow (DIV-023)
            ↓
-       Insights & Reflections (only if approved for MVP) (DIV-027, DIV-028)
+       Insights & Reflections (in MVP per DEC-030) (DIV-027, DIV-028)
            ↓
        Release Configuration, CI/CD, Observability, QA & Security Gates (DIV-030 to DIV-035)
 ```

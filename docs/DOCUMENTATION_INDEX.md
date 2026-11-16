@@ -96,8 +96,8 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`05-api/transactions-api.md`](05-api/transactions-api.md) | Transactions API | Proposed contract |
 | [`05-api/budgets-api.md`](05-api/budgets-api.md) | Budgets and monthly plan API | Proposed contract |
 | [`05-api/dashboard-api.md`](05-api/dashboard-api.md) | Dashboard API | Proposed contract |
-| [`05-api/insights-api.md`](05-api/insights-api.md) | Insights API | Proposed contract — algorithm not yet approved |
-| [`05-api/reflections-api.md`](05-api/reflections-api.md) | Monthly reflection API | Proposed contract — MVP inclusion requires approval |
+| [`05-api/insights-api.md`](05-api/insights-api.md) | Insights API | IMPLEMENTED (DIV-027) — approved 2026-11-16 (DEC-030 to DEC-033, DEC-041) |
+| [`05-api/reflections-api.md`](05-api/reflections-api.md) | Monthly reflection API | IMPLEMENTED (DIV-028) — approved 2026-11-16 (DEC-030, DEC-034 to DEC-040) |
 | [`05-api/openapi.yaml`](05-api/openapi.yaml) | OpenAPI specification | `info.version: 1.0.0-proposed` |
 
 ## 06 — Data
@@ -160,8 +160,8 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`10-phases/PHASE-01-foundation-auth.md`](10-phases/PHASE-01-foundation-auth.md) | Phase 01: foundation and authentication | Proposed sequence |
 | [`10-phases/PHASE-02-transactions.md`](10-phases/PHASE-02-transactions.md) | Phase 02: transactions | COMPLETED — PR #16, verified on `main` 2026-11-04; one test-gate item conditional on the pending month/timezone policy |
 | [`10-phases/PHASE-03-budget-dashboard.md`](10-phases/PHASE-03-budget-dashboard.md) | Phase 03: budgets and dashboard | COMPLETED (2026-11-16) |
-| [`10-phases/PHASE-04-insights-reflection.md`](10-phases/PHASE-04-insights-reflection.md) | Phase 04: insights and reflection | Conditional proposed phase |
-| [`10-phases/PHASE-04-decisions.md`](10-phases/PHASE-04-decisions.md) | Phase 04 decision summary (DEC-029 to DEC-042) | DEC-029 approved 2026-11-16; others proposed, owner approval required |
+| [`10-phases/PHASE-04-insights-reflection.md`](10-phases/PHASE-04-insights-reflection.md) | Phase 04: insights and reflection | IMPLEMENTED on feature branch 2026-11-16; merge, V6 production apply and smoke check pending |
+| [`10-phases/PHASE-04-decisions.md`](10-phases/PHASE-04-decisions.md) | Phase 04 decision summary (DEC-029 to DEC-042) | APPROVED — DEC-029 to DEC-042 approved 2026-11-16 |
 | [`10-phases/PHASE-05-release.md`](10-phases/PHASE-05-release.md) | Phase 05: release readiness | Proposed |
 
 ## Planned but not created

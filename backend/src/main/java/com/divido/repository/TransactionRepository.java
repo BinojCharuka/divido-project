@@ -41,4 +41,45 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
     List<MonthlyTransactionTotal> aggregateByTypeAndGroup(@Param("userId") UUID userId,
                                                           @Param("from") LocalDate from,
                                                           @Param("to") LocalDate to);
+
+    /** Insights (DIV-027): number of distinct dates with at least one expense, both bounds inclusive. */
+    @Query("""
+            select count(distinct t.date) from Transaction t
+            where t.userId = :userId and t.type = com.divido.entity.TransactionType.EXPENSE
+              and t.date >= :from and t.date <= :to
+            """)
+    long countDistinctExpenseDays(@Param("userId") UUID userId,
+                                  @Param("from") LocalDate from,
+                                  @Param("to") LocalDate to);
+
+    /**
+     * Insights (DIV-027): expense count per category and date in a range, using each
+     * category's current group (DEC-028). One row per category and day.
+     */
+    @Query("""
+            select new com.divido.repository.CategoryDayCount(c.id, c.name, c.group, t.date, count(t))
+            from Transaction t join t.category c
+            where t.userId = :userId and t.type = com.divido.entity.TransactionType.EXPENSE
+              and t.date >= :from and t.date <= :to
+            group by c.id, c.name, c.group, t.date
+            """)
+    List<CategoryDayCount> countExpensesByCategoryAndDay(@Param("userId") UUID userId,
+                                                         @Param("from") LocalDate from,
+                                                         @Param("to") LocalDate to);
+
+    /** Insights trend (DIV-027): expense totals per calendar month ({@code YYYY-MM}) in a range. */
+    @Query(value = """
+            SELECT to_char(transaction_date, 'YYYY-MM') AS month, SUM(amount) AS total
+            FROM transactions
+            WHERE user_id = :userId AND type = 'EXPENSE'
+              AND transaction_date >= :from AND transaction_date <= :to
+            GROUP BY to_char(transaction_date, 'YYYY-MM')
+            """, nativeQuery = true)
+    List<MonthExpenseTotal> sumExpensesByMonth(@Param("userId") UUID userId,
+                                               @Param("from") LocalDate from,
+                                               @Param("to") LocalDate to);
+
+    /** Date of the user's earliest transaction of any type, or {@code null} when there is none. */
+    @Query("select min(t.date) from Transaction t where t.userId = :userId")
+    LocalDate findFirstTransactionDate(@Param("userId") UUID userId);
 }

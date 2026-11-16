@@ -105,20 +105,20 @@ As a user, I want to set planned income, a savings target, and four group alloca
 ### US-012 — View spending insights
 As a user, I want understandable observations from my recorded spending so that I can notice patterns without being judged.
 
-- **Priority:** P1 — confirm MVP inclusion
+- **Priority:** P1 — in MVP (DEC-030, approved 2026-11-16)
 - **Use case:** UC-011
 - **UX:** UX-P10
 - **Acceptance:** AC-019, AC-020
-- **TBD:** Habit algorithm and thresholds.
+- **Rules:** Observation types, thresholds and wording approved in DEC-031, DEC-032, DEC-033, DEC-041; implemented in DIV-027 ([`../05-api/insights-api.md`](../05-api/insights-api.md)).
 
 ### US-013 — Save a monthly reflection
 As a user, I want to reflect on the month so that I can learn from my decisions and plan changes.
 
-- **Priority:** P1 — confirm MVP inclusion
+- **Priority:** P1 — in MVP (DEC-030, approved 2026-11-16)
 - **Use case:** UC-012
 - **UX:** UX-P11
 - **Acceptance:** AC-021
-- **TBD:** Questions and persistence.
+- **Rules:** Questions, persistence, editing and retention approved in DEC-034 to DEC-040; implemented in DIV-028 ([`../05-api/reflections-api.md`](../05-api/reflections-api.md)).
 
 ## Epic E-05 — Personalization
 

@@ -12,7 +12,8 @@ erDiagram
     APP_USERS ||--o{ MONTHLY_BUDGETS : plans
     CATEGORIES ||--o{ TRANSACTIONS : classifies_expenses
     INCOME_SOURCES ||--o{ TRANSACTIONS : identifies_income
-    APP_USERS ||--o{ REFLECTIONS : writes_if_enabled
+    APP_USERS ||--o{ REFLECTIONS : writes
+    REFLECTIONS ||--o{ REFLECTION_ANSWERS : contains
 ```
 
 This diagram is logical. It does not decide whether global default categories are stored as shared rows, copied per user, or represented using another pattern.
@@ -37,8 +38,8 @@ One row per user and calendar month holding planned income, savings target and t
 ### `user_preferences` — proposed
 Stores editable settings only if they do not fit the approved existing `app_users` design. Avoid duplicating the same preference in multiple places.
 
-### `reflections` — proposed, optional
-Stores month-specific reflection answers only if the feature is approved for MVP. Define answer storage, question versioning, and retention before implementation.
+### `reflections` and `reflection_answers` — implemented (V6, DIV-028)
+One reflection per user and calendar month, with one answer row per answered question. Question sets are versioned (`question_set_version`); `version` is the optimistic lock (DEC-039). Both cascade from `app_users`. The legacy production table `monthly_reflections` is separate and untouched (DEC-036). See the [data dictionary](data-dictionary.md).
 
 ### `flyway_schema_history` — managed
 Owned by Flyway. Do not manually insert, update, or delete rows as a normal development workflow.
@@ -52,7 +53,7 @@ Owned by Flyway. Do not manually insert, update, or delete rows as a normal deve
 - Are default categories global or user-owned copies?
 - If a category is deactivated or its group changes, what happens to old transactions?
 - Are soft-deleted transactions retained indefinitely or purged after a period?
-- Can a reflection have multiple versions or only one current answer set per month?
+- Can a reflection have multiple versions or only one current answer set per month? Decided: one current answer set per month (DEC-038); no history of edits is kept.
 
 ## 4. Data integrity requirements
 

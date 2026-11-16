@@ -88,16 +88,16 @@ Deleting or deactivating a category/source that is referenced by historical entr
 ## 6. Insights and reflection
 
 ### BR-025 — Insight lookback
-A 90-day lookback is proposed for spending-pattern insights. The exact date boundaries, timezone handling, and calculation method are TBD.
+A 90-day inclusive lookback ending on the insight's as-of date (user timezone) is used for repeated-category observations. Approved in DEC-032 and DEC-041 (2026-11-16).
 
 ### BR-026 — Minimum evidence
-At least three distinct spending days is a proposed minimum for a regularity candidate, not a complete definition of a recurring habit. The final algorithm, thresholds, and wording must be approved and tested.
+At least three distinct spending days are required before a pattern observation is shown; below that the UI explains that more history is needed. Observations are facts, never labelled as habits. Approved in DEC-031 and DEC-033 (2026-11-16); tested below, at and above the threshold.
 
 ### BR-027 — No unsupported certainty
 Insights must describe observations supported by available data. Do not imply causation, diagnosis, or guaranteed future behavior.
 
 ### BR-028 — Reflection is optional
-Reflection answers should not be required to use core tracking functionality. Final questions and retention/edit rules are TBD.
+Reflection answers are never required to use core tracking functionality. Three optional questions, editable at any time, kept until the user deletes them or the account is removed. Approved in DEC-034 to DEC-040 (2026-11-16).
 
 ## 7. Preferences and defaults
 

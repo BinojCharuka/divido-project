@@ -42,6 +42,17 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.NOT_FOUND, "BUDGET_NOT_FOUND", ex.getMessage());
     }
 
+    @ExceptionHandler(ReflectionNotFoundException.class)
+    public ResponseEntity<ApiError> handleReflectionNotFound(ReflectionNotFoundException ex) {
+        return error(HttpStatus.NOT_FOUND, "REFLECTION_NOT_FOUND", ex.getMessage());
+    }
+
+    /** DEC-039: a stale or duplicate save; the client reloads instead of losing text silently. */
+    @ExceptionHandler(ReflectionConflictException.class)
+    public ResponseEntity<ApiError> handleReflectionConflict(ReflectionConflictException ex) {
+        return error(HttpStatus.CONFLICT, "REFLECTION_CONFLICT", ex.getMessage());
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableBody(HttpMessageNotReadableException ex) {
         return error(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "The request body could not be read.");

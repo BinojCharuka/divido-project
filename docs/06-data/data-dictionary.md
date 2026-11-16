@@ -109,11 +109,32 @@ Candidate fields: `user_id` (PK/FK), `locale`, `currency_code`, `time_zone`, `cr
 
 Do not create this table if approved design keeps these settings on `app_users`.
 
-## 9. `reflections` — optional proposed entity
+## 9. `reflections` and `reflection_answers` — implemented (V6, DIV-028)
 
-Candidate fields: `id`, `user_id`, `month`, `answers` (structured JSON or normalized child rows), `question_version`, `created_at`, `updated_at`.
+Flyway `V6__reflections.sql`. Decisions: DEC-034 (questions), DEC-035 (length), DEC-036 (new table beside the legacy production `monthly_reflections`, which is untouched), DEC-038 (lifecycle), DEC-039 (version check), DEC-040 (blank and future months).
 
-Choose JSON versus normalized answers based on querying, validation, retention, and question-versioning needs. Avoid storing reflection content in logs.
+`reflections` — one row per user and calendar month:
+
+| Column | Meaning | Type | Rules |
+|---|---|---|---|
+| `id` | Primary key | `UUID` | `DEFAULT gen_random_uuid()` |
+| `user_id` | Owner | `UUID` | `NOT NULL`, FK `app_users(id) ON DELETE CASCADE` |
+| `reflection_month` | First day of the month | `DATE` | `NOT NULL`, `CHECK` day = 1 |
+| `question_set_version` | Question set answered | `SMALLINT` | `NOT NULL`, `CHECK >= 1`; currently 1 |
+| `version` | Optimistic lock (DEC-039) | `INTEGER` | `NOT NULL DEFAULT 1`, `CHECK >= 1`; +1 on every edit |
+| `created_at`, `updated_at` | Audit timestamps | `TIMESTAMPTZ` | Database defaults; `updated_at` set on edit |
+
+Constraint `uq_reflections_user_month UNIQUE (user_id, reflection_month)`. A first save uses `INSERT … ON CONFLICT DO NOTHING RETURNING id`; an edit uses `UPDATE … WHERE version = :expected RETURNING id`. No row back means `409 REFLECTION_CONFLICT`.
+
+`reflection_answers` — one row per answered question:
+
+| Column | Meaning | Type | Rules |
+|---|---|---|---|
+| `reflection_id` | Parent | `UUID` | `NOT NULL`, FK `reflections(id) ON DELETE CASCADE` |
+| `question_id` | Approved question id | `VARCHAR(50)` | `NOT NULL`; allowed ids are checked by the service per question set |
+| `answer` | Answer text, trimmed | `TEXT` | `NOT NULL`, `CHECK char_length BETWEEN 1 AND 2000`, `CHECK btrim(answer) <> ''` |
+
+Primary key `(reflection_id, question_id)`. Answer text is sensitive: never logged, never analysed, never returned by the history list.
 
 ## 10. Cross-entity constraints and indexes
 

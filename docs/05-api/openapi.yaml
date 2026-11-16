@@ -549,25 +549,38 @@ paths:
   /api/v1/insights:
     get:
       tags: [Insights]
-      summary: List approved spending insights (if included in MVP)
+      summary: Read spending insights for a month (INSIGHT-001, DIV-027)
+      description: >
+        Computed on request from the signed-in user's records (DEC-031 to DEC-033, DEC-041).
+        Omitting month uses the current month in the user's timezone (default Asia/Colombo).
+        A month after the current one is rejected.
       parameters:
-        - name: from
+        - name: month
           in: query
+          required: false
           schema:
             type: string
-            format: date
-        - name: to
-          in: query
-          schema:
-            type: string
-            format: date
+            pattern: '^[1-9]\d{3}-(0[1-9]|1[0-2])$'
       responses:
         '200':
-          description: Insights
+          description: Month figures, comparison, trend and observations
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/InsightsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/reflections:
+    get:
+      tags: [Reflections]
+      summary: List the signed-in user's reflections without answer text (REFLECTION-003, DIV-028)
+      responses:
+        '200':
+          description: Months with a reflection, newest first
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReflectionList'
   /api/v1/reflections/{month}:
     parameters:
       - name: month
@@ -575,22 +588,32 @@ paths:
         required: true
         schema:
           type: string
-          pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+          pattern: '^[1-9]\d{3}-(0[1-9]|1[0-2])$'
     get:
       tags: [Reflections]
-      summary: Read a monthly reflection (if included in MVP)
+      summary: Read the signed-in user's reflection for a month (REFLECTION-001, DIV-028)
       responses:
         '200':
-          description: Reflection
+          description: Stored reflection
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Reflection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: No reflection for this month (code REFLECTION_NOT_FOUND)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
     put:
       tags: [Reflections]
-      summary: Create or update a monthly reflection (if included in MVP)
+      summary: Create or edit the signed-in user's reflection for a month (REFLECTION-002, DIV-028)
+      description: >
+        Omit version for the first save; send the version last read to edit (DEC-039).
+        Replaces the whole answer set. Blank answers are dropped; an all-blank save or a
+        future month is rejected (DEC-040). Answers are at most 2,000 characters (DEC-035).
       requestBody:
         required: true
         content:
@@ -599,11 +622,33 @@ paths:
               $ref: '#/components/schemas/ReflectionInput'
       responses:
         '200':
-          description: Saved reflection
+          description: Stored reflection (created or edited)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Reflection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Stale version, or a first save when one already exists (code REFLECTION_CONFLICT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    delete:
+      tags: [Reflections]
+      summary: Permanently delete the signed-in user's reflection for a month (REFLECTION-004, DIV-028)
+      responses:
+        '204':
+          description: Deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No reflection for this month (code REFLECTION_NOT_FOUND)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 components:
   securitySchemes:
     sessionCookie:
@@ -1209,47 +1254,184 @@ components:
           maxItems: 4
           items:
             $ref: '#/components/schemas/DashboardGroup'
+    Percent:
+      type: string
+      nullable: true
+      pattern: '^-?\d+\.\d$'
+      description: One decimal place, HALF_UP; null when the base is zero (DEC-041)
     InsightsResponse:
       type: object
-      required: [from, to, items, insufficientHistory]
-      properties:
-        from:
-          type: string
-          format: date
-        to:
-          type: string
-          format: date
-        items:
-          type: array
-          items:
-            type: object
-            required: [id, type, title, description]
-            properties:
-              id:
-                type: string
-              type:
-                type: string
-              title:
-                type: string
-              description:
-                type: string
-              group:
-                $ref: '#/components/schemas/KakeiboGroup'
-              evidence:
-                type: object
-                additionalProperties: true
-        insufficientHistory:
-          type: boolean
-    Reflection:
-      type: object
-      required: [month, answers]
+      required: [month, periodStart, periodEnd, asOf, partialMonth, minimumSpendingDays, spendingDays,
+                 insufficientHistory, totalSpent, groups, comparison, trend, lookbackStart, lookbackEnd, observations]
       properties:
         month:
           type: string
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+        asOf:
+          type: string
+          format: date
+          description: The earlier of today (user timezone) and periodEnd
+        partialMonth:
+          type: boolean
+        minimumSpendingDays:
+          type: integer
+          example: 3
+        spendingDays:
+          type: integer
+        insufficientHistory:
+          type: boolean
+        totalSpent:
+          $ref: '#/components/schemas/Money'
+        groups:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items:
+            type: object
+            required: [group, spent, sharePercent, expenseCount]
+            properties:
+              group:
+                $ref: '#/components/schemas/KakeiboGroup'
+              spent:
+                $ref: '#/components/schemas/Money'
+              sharePercent:
+                $ref: '#/components/schemas/Percent'
+              expenseCount:
+                type: integer
+        comparison:
+          type: object
+          required: [currentStart, currentEnd, previousStart, previousEnd, currentSpent, previousSpent,
+                     changePercent, currentSpendingDays, previousSpendingDays, groups]
+          properties:
+            currentStart:
+              type: string
+              format: date
+            currentEnd:
+              type: string
+              format: date
+            previousStart:
+              type: string
+              format: date
+            previousEnd:
+              type: string
+              format: date
+            currentSpent:
+              $ref: '#/components/schemas/Money'
+            previousSpent:
+              $ref: '#/components/schemas/Money'
+            changePercent:
+              $ref: '#/components/schemas/Percent'
+            currentSpendingDays:
+              type: integer
+            previousSpendingDays:
+              type: integer
+            groups:
+              type: array
+              items:
+                type: object
+                required: [group, currentSpent, previousSpent, changePercent]
+                properties:
+                  group:
+                    $ref: '#/components/schemas/KakeiboGroup'
+                  currentSpent:
+                    $ref: '#/components/schemas/Money'
+                  previousSpent:
+                    $ref: '#/components/schemas/Money'
+                  changePercent:
+                    $ref: '#/components/schemas/Percent'
+        trend:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            type: object
+            required: [month, totalSpent, hasActivity, partial]
+            properties:
+              month:
+                type: string
+              totalSpent:
+                type: string
+                nullable: true
+                description: null before the user's first transaction
+              hasActivity:
+                type: boolean
+              partial:
+                type: boolean
+        lookbackStart:
+          type: string
+          format: date
+        lookbackEnd:
+          type: string
+          format: date
+        observations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightObservation'
+    InsightObservation:
+      type: object
+      required: [type]
+      description: Fields present depend on type (see insights-api.md). Facts only; the UI renders the wording.
+      properties:
+        type:
+          type: string
+          enum: [LARGEST_GROUP, GROUP_OVER_PLAN, MONTH_CHANGE, REPEATED_CATEGORY]
+        group:
+          $ref: '#/components/schemas/KakeiboGroup'
+        spent:
+          $ref: '#/components/schemas/Money'
+        sharePercent:
+          type: string
+        spendingDays:
+          type: integer
+        budget:
+          $ref: '#/components/schemas/Money'
+        overBy:
+          $ref: '#/components/schemas/Money'
+        currentSpent:
+          $ref: '#/components/schemas/Money'
+        previousSpent:
+          $ref: '#/components/schemas/Money'
+        changePercent:
+          $ref: '#/components/schemas/Percent'
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        distinctDays:
+          type: integer
+        transactionCount:
+          type: integer
+        dates:
+          type: array
+          items:
+            type: string
+            format: date
+    Reflection:
+      type: object
+      required: [month, questionSetVersion, version, answers, createdAt, updatedAt]
+      properties:
+        month:
+          type: string
+        questionSetVersion:
+          type: integer
+          example: 1
+        version:
+          type: integer
+          minimum: 1
+          description: Send back on the next save (DEC-039)
         answers:
           type: array
           items:
             $ref: '#/components/schemas/ReflectionAnswer'
+        createdAt:
+          type: string
+          format: date-time
         updatedAt:
           type: string
           format: date-time
@@ -1259,17 +1441,40 @@ components:
       properties:
         questionId:
           type: string
+          enum: [what-went-well, what-felt-difficult, what-to-change]
         answer:
           type: string
-          maxLength: 5000
+          maxLength: 2000
+          description: At most 2,000 characters (Unicode code points) after trimming (DEC-035)
     ReflectionInput:
       type: object
       required: [answers]
       properties:
+        version:
+          type: integer
+          minimum: 1
+          description: Omit for the first save of a month
         answers:
           type: array
+          maxItems: 3
           items:
             $ref: '#/components/schemas/ReflectionAnswer'
-      additionalProperties: false
+    ReflectionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [month, answeredCount, updatedAt]
+            properties:
+              month:
+                type: string
+              answeredCount:
+                type: integer
+              updatedAt:
+                type: string
+                format: date-time
 security:
   - sessionCookie: []

@@ -29,8 +29,8 @@
 - Monthly planned and actual income.
 - Actual expenses and net recorded savings.
 - Group budget versus actual spending.
-- Spending-habit insights over a proposed 90-day period, requiring at least three distinct spending days for a candidate pattern.
-- Monthly reflection.
+- Spending insights: factual observations from a 90-day lookback, shown once there are at least three distinct spending days (DEC-030 to DEC-033, DEC-041, approved 2026-11-16).
+- Monthly reflection: three optional questions, editable and deletable by the user (DEC-034 to DEC-040, approved 2026-11-16).
 
 ## Out of MVP
 

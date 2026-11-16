@@ -48,13 +48,15 @@ Do not implement account deletion by blindly cascading all rows until the data-l
 
 ## 5. Reflection privacy
 
-Reflection answers may contain sensitive personal details:
-- Do not log answer contents.
-- Restrict access to the owner.
-- Define maximum answer length and retention.
-- Decide whether users can edit/delete prior reflections.
-- Ensure backup and account-deletion procedures include reflections.
-- Do not use reflection text for unrelated analytics without explicit approved policy.
+Reflection answers may contain sensitive personal details. Approved rules (DEC-035, DEC-038, 2026-11-16), implemented in DIV-028:
+- Answer contents are never logged or included in error messages.
+- Only the owner can read, edit or delete a reflection; another user's reflection is reported as not found.
+- At most 2,000 characters per answer.
+- Editable at any time; deletion is permanent and user-initiated. No drafts on the server or in the browser.
+- Kept until the user deletes it or the account is removed (`ON DELETE CASCADE` from `app_users`).
+- Not used for analytics; the history list never includes answer text.
+- Still open: backups may hold deleted reflections until the backup expires (DIV-033), and account deletion is not yet a feature (DIV-035).
+- The legacy production table `monthly_reflections` holds one row from the earlier V4. It is untouched and not shown in the app (DEC-036); its retention must be decided with DIV-035.
 
 ## 6. Logs and sessions
 
@@ -78,7 +80,7 @@ Before release, document:
 1. Transaction soft-delete and restore inclusion in MVP.
 2. Retention period for deleted transactions.
 3. Account closure/permanent deletion behavior.
-4. Reflection inclusion and retention.
+4. ~~Reflection inclusion and retention.~~ Decided 2026-11-16 (DEC-030, DEC-038); backups and the legacy row remain open (DIV-033, DIV-035).
 5. Session retention and expiry.
 6. Log retention and redaction.
 7. Backup retention and restore process.

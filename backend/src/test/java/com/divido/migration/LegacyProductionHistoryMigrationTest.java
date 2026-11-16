@@ -52,7 +52,7 @@ class LegacyProductionHistoryMigrationTest {
         ValidateResult result = repository().validateWithResult();
 
         assertThat(result.validationSuccessful).as("V4 drift must fail validation").isFalse();
-        assertThat(repository().info().pending()).extracting(m -> m.getVersion().getVersion()).containsExactly("5");
+        assertThat(repository().info().pending()).extracting(m -> m.getVersion().getVersion()).containsExactly("5", "6");
     }
 
     @Test
@@ -70,7 +70,7 @@ class LegacyProductionHistoryMigrationTest {
                 .containsEntry("description", "monthly budgets")
                 .containsEntry("script", LEGACY_V4_SCRIPT)
                 .containsEntry("success", true);
-        assertThat(repository().info().pending()).extracting(m -> m.getVersion().getVersion()).containsExactly("5");
+        assertThat(repository().info().pending()).extracting(m -> m.getVersion().getVersion()).containsExactly("5", "6");
     }
 
     @Test
@@ -97,6 +97,11 @@ class LegacyProductionHistoryMigrationTest {
                 .isEqualTo("synthetic");
         assertThat(jdbc.queryForObject("SELECT count(*) FROM budgets WHERE user_id = ?", Integer.class, userId)).isEqualTo(1);
         assertThat(jdbc.queryForObject("SELECT locale FROM app_users WHERE id = ?", String.class, userId)).isEqualTo("en");
+
+        // V6 (DEC-036) adds the new reflections tables beside the untouched legacy table.
+        assertThat(tableExists("reflections")).isTrue();
+        assertThat(tableExists("reflection_answers")).isTrue();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM reflections", Integer.class)).isZero();
     }
 
     @Test
@@ -109,6 +114,7 @@ class LegacyProductionHistoryMigrationTest {
                 .isEqualTo(REPOSITORY_V4_SCRIPT);
         assertThat(tableExists("monthly_budgets")).isTrue();
         assertThat(tableExists("monthly_reflections")).isFalse();
+        assertThat(tableExists("reflections")).isTrue();
     }
 
     /** V1-V3 from the repository, then the legacy V4, as recorded in production's history. */

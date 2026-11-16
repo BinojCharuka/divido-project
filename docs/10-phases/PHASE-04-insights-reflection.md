@@ -1,8 +1,8 @@
 # Phase 04 — Spending Insights and Reflection
 
-**Status:** Conditional proposed phase — MVP inclusion must be approved  
-**Gates:** Decisions are pending in [`PHASE-04-decisions.md`](PHASE-04-decisions.md). V6 must not be written until those decisions are approved and DIV-036 is completed and verified (DIV-036 done 2026-11-16).  
-**Primary outcome:** If approved, provide explainable spending-pattern observations and reflection tools without overstating what the data proves.
+**Status:** IMPLEMENTED on branch `feature/div-027-028-insights-reflection` (2026-11-16) — not yet merged, deployed, or applied to production  
+**Gates:** Decisions DEC-030 to DEC-042 approved 2026-11-16 ([`PHASE-04-decisions.md`](PHASE-04-decisions.md)); DIV-036 completed and verified 2026-11-16. V6 (`V6__reflections.sql`) is written; production apply is a release step.  
+**Primary outcome:** Provide explainable spending-pattern observations and reflection tools without overstating what the data proves.
 
 ## Goal
 
@@ -19,46 +19,53 @@ Add value beyond transaction recording only after enough trustworthy history exi
 ## Workstreams
 
 ### BE-01 — Habit/insight rules
-- [ ] Define the rule in plain language before implementation.
-- [ ] Define eligible transaction types, categories, time window, and minimum distinct spending days.
-- [ ] Define how refunds, deleted records, sparse history, and missing dates affect results.
-- [ ] Return an explanation of which period/data supports an insight where appropriate.
-- [ ] Avoid claims that imply certainty when the data supports only a pattern.
-- [ ] Add tests below, at, and above each threshold.
+- [x] Define the rule in plain language before implementation.
+- [x] Define eligible transaction types, categories, time window, and minimum distinct spending days.
+- [x] Define how refunds, deleted records, sparse history, and missing dates affect results.
+- [x] Return an explanation of which period/data supports an insight where appropriate.
+- [x] Avoid claims that imply certainty when the data supports only a pattern.
+- [x] Add tests below, at, and above each threshold.
 
 ### BE-02 — Reflection persistence
-- [ ] Confirm whether reflections are stored in MVP.
-- [ ] Define fields, edit/delete behavior, and retention.
-- [ ] Enforce owner access on every operation.
-- [ ] Add data-retention and migration tests.
+- [x] Confirm whether reflections are stored in MVP.
+- [x] Define fields, edit/delete behavior, and retention.
+- [x] Enforce owner access on every operation.
+- [x] Add data-retention and migration tests.
 
 ### FE-01 — Insights UI
-- [ ] Show only approved insight types.
-- [ ] Clearly handle insufficient data.
-- [ ] Avoid shaming or judgmental wording.
-- [ ] Explain the relevant period and signal in accessible language.
-- [ ] Ensure no insight is generated from another user's records.
+- [x] Show only approved insight types.
+- [x] Clearly handle insufficient data.
+- [x] Avoid shaming or judgmental wording.
+- [x] Explain the relevant period and signal in accessible language.
+- [x] Ensure no insight is generated from another user's records.
 
 ### FE-02 — Reflection UI
-- [ ] Present approved reflection questions.
-- [ ] Save only through the agreed API.
-- [ ] Show pending, success, validation, and failure states.
-- [ ] Support edit/delete only if approved.
+- [x] Present approved reflection questions.
+- [x] Save only through the agreed API.
+- [x] Show pending, success, validation, and failure states.
+- [x] Support edit/delete only if approved.
 
 ### INT-01 — Privacy and confidence checks
-- [ ] Verify two users' histories remain isolated.
-- [ ] Test threshold boundaries with fixed synthetic data.
-- [ ] Test that failed saves do not display false success.
-- [ ] Verify deleted records and retention policy affect insights as specified.
+- [x] Verify two users' histories remain isolated.
+- [x] Test threshold boundaries with fixed synthetic data.
+- [x] Test that failed saves do not display false success.
+- [x] Verify deleted records and retention policy affect insights as specified.
 
 ## Exit criteria
 
-- [ ] Product scope for insights/reflections is explicitly approved.
-- [ ] Algorithm and retention rules are documented and tested.
-- [ ] Insufficient data is handled safely and clearly.
-- [ ] User isolation tests pass.
-- [ ] UI and API behavior is integrated and verified.
-- [ ] Data dictionary, API docs, and privacy/retention docs are current.
+- [x] Product scope for insights/reflections is explicitly approved.
+- [x] Algorithm and retention rules are documented and tested.
+- [x] Insufficient data is handled safely and clearly.
+- [x] User isolation tests pass.
+- [x] UI and API behavior is integrated and verified.
+- [x] Data dictionary, API docs, and privacy/retention docs are current.
+
+## Implementation record (2026-11-16)
+
+- Insights: `GET /api/v1/insights?month` — see [`../05-api/insights-api.md`](../05-api/insights-api.md). Rules: DEC-031, DEC-032, DEC-033, DEC-041. Nothing stored.
+- Reflections: `GET/PUT/DELETE /api/v1/reflections/{month}`, `GET /api/v1/reflections` — see [`../05-api/reflections-api.md`](../05-api/reflections-api.md). Rules: DEC-034 to DEC-040. Tables `reflections`, `reflection_answers` (V6).
+- UI: `/insights` and `/reflection` on the Figma UI (DEC-029), plain labels with one Kakeibo explanation on the reflection page (DEC-042).
+- Remaining before the phase is closed: review and merge, apply V6 to production, production smoke check. The legacy `monthly_reflections` row stays untouched (DEC-036).
 
 ## Scope guard
 

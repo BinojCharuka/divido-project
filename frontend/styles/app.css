@@ -106,3 +106,30 @@
 @media (min-width: 768px) {
   .sidebar-collapsed .sidebar-user > a { display: none !important; }
 }
+
+/* Insights (DIV-027): observation cards are links, so keep their text styles */
+.insight-card { display: block; color: inherit; text-decoration: none; }
+.insight-card:focus-visible { outline: 3px solid #05966966; outline-offset: 3px; }
+.insight-lookback > span { line-height: 1.6; }
+.trend-dot path { fill: none; stroke-linecap: round; }
+.trend-dot-ring { stroke: var(--green); stroke-width: 11px; }
+.trend-dot-core { stroke: var(--white); stroke-width: 6px; }
+.trend-dot.partial .trend-dot-ring { stroke-width: 15px; opacity: .55; }
+.trend-dot.partial .trend-dot-core { stroke-width: 9px; }
+
+/* Monthly reflection (DIV-028) */
+.reflection-method > svg { display: inline; vertical-align: -2px; margin-right: 6px; color: var(--muted); }
+.reflection-question .textarea-count { display: block; }
+.reflection-question .textarea-count.over-limit { color: var(--danger); font-weight: 550; }
+.reflection-question .field-error { display: block; margin-top: 4px; }
+.reflection-question textarea[aria-invalid="true"] { border-color: var(--danger); }
+.reflection-page > form > .app-error { margin-bottom: 22px; }
+.reflection-history { padding: 22px 24px; margin-bottom: 26px; }
+.reflection-history h2 { font-size: 14px; margin-bottom: 12px; }
+.reflection-history ul { list-style: none; padding: 0; margin: 0; }
+.reflection-history li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 12px; }
+.reflection-history li > span:last-child { color: var(--muted); font-size: 11px; }
+.reflection-history [aria-current="page"] { font-weight: 550; }
+@media (max-width: 640px) {
+  .reflection-history { padding: 18px 16px; }
+}
