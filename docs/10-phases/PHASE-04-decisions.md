@@ -26,7 +26,7 @@ Existing proposed decisions these features rely on: `DEC-004` (the four groups, 
 - **Data/privacy impact:** Removes financial data from browser storage; restores session gating.
 - **Migration impact:** None.
 - **Recommended:** Keep the design, use real components. Needs agreement with the other developer.
-- **Owner approval:** PENDING
+- **Owner approval:** APPROVED on 2026-11-16. The owner decided that the Figma-imported UI is the UI going forward and the old UI is removed. Pages, components and routes are built from the Figma design in the documented frontend layers and use the real API (DIV-041). `FigmaApp` and `/prototype` are deleted, not kept as a development reference. PR #23 (DIV-039) is superseded.
 
 ## DEC-030 — MVP inclusion of Insights and Reflection
 - **Proposed behavior:** Both features are in the MVP.

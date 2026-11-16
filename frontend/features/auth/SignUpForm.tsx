@@ -11,7 +11,7 @@ import { ApiError } from "@/lib/api/client";
 import { register } from "@/lib/auth/api";
 import { validateSignUp, type FieldErrors } from "@/lib/auth/validation";
 import { signInPath } from "@/lib/navigation";
-import { useFocusFirstInvalid } from "./useFocusFirstInvalid";
+import { useFocusFirstInvalid } from "@/lib/useFocusFirstInvalid";
 
 /** UX-P02. Registration does not sign the user in (DEC-025); success goes to sign-in. */
 export function SignUpForm() {
@@ -118,7 +118,6 @@ export function SignUpForm() {
             onClick={() => setShowPassword((prev) => !prev)}
             className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-hidden p-1 transition-colors cursor-pointer"
             aria-label={showPassword ? "Hide password" : "Show password"}
-            tabIndex={-1}
           >
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -130,15 +129,15 @@ export function SignUpForm() {
         variant="primary"
         size="lg"
         loading={pending}
-        className="group w-full justify-center text-sm font-semibold py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-sm shadow-emerald-950/20 active:scale-[0.99] transition-all duration-150 cursor-pointer"
+        className="button-block"
       >
         {pending ? (
           "Creating account…"
         ) : (
-          <span className="flex items-center justify-center gap-2">
+          <>
             Create account
-            <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
-          </span>
+            <ArrowRight size={16} aria-hidden="true" />
+          </>
         )}
       </Button>
 

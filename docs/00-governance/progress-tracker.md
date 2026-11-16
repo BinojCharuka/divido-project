@@ -1,7 +1,7 @@
 # Divido Master Progress Tracker
 
 **Status:** ACTIVE — Canonical Project Execution Tracker  
-**Last Verified Date:** 2026-11-05  
+**Last Verified Date:** 2026-11-16  
 **Single Source of Truth:** `docs/00-governance/progress-tracker.md`
 
 ---
@@ -10,7 +10,7 @@
 
 - **Current Development Phase:** Phase 03 — Budget & Dashboard is merged to `main` via PR #18 (merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`); post-merge verification is pending. Phase 02 — Transactions is `COMPLETED` (PR #16, merge commit `0a898a0`).
 - **Current Milestone:** Milestone 03 — Budget & Dashboard: `MERGED — POST-MERGE VERIFICATION PENDING` (PR #18, merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`).
-- **Current Active Tasks:** Phase 04 gates. DIV-037 (PR #22) and DIV-039 (PR #23) are in review; DIV-036 is blocked on a valid production connection; DIV-027 and DIV-028 await owner decisions (`PHASE-04-decisions.md`). DIV-017, DIV-025 and DIV-026 stay merged with verification pending.
+- **Current Active Tasks:** DIV-041 (Figma UI as the production UI, Phase 03 completion) is implemented on branch `feature/div-041-figma-ui-phase-03-completion`, not yet committed or merged. DEC-029 was approved by the owner on 2026-11-16. DIV-037 merged (PR #22, `3a80c20`). DIV-039 / PR #23 is superseded by DIV-041. DIV-036 stays blocked on a valid production connection; DIV-027 and DIV-028 await the other Phase 04 decisions (DEC-030 to DEC-042).
 - **Current Task Owners:** 
   - Backend: Project Owner / Claude Code
   - Frontend: Implementation Assistant / Frontend Developer
@@ -51,7 +51,8 @@
 - **Transaction Filters:** Month, type, category and income source filters are wired to `GET /api/v1/transactions`, with "Clear filters", reset to page 0, and filtered-empty and error states (DIV-024 / PR #16).
 - **Verification at `7f3f4b9` (2026-11-05, clean export):** `tsc --noEmit` PASS; `vitest run` 137/137 PASS, but no test covered the prototype then mounted on production routes; `next build` PASS; `eslint .` FAIL (10 errors, 18 warnings); `./mvnw -q -B verify` FAIL (354 run, 1 failure). Playwright not run. **PR #22 branch:** `./mvnw -q -B verify` PASS, 360 tests. **PR #23 branch, before merging latest `main`:** `tsc --noEmit` PASS; `vitest run` 157/157 PASS; `npm run test:e2e` including production build 35/35 PASS against a local backend on a disposable `postgres:18-alpine` database with auth rate limits raised; `npm run lint` FAIL (8 errors, all in `features/prototype/FigmaApp.tsx`, plus 18 warnings). **PR #23 merged with `b44c9c7`:** `tsc --noEmit` PASS; `vitest run` 157/157 PASS; Playwright not re-run. These are branch results, not `main` results. No Neon access.
 - **Budget & Dashboard:** Implemented and merged to `main` via PR #18 (V4 migration file included; Neon application is a separate deployment step). The PR's reported checks are recorded below; post-merge verification is pending. Insights, Reflection and Profile & Settings remain decision-gated/backlogged.
-- **Onboarding:** Route `frontend/app/onboarding/page.tsx` exists as a placeholder only. Backend currently always returns `onboardingComplete: false`. Full multi-step stepper flow scheduled under DIV-023.
+- **DIV-041 branch verification (2026-11-16, uncommitted working tree on `feature/div-041-figma-ui-phase-03-completion`):** `npm run typecheck` PASS; `npm test` 121/121 PASS (10 files; component tests rewritten for the new UI); `npm run lint` PASS (0 errors, 2 pre-existing `<img>` warnings in `DividoLoadingScreen.tsx`); `npm run build` PASS; Playwright 21/21 PASS against the dev server and 21/21 PASS against the production build (`next build` + `next start`), both on a local backend with a disposable `postgres:18-alpine` database and raised auth rate limits; impeccable `detect` reports only the Inter font choice from the Figma design. Manual check on the same local stack: sign-up, sign-in, add expense, save an over-allocated plan, dashboard figures and warning, categories and transactions pages; no horizontal scroll at 375px on the main pages. Backend code unchanged on this branch. Not checked: a visual pass in light and dark themes (the browser pane was hidden, so screenshots were not reliable), and Neon production (DIV-036).
+- **Onboarding:** Route `frontend/app/(public)/onboarding/page.tsx` redirects to `/dashboard` until DIV-023 is decided. Backend currently always returns `onboardingComplete: false`. Full multi-step stepper flow scheduled under DIV-023.
 
 ---
 
@@ -96,9 +97,10 @@
 | **DIV-034** | Release preparation: Release QA gate, security & accessibility audit | 05 | P0 | DIV-015, DIV-026 | QA / Security | `PLANNED` | Execute regression test suite, verify security checklist (authentication, CSRF, isolation, rate limiting, SQL injection defense), run automated WCAG 2.1 AA accessibility checks, test mobile responsiveness, and perform post-deployment smoke test. |
 | **DIV-035** | Release preparation: Data lifecycle, retention & account purge | 05 | P1 | None | Backend / Product | `PLANNED` | Document and implement user account deletion policy (`DELETE /api/v1/profile` or admin purge), cascading data cleanup, retention periods for financial logs, and data export capability; verify with synthetic test data. |
 | **DIV-036** | Reconcile Neon production Flyway V4 history drift | 05 | P0 | DIV-025, DIV-026 | Project Owner / Backend / Database | `BLOCKED — owner supervised` | Preserve the already-applied production V4 objects/data, add a compatibility-safe V5 `monthly_budgets` migration for both fresh and existing V4 histories, and document a supervised Flyway `repair`/`migrate` sequence with preflight, backup, and post-migration checks. PR #20 merged (`c244c94`). Production repair and migration are not executed. The 2026-11-05 read-only preflight stopped before connecting because the secrets file had a pooled endpoint, a placeholder endpoint ID and quoted values, and Antigravity was still running. `flyway info` has not run. |
-| **DIV-037** | Fix migration-count test regression | 04 gate | P0 | DIV-036 V5 file (PR #20) | Backend | `IN_REVIEW — PR #22` | Replace the hardcoded migration count with robust history checks, and rehearse the DIV-036 sequence on disposable databases with a synthetic legacy V4. |
+| **DIV-037** | Fix migration-count test regression | 04 gate | P0 | DIV-036 V5 file (PR #20) | Backend | `MERGED — PR #22 (3a80c20)` | Replace the hardcoded migration count with robust history checks, and rehearse the DIV-036 sequence on disposable databases with a synthetic legacy V4. |
 | **DIV-038** | Phase 04 governance reconciliation | 04 gate | P1 | None | Project Owner | `IN_REVIEW` | Reconcile tracker and traceability with the code, and record proposed decisions DEC-029 to DEC-042 without approving them. |
-| **DIV-039** | Production route safety | 04 gate | P0 | DIV-015, DIV-026 | Frontend | `IN_REVIEW — PR #23` | Serve API-backed components behind the session gate, make the prototype development-only, clear financial data left in browser storage, and test what production routes mount. |
+| **DIV-039** | Production route safety | 04 gate | P0 | DIV-015, DIV-026 | Frontend | `SUPERSEDED — by DIV-041` | Serve API-backed components behind the session gate, make the prototype development-only, clear financial data left in browser storage, and test what production routes mount. Superseded on 2026-11-16 when the owner approved DEC-029 as "Figma UI stays, old UI removed"; PR #23 to be closed with a note. |
+| **DIV-041** | Figma UI as production UI; Phase 03 completion | 03 / 04 gate | P0 | DEC-029 (approved 2026-11-16), DIV-025, DIV-026 | Frontend | `IMPLEMENTED — NOT COMMITTED` | Remove the old UI and the prototype component. Rebuild the Figma design as layered, API-backed pages and components (shell, ui, forms, financial, feedback, features) behind the session gate. No browser-side money calculation beyond the exact budget preview, no "available money" figure (BR-008), no prototype-only features without an API. Rewrite component and E2E tests for the new UI. Branch `feature/div-041-figma-ui-phase-03-completion`. |
 
 ---
 
@@ -128,6 +130,7 @@
 - **DEC-013 default categories:** names and mappings approved by the project owner on 2026-11-04 and recorded in `decision-log.md` (PR #16).
 
 ### Currently In Progress / In Review
+- **DIV-041 — Figma UI as the production UI:** implemented on `feature/div-041-figma-ui-phase-03-completion`; checks in Section B. Waiting for the owner to approve the commit and PR. Insights and Reflection show "coming in a later update" until DEC-030 is decided.
 - **DIV-017, DIV-025, DIV-026 (Phase 03) — PR #18:** PR-local verification reported backend `./mvnw test` 354/354; frontend typecheck pass, `npm test` 137/137, `npm run test:e2e` 22/22 against an isolated backend and disposable Postgres, production build pass. `npm run lint` reports pre-existing findings only (prototype, `insights.ts`, `AuthPageShell.tsx`). No post-merge `main` re-run yet.
 - **DIV-036 — PR #20:** Read-only production inspection confirmed V4 history mismatch and existing legacy objects. V5 migration and recovery runbook are proposed. A disposable Neon branch previously verified the target `monthly_budgets` table structure; production has not been changed.
 
@@ -137,13 +140,12 @@
 
 ### Decision Required
 - **Re-phase DIV-022 and DIV-023:** both were tagged Phase 02 but are decision-gated, outside the scope of `PHASE-02-transactions.md`, and DIV-023 depends on DIV-025 (Phase 03). Their phase is shown as "Pending owner re-phasing" in Section C until the owner decides; their status is unchanged. They do not block Phase 02 completion.
-- **Phase 04 decisions:** DEC-029 to DEC-042 and existing DEC-004 and DEC-011 are pending in `docs/10-phases/PHASE-04-decisions.md`. DIV-027 and DIV-028 have not started.
-- **PR #21:** owner and the other developer should decide whether to close it. Its head is the Phase 03 branch already squash-merged through PR #18.
+- **Phase 04 decisions:** DEC-029 was approved on 2026-11-16. DEC-030 to DEC-042 and existing DEC-004 and DEC-011 are pending in `docs/10-phases/PHASE-04-decisions.md`. DIV-027 and DIV-028 have not started.
 - **Month/timezone date policy:** resolved by `DEC-028` (2026-11-04). Transactions belong to the calendar month of their date-only date; "today"/"current month" use `Asia/Colombo` in backend and frontend (PR #18).
 
 ### What Must Be Done Next & Why
-1. **Review PR #22 and PR #23.** `main` fails its backend suite and serves the prototype on production routes until these merge. PR #23 needs the other developer's review because it reverses routing from `5f5f435`.
-2. **Decide DEC-029 to DEC-042.** DIV-027 and DIV-028 can't start without them.
+1. **Commit DIV-041 and open its PR** (owner approval needed), close PR #23 as superseded, merge, then re-run all checks on `main`. Until then `main` still serves the prototype on production routes.
+2. **Decide DEC-030 to DEC-042.** DIV-027 and DIV-028 can't start without them. DEC-029 is approved.
 3. **Agree a PR-only rule for `main`.** It has no branch protection, and direct commits have twice changed production routes without review or doc updates.
 4. **Owner-supervised DIV-036.** Correct the secrets file, quit Antigravity, run read-only `flyway info`, then the separately approved `repair` and `migrate`. `/budget` and `/dashboard` need `monthly_budgets`, which production doesn't have until V5 runs.
 5. **Phase 03 closeout.** Mark DIV-017/025/026 `COMPLETED` only after checks pass on `main` and DIV-036 is verified.
@@ -181,7 +183,8 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **DEC-026** | Unknown request fields | Ignored, not rejected; server-controlled fields ignored | `APPROVED` | Applies to transaction request DTOs. |
 | **DEC-027** | Session, cookie & CSRF | 30m idle timeout, `X-XSRF-TOKEN` header, `__Host-` cookies | `APPROVED` | Required for all state-changing transaction mutations. |
 | **DEC-028** | Budget & dashboard rules | Formulas, decimal precision, required fields, month/timezone, missing-plan representation, contract scope | `APPROVED` (2026-11-04, DIV-017) | Implemented by DIV-025/DIV-026 (PR #18) |
-| **DEC-029 to DEC-042** | Phase 04 proposals | See `docs/10-phases/PHASE-04-decisions.md` | `PROPOSED` | Not approved; govern DIV-027, DIV-028 and the production UI direction |
+| **DEC-029** | Production UI direction | Figma UI is the production UI; old UI removed; layered API-backed components (DIV-041) | `APPROVED` | Approved by the owner on 2026-11-16 |
+| **DEC-030 to DEC-042** | Phase 04 proposals | See `docs/10-phases/PHASE-04-decisions.md` | `PROPOSED` | Not approved; govern DIV-027 and DIV-028 |
 
 ---
 
@@ -206,9 +209,9 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **#18** | https://github.com/KasunHerath-dev/divido/pull/18 | `feature/div-017-phase-03-budget-dashboard` | `main` | `92f2ea024883c6093703433969a85caf8c6a72cf` | `MERGED` | Merged 2026-11-04 | DIV-017/025/026 Phase 03 budget & dashboard; squash merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`. PR-reported local checks: backend 354/354, frontend 137/137, typecheck/build, E2E 22/22. No GitHub Actions checks; post-merge main re-run pending. V4 not yet confirmed applied to Neon. |
 | **#14** | https://github.com/KasunHerath-dev/divido/pull/14 | `feature/div-019-auth-rate-limiting` | `main` | `81dabf6` | `MERGED` | Reviewed and merged | DIV-019 authentication rate limiting; resolved review findings (atomic per-key bucket lifecycle, strict DNS-free IP parsing, trusted-proxy right-to-left handling, startup validation, and scheduled cleanup). 284/284 backend tests reported passing. Merge commit `81dabf6a919bd72f606c3a341f032de6fd9f5bd9`; no GitHub Actions workflow runs/status checks were present. |
 | **#20** | https://github.com/KasunHerath-dev/divido/pull/20 | `fix/neon-flyway-v4-drift` | `main` | `a670c3f` | `MERGED` | Merged 2026-11-04 | DIV-036 V5 migration and runbook; commit `c244c94`. Production not changed. |
-| **#21** | https://github.com/KasunHerath-dev/divido/pull/21 | `feature/div-017-phase-03-budget-dashboard` | `main` | `92f2ea0` | `OPEN` | None | Reuses the Phase 03 branch already squash-merged by PR #18; conflicts with `main`. Not acted on; owner to decide. |
-| **#22** | https://github.com/KasunHerath-dev/divido/pull/22 | `feature/div-037-backend-test-fix` | `main` | `0f2e7ad` | `OPEN` | Awaiting owner | DIV-037. Not merged. |
-| **#23** | https://github.com/KasunHerath-dev/divido/pull/23 | `fix/div-039-production-route-safety` | `main` | `9fa0b5d` | `OPEN` | Awaiting owner and other developer | DIV-039. Not merged. |
+| **#21** | https://github.com/KasunHerath-dev/divido/pull/21 | `feature/div-017-phase-03-budget-dashboard` | `main` | `92f2ea0` | `CLOSED` | Closed | Reused the Phase 03 branch already squash-merged by PR #18. Closed without merging. |
+| **#22** | https://github.com/KasunHerath-dev/divido/pull/22 | `feature/div-037-backend-test-fix` | `main` | `0f2e7ad` | `MERGED` | Merged | DIV-037; squash commit `3a80c20`. |
+| **#23** | https://github.com/KasunHerath-dev/divido/pull/23 | `fix/div-039-production-route-safety` | `main` | `9fa0b5d` | `OPEN — SUPERSEDED` | To close | DIV-039. Superseded by DIV-041 after DEC-029 was approved on 2026-11-16. Not merged. |
 
 *Backup Branches:*
 - `backup/div-008-pre-cleanup` (SHA `fefe3b0`): Preserves full prototype including future-phase budget, dashboard, categories, and settings code.

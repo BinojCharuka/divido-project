@@ -11,7 +11,7 @@ import { ApiError } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { validateSignIn, type FieldErrors } from "@/lib/auth/validation";
 import type { SignInNotice } from "@/lib/navigation";
-import { useFocusFirstInvalid } from "./useFocusFirstInvalid";
+import { useFocusFirstInvalid } from "@/lib/useFocusFirstInvalid";
 
 export const SIGNED_IN_HOME = "/dashboard";
 
@@ -21,7 +21,7 @@ const NOTICES: Record<SignInNotice, string> = {
   "session-ended": "Your session has ended. Sign in again to continue.",
 };
 
-/** UX-P01. Mindful sign-in experience matching editorial Kakeibo design. */
+/** UX-P01. Sign-in form. Password recovery waits for DIV-029 (decision required). */
 export function SignInForm({ notice }: { notice: SignInNotice | null }) {
   const router = useRouter();
   const { signIn } = useAuth();
@@ -94,25 +94,12 @@ export function SignInForm({ notice }: { notice: SignInNotice | null }) {
         onChange={(e) => setPassword(e.target.value)}
         error={fieldErrors.password}
         icon={<Lock size={17} />}
-        headerRight={
-          <a
-            href="#forgot"
-            onClick={(e) => {
-              e.preventDefault();
-              setFormError("For this prototype, credentials are test-only. You can sign in with any registered demo account.");
-            }}
-            className="text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
-          >
-            Forgot password?
-          </a>
-        }
         rightAction={
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
             className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-hidden p-1 transition-colors cursor-pointer"
             aria-label={showPassword ? "Hide password" : "Show password"}
-            tabIndex={-1}
           >
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -124,15 +111,15 @@ export function SignInForm({ notice }: { notice: SignInNotice | null }) {
         variant="primary"
         size="lg"
         loading={pending}
-        className="group w-full justify-center text-sm font-semibold py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-sm shadow-emerald-950/20 active:scale-[0.99] transition-all duration-150 cursor-pointer"
+        className="button-block"
       >
         {pending ? (
           "Signing in…"
         ) : (
-          <span className="flex items-center justify-center gap-2">
+          <>
             Sign in
-            <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
-          </span>
+            <ArrowRight size={16} aria-hidden="true" />
+          </>
         )}
       </Button>
 

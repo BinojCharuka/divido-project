@@ -309,6 +309,32 @@ export function installFakeBackend() {
       }
     }
 
+    // Month totals only (no plan); enough for pages that show recorded income and spend.
+    if (method === "GET" && path === "/api/v1/dashboard") {
+      if (!state.signedInAs) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
+      const month = searchParams.get("month") ?? "";
+      const inMonth = Array.from(state.transactions.values()).filter((tx) => tx.date.startsWith(month));
+      const sum = (type: string) =>
+        (inMonth.filter((tx) => tx.type === type).reduce((cents, tx) => cents + Math.round(Number(tx.amount) * 100), 0) / 100).toFixed(2);
+      return json(200, {
+        month,
+        periodStart: `${month}-01`,
+        periodEnd: `${month}-28`,
+        hasBudget: false,
+        plannedIncome: null,
+        savingsTarget: null,
+        allocationTotal: null,
+        plannedTotal: null,
+        overAllocationAmount: null,
+        overAllocated: null,
+        recordedIncome: sum("INCOME"),
+        incomeTransactionCount: inMonth.filter((tx) => tx.type === "INCOME").length,
+        totalSpent: sum("EXPENSE"),
+        expenseTransactionCount: inMonth.filter((tx) => tx.type === "EXPENSE").length,
+        groups: [],
+      });
+    }
+
     return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
   });
 

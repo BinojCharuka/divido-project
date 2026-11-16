@@ -1,15 +1,23 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DashboardView } from "@/features/dashboard/DashboardView";
+import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import type { Dashboard } from "@/types/budget";
 import { apiError, installPhase03Backend, json } from "./phase03Backend";
+import { renderWithShellStub } from "./shell";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
   usePathname: () => "/dashboard",
   useSearchParams: () => new URLSearchParams(),
+}));
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 /** Fixture B from the backend reconciliation test: over-allocated plan, overspent NEEDS, zero CULTURE budget. */
@@ -70,173 +78,103 @@ const NO_TRANSACTIONS = () => json(200, { items: [], page: 0, size: 5, totalItem
 
 function Harness({ initial = "2026-10" }: { initial?: string }) {
   const [month, setMonth] = useState(initial);
-  return <DashboardView month={month} onMonthChange={setMonth} />;
+  return <DashboardPage month={month} onMonthChange={setMonth} />;
 }
 
-function groupCard(name: string) {
-  return screen.getByLabelText(`${name} group`);
-}
+const summary = (label: string) =>
+  screen.getAllByText(label).map((el) => el.closest(".summary-card")).find(Boolean) as HTMLElement;
+const groupCard = (label: string) => screen.getByRole("progressbar", { name: `${label} plan used` }).closest("a") as HTMLElement;
 
-describe("DashboardView", () => {
-  let backend: ReturnType<typeof installPhase03Backend>;
+let backend: ReturnType<typeof installPhase03Backend>;
 
-  beforeEach(() => {
-    backend = installPhase03Backend();
-    backend.on("GET", "/api/v1/transactions", NO_TRANSACTIONS);
-  });
+beforeEach(() => {
+  backend = installPhase03Backend();
+  backend.on("GET", "/api/v1/auth/me", () => apiError(401, "UNAUTHENTICATED", "Please sign in to continue."));
+  backend.on("GET", "/api/v1/transactions", NO_TRANSACTIONS);
+});
 
-  it("shows a loading state, then server-provided figures", async () => {
+describe("Dashboard (DASH-001)", () => {
+  it("shows loading, then the server's figures with planned and recorded values apart", async () => {
     backend.on("GET", "/api/v1/dashboard", () => json(200, POPULATED));
-    render(<Harness />);
-    expect(screen.getAllByRole("status")[0]).toHaveTextContent("Loading dashboard for October 2026");
-    expect(await screen.findByText("LKR 85,000.00")).toBeInTheDocument();
+    renderWithShellStub(<Harness />);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading dashboard…");
+    expect(await screen.findByText("Recorded income")).toBeInTheDocument();
+    expect(summary("Planned income")).toHaveTextContent("LKR 80,000.00");
+    expect(summary("Recorded income")).toHaveTextContent("LKR 85,000.00");
+    expect(summary("Recorded income")).toHaveTextContent("2 records");
+    expect(summary("Spent this month")).toHaveTextContent("LKR 47,500.50");
+    expect(summary("Savings target")).toHaveTextContent("LKR 15,000.00");
     expect(backend.calls.find((c) => c.path === "/api/v1/dashboard")?.search).toBe("?month=2026-10");
   });
 
-  it("separates planned values from recorded values", async () => {
+  it("shows overspent groups as over plan, and no percentage for a zero plan", async () => {
     backend.on("GET", "/api/v1/dashboard", () => json(200, POPULATED));
-    render(<Harness />);
-    await screen.findByText("Your plan");
-    const plannedCard = screen.getByText("Your plan").closest("div.rounded-xl") as HTMLElement;
-    const recordedCard = screen.getByText("What happened").closest("div.rounded-xl") as HTMLElement;
-    expect(within(plannedCard).getByText("Planned")).toBeInTheDocument();
-    expect(within(plannedCard).getByText("Planned income").nextSibling).toHaveTextContent("LKR 80,000.00");
-    expect(within(plannedCard).getByText("Savings target").nextSibling).toHaveTextContent("LKR 15,000.00");
-    expect(within(plannedCard).getByText("Group budgets total").nextSibling).toHaveTextContent("LKR 75,000.00");
-    expect(within(recordedCard).getByText("Recorded")).toBeInTheDocument();
-    expect(within(recordedCard).getByText("Recorded income").nextSibling).toHaveTextContent("LKR 85,000.00");
-    expect(within(recordedCard).getByText("Spent").nextSibling).toHaveTextContent("LKR 47,500.50");
+    renderWithShellStub(<Harness />);
+    await screen.findByText("Recorded income");
+    expect(groupCard("Needs")).toHaveTextContent("LKR 1,250.50 over plan");
+    expect(groupCard("Needs")).toHaveTextContent("103.1%");
+    expect(groupCard("Wants")).toHaveTextContent("LKR 30,000.00 left");
+    expect(within(groupCard("Culture")).getByRole("progressbar")).toHaveAttribute("aria-valuetext", "Nothing planned");
   });
 
-  it("renders four group summaries with negative remaining amounts shown as overspending", async () => {
+  it("warns about a plan above income and never shows an available-money figure (BR-008)", async () => {
     backend.on("GET", "/api/v1/dashboard", () => json(200, POPULATED));
-    render(<Harness />);
-    await screen.findByText("Kakeibo groups: budget vs spent");
-    expect(screen.getAllByRole("listitem")).toHaveLength(4);
-
-    const needs = groupCard("Needs");
-    expect(within(needs).getByText("Over budget")).toBeInTheDocument();
-    expect(within(needs).getByText(/Over by/)).toHaveTextContent("Over by LKR 1,250.50");
-    const bar = within(needs).getByRole("progressbar", { name: "Needs budget used" });
-    expect(bar).toHaveAttribute("aria-valuenow", "100");
-    expect(bar).toHaveAttribute("aria-valuetext", "103.1% of the Needs budget used");
-
-    const wants = groupCard("Wants");
-    expect(within(wants).getByText(/Remaining/)).toHaveTextContent("Remaining LKR 30,000.00");
-    expect(within(wants).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
-
-    const unexpected = groupCard("Unexpected");
-    expect(within(unexpected).getByText(/Over by/)).toHaveTextContent("LKR 1,250.00");
+    renderWithShellStub(<Harness />);
+    await screen.findByText("Recorded income");
+    const plan = screen.getByRole("region", { name: "Spent against group plans" });
+    expect(within(plan).getByText("Planned above income").nextElementSibling).toHaveTextContent("LKR 10,000.00");
+    expect(within(plan).getByText(/above planned income/)).toBeInTheDocument();
+    expect(screen.queryByText(/available/i)).not.toBeInTheDocument();
   });
 
-  it("shows no percentage for a zero allocation", async () => {
-    backend.on("GET", "/api/v1/dashboard", () => json(200, POPULATED));
-    render(<Harness />);
-    await screen.findByText("Kakeibo groups: budget vs spent");
-    const culture = groupCard("Culture");
-    expect(within(culture).queryByRole("progressbar")).not.toBeInTheDocument();
-    expect(within(culture).getByText(/no percentage is shown/)).toBeInTheDocument();
-  });
-
-  it("shows the over-allocation warning with its breakdown", async () => {
-    backend.on("GET", "/api/v1/dashboard", () => json(200, POPULATED));
-    render(<Harness />);
-    const warning = await screen.findByText(/exceeds planned income by/);
-    expect(warning).toHaveTextContent(
-      "Your plan for October 2026 exceeds planned income by LKR 10,000.00: savings target plus group budgets is LKR 90,000.00, planned income is LKR 80,000.00.",
-    );
-    expect(within(warning).getByRole("link", { name: "Adjust budget" })).toHaveAttribute("href", "/budget?month=2026-10");
-  });
-
-  it("renders a completely empty month without fabricated figures", async () => {
+  it("renders an empty month without inventing figures", async () => {
     backend.on("GET", "/api/v1/dashboard", () => json(200, empty("2026-10")));
-    render(<Harness />);
-    expect(await screen.findByRole("heading", { name: "No budget for October 2026" })).toBeInTheDocument();
-    expect(screen.getByText(/Nothing is planned or recorded for this month yet/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Create budget" })).toHaveAttribute("href", "/budget?month=2026-10");
-    expect(screen.getAllByText("Not set").length).toBeGreaterThanOrEqual(3 + 4);
-    expect(screen.queryAllByRole("progressbar")).toHaveLength(0);
-    expect(screen.getByRole("link", { name: /No income recorded yet/ })).toHaveAttribute("href", "/transactions/new-income");
-    expect(screen.getByRole("link", { name: /No expenses recorded yet/ })).toHaveAttribute("href", "/transactions/new-expense");
-    expect(await screen.findByText(/No transactions recorded in October 2026/)).toBeInTheDocument();
-    expect(screen.queryByText(/Over budget/)).not.toBeInTheDocument();
+    renderWithShellStub(<Harness />);
+    expect(await screen.findByText("Nothing planned or recorded for October 2026")).toBeInTheDocument();
+    expect(summary("Planned income")).toHaveTextContent("Not planned");
+    expect(summary("Savings target")).toHaveTextContent("Not planned");
+    expect(summary("Spent this month")).toHaveTextContent("LKR 0.00");
+    expect(screen.getByText("No plan for this month yet. Planned figures appear here once you save one.")).toBeInTheDocument();
+    expect(screen.getByText("No transactions in October 2026")).toBeInTheDocument();
   });
 
-  it("shows recorded actuals when there are transactions but no budget", async () => {
+  it("shows recorded actuals when there is no plan", async () => {
     backend.on("GET", "/api/v1/dashboard", () =>
-      json(200, {
-        ...empty("2026-10"),
-        recordedIncome: "50000.00",
-        incomeTransactionCount: 1,
-        totalSpent: "1200.00",
-        expenseTransactionCount: 1,
-        groups: empty("2026-10").groups.map((g) => (g.group === "NEEDS" ? { ...g, spent: "1200.00", expenseCount: 1 } : g)),
-      }),
+      json(200, { ...empty("2026-10"), recordedIncome: "5000.00", incomeTransactionCount: 1, totalSpent: "1200.00", expenseTransactionCount: 1 }),
     );
-    render(<Harness />);
-    expect(await screen.findByText(/Your recorded transactions are shown below/)).toBeInTheDocument();
-    expect(within(groupCard("Needs")).getByText("LKR 1,200.00")).toBeInTheDocument();
-    expect(within(groupCard("Needs")).getByText("Remaining: no budget set")).toBeInTheDocument();
-    expect(screen.getByText("1 entry")).toBeInTheDocument();
+    renderWithShellStub(<Harness />);
+    await screen.findByText("Recorded income");
+    expect(screen.queryByText(/Nothing planned or recorded/)).not.toBeInTheDocument();
+    expect(summary("Recorded income")).toHaveTextContent("LKR 5,000.00");
+    expect(summary("Planned income")).toHaveTextContent("Not planned");
   });
 
-  it("shows a budget with no transactions", async () => {
-    backend.on("GET", "/api/v1/dashboard", () =>
-      json(200, {
-        ...POPULATED,
-        overAllocated: false,
-        overAllocationAmount: "-10000.00",
-        recordedIncome: "0.00",
-        incomeTransactionCount: 0,
-        totalSpent: "0.00",
-        expenseTransactionCount: 0,
-        groups: POPULATED.groups.map((g) => ({
-          ...g,
-          spent: "0.00",
-          remaining: g.budget,
-          percentUsed: g.budget === "0.00" ? null : "0.0",
-          overBudget: false,
-          expenseCount: 0,
-        })),
-      }),
-    );
-    render(<Harness />);
-    expect(await screen.findByRole("link", { name: /No expenses recorded yet/ })).toBeInTheDocument();
-    expect(screen.queryByText(/No budget for/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/exceeds planned income/)).not.toBeInTheDocument();
-    expect(within(groupCard("Needs")).getByText(/Remaining/)).toHaveTextContent("LKR 40,000.00");
+  it("opens the add dialogs through the app shell", async () => {
+    const user = userEvent.setup();
+    backend.on("GET", "/api/v1/dashboard", () => json(200, POPULATED));
+    const { actions } = renderWithShellStub(<Harness />);
+    await screen.findByText("Recorded income");
+    await user.click(screen.getByRole("button", { name: "Add expense" }));
+    expect(actions.openAdd).toHaveBeenCalledWith("EXPENSE");
   });
 
   it("shows an error with retry and no figures when the API fails", async () => {
     const user = userEvent.setup();
-    backend.once("GET", "/api/v1/dashboard", () => apiError(500, "INTERNAL_ERROR", "x"));
+    backend.once("GET", "/api/v1/dashboard", () => apiError(500, "INTERNAL_ERROR", "boom"));
     backend.on("GET", "/api/v1/dashboard", () => json(200, POPULATED));
-    render(<Harness />);
-    expect(await screen.findByText("We couldn't load your dashboard. Please try again.")).toBeInTheDocument();
-    expect(screen.queryByText(/LKR/)).not.toBeInTheDocument();
-    await user.click(screen.getAllByRole("button", { name: "Try again" })[0]);
-    expect(await screen.findByText("LKR 85,000.00")).toBeInTheDocument();
+    renderWithShellStub(<Harness />);
+    expect(await screen.findByText(/couldn't load your dashboard/)).toBeInTheDocument();
+    expect(screen.queryByText("LKR 80,000.00")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByText("Recorded income")).toBeInTheDocument();
   });
 
-  it("loads the selected month when navigating, including across years", async () => {
+  it("loads the chosen month when stepping across the year boundary", async () => {
     const user = userEvent.setup();
-    backend.on("GET", "/api/v1/dashboard", ({ search }) => {
-      const month = search.get("month")!;
-      return json(200, month === "2026-12" ? { ...POPULATED, month } : empty(month));
-    });
-    render(<Harness initial="2026-12" />);
-    expect(await screen.findByText("LKR 85,000.00")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Next month, January 2027" }));
-    expect(await screen.findByRole("heading", { name: "No budget for January 2027" })).toBeInTheDocument();
-    const recent = backend.calls.filter((c) => c.path === "/api/v1/transactions").at(-1)!;
-    expect(recent.search).toContain("from=2027-01-01");
-    expect(recent.search).toContain("to=2027-01-31");
-    await user.click(screen.getByRole("button", { name: "Previous month, December 2026" }));
-    expect(await screen.findByText("LKR 85,000.00")).toBeInTheDocument();
-    expect(backend.calls.filter((c) => c.path === "/api/v1/dashboard").map((c) => c.search)).toEqual([
-      "?month=2026-12",
-      "?month=2027-01",
-      "?month=2026-12",
-    ]);
+    backend.on("GET", "/api/v1/dashboard", ({ search }) => json(200, empty(search.get("month")!)));
+    renderWithShellStub(<Harness initial="2026-12" />);
+    await screen.findByText("Nothing planned or recorded for December 2026");
+    await user.click(screen.getByRole("button", { name: "Next month" }));
+    expect(await screen.findByText("Nothing planned or recorded for January 2027")).toBeInTheDocument();
   });
 });

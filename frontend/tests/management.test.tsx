@@ -1,253 +1,190 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { TransactionsView } from "@/features/transactions/TransactionsView";
-import { CategoryManager } from "@/features/categories/CategoryManager";
-import { IncomeSourceManager } from "@/features/income-sources/IncomeSourceManager";
-import { AuthProvider } from "@/lib/auth/AuthProvider";
-import { getTodayIso } from "@/lib/formatting/dates";
-import type { Transaction } from "@/types/transaction";
+import { CategoriesPage } from "@/features/categories/CategoriesPage";
+import { IncomeSourcesPage } from "@/features/income-sources/IncomeSourcesPage";
 import { installFakeBackend } from "./fakeBackend";
+import { renderWithShellStub } from "./shell";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
   usePathname: () => "/categories",
   useSearchParams: () => new URLSearchParams(),
 }));
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
 
-function renderWithAuth(ui: React.ReactElement) {
-  return render(<AuthProvider>{ui}</AuthProvider>);
-}
+let backend: ReturnType<typeof installFakeBackend>;
 
-function serverError(message: string) {
-  return () =>
-    new Response(JSON.stringify({ status: 500, code: "INTERNAL_ERROR", message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-}
+beforeEach(() => {
+  backend = installFakeBackend();
+  backend.state.signedInAs = "user@example.com";
+  backend.state.accounts.set("user@example.com", { password: "x" });
+});
 
-describe("CategoryManager", () => {
-  let backend: ReturnType<typeof installFakeBackend>;
+const card = (name: string) => screen.getByRole("heading", { name }).closest("li") as HTMLElement;
 
-  beforeEach(() => {
-    backend = installFakeBackend();
-    backend.state.signedInAs = "test@example.com";
+describe("Expense categories (CAT-001..004)", () => {
+  it("lists the built-in categories without edit or deactivate controls (DEC-013)", async () => {
+    renderWithShellStub(<CategoriesPage />);
+    expect(await screen.findByRole("heading", { name: "Groceries" })).toBeInTheDocument();
+    for (const name of ["Groceries", "Transport", "Entertainment"]) {
+      expect(within(card(name)).getByText("Built-in categories can’t be changed")).toBeInTheDocument();
+      expect(within(card(name)).queryByRole("button")).not.toBeInTheDocument();
+    }
   });
 
-  it("lists the three defaults without edit or deactivate controls", async () => {
-    renderWithAuth(<CategoryManager />);
-    const section = await screen.findByRole("region", { name: "Default categories" });
-    expect(within(section).getByText("Groceries")).toBeInTheDocument();
-    expect(within(section).getByText("Transport")).toBeInTheDocument();
-    expect(within(section).getByText("Entertainment")).toBeInTheDocument();
-    expect(within(section).queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByText("No custom categories yet")).toBeInTheDocument();
-  });
-
-  it("creates a custom category and shows it only after the server confirms", async () => {
+  it("adds a category and shows it once the server confirms", async () => {
     const user = userEvent.setup();
-    renderWithAuth(<CategoryManager />);
-    await screen.findByText("Groceries");
-
-    await user.type(screen.getByLabelText("Category name"), "Books");
-    await user.selectOptions(screen.getByLabelText("Kakeibo group"), "CULTURE");
+    const { actions } = renderWithShellStub(<CategoriesPage />);
+    await screen.findByRole("heading", { name: "Groceries" });
     await user.click(screen.getByRole("button", { name: "Add category" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add category" });
+    await user.type(within(dialog).getByLabelText(/^Category name/), "  Books ");
+    await user.selectOptions(within(dialog).getByLabelText("Spending group"), "CULTURE");
+    await user.click(within(dialog).getByRole("button", { name: "Save category" }));
 
-    expect(await screen.findByText('Category "Books" created.')).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "Edit Books" })).toBeInTheDocument();
-    expect(backend.state.customCategories).toHaveLength(1);
+    expect(await screen.findByRole("heading", { name: "Books" })).toBeInTheDocument();
+    expect(actions.notify).toHaveBeenCalledWith("Category added");
+    const [post] = backend.callsTo("/api/v1/categories").filter((c) => c.method === "POST");
+    expect(post.body).toEqual({ name: "Books", group: "CULTURE" });
   });
 
-  it("shows the conflict message and no success when the name already exists", async () => {
+  it("explains a duplicate name and reports no success", async () => {
     const user = userEvent.setup();
-    renderWithAuth(<CategoryManager />);
-    await screen.findByText("Groceries");
-
-    await user.type(screen.getByLabelText("Category name"), "groceries");
-    await user.selectOptions(screen.getByLabelText("Kakeibo group"), "NEEDS");
+    const { actions } = renderWithShellStub(<CategoriesPage />);
+    await screen.findByRole("heading", { name: "Groceries" });
     await user.click(screen.getByRole("button", { name: "Add category" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add category" });
+    await user.type(within(dialog).getByLabelText(/^Category name/), "groceries");
+    await user.click(within(dialog).getByRole("button", { name: "Save category" }));
 
-    expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
-    expect(screen.queryByText(/created\./)).not.toBeInTheDocument();
-    expect(backend.state.customCategories).toHaveLength(0);
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("You already have a category with this name.");
+    expect(actions.notify).not.toHaveBeenCalled();
   });
 
-  it("validates name and group before sending", async () => {
+  it("requires a name before sending", async () => {
     const user = userEvent.setup();
-    renderWithAuth(<CategoryManager />);
-    await screen.findByText("Groceries");
-    const before = backend.state.calls.length;
-
+    renderWithShellStub(<CategoriesPage />);
+    await screen.findByRole("heading", { name: "Groceries" });
     await user.click(screen.getByRole("button", { name: "Add category" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add category" });
+    await user.click(within(dialog).getByRole("button", { name: "Save category" }));
 
-    expect(screen.getByText("Please enter a category name.")).toBeInTheDocument();
-    expect(screen.getByText("Please choose a Kakeibo group.")).toBeInTheDocument();
-    expect(backend.state.calls.slice(before).some((c) => c.method === "POST")).toBe(false);
+    expect(await within(dialog).findByText("Enter a category name.")).toBeInTheDocument();
+    expect(backend.callsTo("/api/v1/categories").filter((c) => c.method === "POST")).toHaveLength(0);
   });
 
-  it("deactivates a custom category after confirmation", async () => {
+  it("edits a custom category, sending only what changed", async () => {
     const user = userEvent.setup();
-    backend.state.customCategories.push({ id: "cat-c1", name: "Hobbies", group: "WANTS", isDefault: false, active: true });
-    renderWithAuth(<CategoryManager />);
+    backend.state.customCategories.push({ id: "cat-c1", name: "Books", group: "CULTURE", isDefault: false, active: true });
+    renderWithShellStub(<CategoriesPage />);
+    await screen.findByRole("heading", { name: "Books" });
+    await user.click(screen.getByRole("button", { name: "Edit Books" }));
+    const dialog = await screen.findByRole("dialog", { name: "Edit category" });
+    const name = within(dialog).getByLabelText(/^Category name/);
+    await user.clear(name);
+    await user.type(name, "Courses");
+    await user.click(within(dialog).getByRole("button", { name: "Save category" }));
 
-    await user.click(await screen.findByRole("button", { name: "Deactivate Hobbies" }));
-    await user.click(await screen.findByRole("button", { name: "Deactivate" }));
-
-    expect(await screen.findByText('Category "Hobbies" deactivated.')).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole("button", { name: "Edit Hobbies" })).not.toBeInTheDocument());
-    expect(backend.state.customCategories[0].active).toBe(false);
+    expect(await screen.findByRole("heading", { name: "Courses" })).toBeInTheDocument();
+    const [patch] = backend.callsTo("/api/v1/categories/cat-c1").filter((c) => c.method === "PATCH");
+    expect(patch.body).toEqual({ name: "Courses" });
   });
 
-  it("keeps the category and reports an error when deactivation fails", async () => {
+  it("deactivates a custom category after confirmation and can show it again", async () => {
     const user = userEvent.setup();
-    backend.state.customCategories.push({ id: "cat-c1", name: "Hobbies", group: "WANTS", isDefault: false, active: true });
-    backend.state.overrides.set("/api/v1/categories/cat-c1/deactivate", serverError("Something went wrong on our side."));
-    renderWithAuth(<CategoryManager />);
+    backend.state.customCategories.push({ id: "cat-c1", name: "Books", group: "CULTURE", isDefault: false, active: true });
+    renderWithShellStub(<CategoriesPage />);
+    await screen.findByRole("heading", { name: "Books" });
+    await user.click(screen.getByRole("button", { name: "Deactivate Books" }));
+    const confirm = await screen.findByRole("dialog", { name: "Deactivate Books?" });
+    await user.click(within(confirm).getByRole("button", { name: "Deactivate" }));
 
-    await user.click(await screen.findByRole("button", { name: "Deactivate Hobbies" }));
-    await user.click(await screen.findByRole("button", { name: "Deactivate" }));
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "Books" })).not.toBeInTheDocument());
+    await user.click(screen.getByLabelText("Show inactive"));
+    expect(await screen.findByRole("heading", { name: "Books" })).toBeInTheDocument();
+    expect(within(card("Books")).getByText("Inactive")).toBeInTheDocument();
+  });
 
-    expect(await screen.findByText("Something went wrong on our side.")).toBeInTheDocument();
-    expect(screen.queryByText(/deactivated\./)).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Edit Hobbies" })).toBeInTheDocument();
+  it("keeps the category and shows the error when deactivation fails", async () => {
+    const user = userEvent.setup();
+    backend.state.customCategories.push({ id: "cat-c1", name: "Books", group: "CULTURE", isDefault: false, active: true });
+    renderWithShellStub(<CategoriesPage />);
+    await screen.findByRole("heading", { name: "Books" });
+    await user.click(screen.getByRole("button", { name: "Deactivate Books" }));
+    const confirm = await screen.findByRole("dialog", { name: "Deactivate Books?" });
+    backend.fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    await user.click(within(confirm).getByRole("button", { name: "Deactivate" }));
+
+    expect(await within(confirm).findByRole("alert")).toHaveTextContent("couldn't reach Divido");
     expect(backend.state.customCategories[0].active).toBe(true);
   });
-
-  it("renames a custom category", async () => {
-    const user = userEvent.setup();
-    backend.state.customCategories.push({ id: "cat-c1", name: "Hobbies", group: "WANTS", isDefault: false, active: true });
-    renderWithAuth(<CategoryManager />);
-
-    await user.click(await screen.findByRole("button", { name: "Edit Hobbies" }));
-    const form = screen.getByRole("form", { name: "Edit Hobbies" });
-    const input = within(form).getByLabelText("Category name");
-    await user.clear(input);
-    await user.type(input, "Crafts");
-    await user.click(within(form).getByRole("button", { name: "Save" }));
-
-    expect(await screen.findByText('Category "Crafts" updated.')).toBeInTheDocument();
-    const patch = backend.callsTo("/api/v1/categories/cat-c1").find((c) => c.method === "PATCH");
-    expect(patch?.body).toEqual({ name: "Crafts" });
-  });
 });
 
-describe("IncomeSourceManager", () => {
-  let backend: ReturnType<typeof installFakeBackend>;
-
-  beforeEach(() => {
-    backend = installFakeBackend();
-    backend.state.signedInAs = "test@example.com";
-  });
-
-  it("creates an income source after the server confirms", async () => {
+describe("Income sources (INC-001..004)", () => {
+  it("adds an income source after the server confirms", async () => {
     const user = userEvent.setup();
-    renderWithAuth(<IncomeSourceManager />);
-    await screen.findByText("Monthly Salary");
-
-    await user.type(screen.getByLabelText("Income source name"), "Rental");
+    const { actions } = renderWithShellStub(<IncomeSourcesPage />);
+    await screen.findByRole("heading", { name: "Monthly Salary" });
     await user.click(screen.getByRole("button", { name: "Add income source" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add income source" });
+    await user.type(within(dialog).getByLabelText(/^Income source name/), "Rent received");
+    await user.click(within(dialog).getByRole("button", { name: "Save income source" }));
 
-    expect(await screen.findByText('Income source "Rental" created.')).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "Edit Rental" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Rent received" })).toBeInTheDocument();
+    expect(actions.notify).toHaveBeenCalledWith("Income source added");
   });
 
-  it("shows no success when creation fails", async () => {
+  it("shows the conflict and no success when the name exists", async () => {
     const user = userEvent.setup();
-    backend.state.overrides.set("/api/v1/income-sources", serverError("Something went wrong on our side."));
-    renderWithAuth(<IncomeSourceManager />);
-    // The override is consumed by the first GET; wait for the error, then retry.
-    expect(await screen.findByText("Something went wrong on our side.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Try again" }));
-    await screen.findByText("Monthly Salary");
-
-    backend.state.overrides.set("/api/v1/income-sources", serverError("Could not save right now."));
-    await user.type(screen.getByLabelText("Income source name"), "Rental");
+    const { actions } = renderWithShellStub(<IncomeSourcesPage />);
+    await screen.findByRole("heading", { name: "Freelance" });
     await user.click(screen.getByRole("button", { name: "Add income source" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add income source" });
+    await user.type(within(dialog).getByLabelText(/^Income source name/), "freelance");
+    await user.click(within(dialog).getByRole("button", { name: "Save income source" }));
 
-    expect(await screen.findByText("Could not save right now.")).toBeInTheDocument();
-    expect(screen.queryByText(/created\./)).not.toBeInTheDocument();
-    expect(backend.state.customIncomeSources).toHaveLength(0);
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("You already have an income source with this name.");
+    expect(actions.notify).not.toHaveBeenCalled();
   });
 
-  it("deactivates a source and can show it again with 'Show inactive'", async () => {
+  it("renames and deactivates a source", async () => {
     const user = userEvent.setup();
-    renderWithAuth(<IncomeSourceManager />);
+    renderWithShellStub(<IncomeSourcesPage />);
+    await screen.findByRole("heading", { name: "Freelance" });
+    await user.click(screen.getByRole("button", { name: "Rename Freelance" }));
+    const dialog = await screen.findByRole("dialog", { name: "Rename income source" });
+    const name = within(dialog).getByLabelText(/^Income source name/);
+    await user.clear(name);
+    await user.type(name, "Contract work");
+    await user.click(within(dialog).getByRole("button", { name: "Save income source" }));
+    expect(await screen.findByRole("heading", { name: "Contract work" })).toBeInTheDocument();
 
-    await user.click(await screen.findByRole("button", { name: "Deactivate Freelance" }));
-    await user.click(await screen.findByRole("button", { name: "Deactivate" }));
-    expect(await screen.findByText('Income source "Freelance" deactivated.')).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByText("Freelance")).not.toBeInTheDocument());
-
-    await user.click(screen.getByLabelText("Show inactive"));
-    expect(await screen.findByText("Freelance")).toBeInTheDocument();
-    expect(screen.getByText("Inactive")).toBeInTheDocument();
-    expect(backend.callsTo("/api/v1/income-sources").some((c) => c.url.includes("includeInactive=true"))).toBe(true);
-  });
-});
-
-describe("Transactions page filters", () => {
-  let backend: ReturnType<typeof installFakeBackend>;
-
-  function tx(id: string, partial: Partial<Transaction>): Transaction {
-    return {
-      id,
-      type: "EXPENSE",
-      amount: "100.00",
-      date: getTodayIso(),
-      category: null,
-      incomeSource: null,
-      createdAt: "2026-10-10T08:00:00Z",
-      updatedAt: "2026-10-10T08:00:00Z",
-      ...partial,
-    };
-  }
-
-  beforeEach(() => {
-    backend = installFakeBackend();
-    backend.state.signedInAs = "test@example.com";
-    backend.state.transactions.set("t1", tx("t1", { description: "Rice", category: { id: "cat-1", name: "Groceries", group: "NEEDS" } }));
-    backend.state.transactions.set("t2", tx("t2", { description: "Bus", category: { id: "cat-2", name: "Transport", group: "NEEDS" } }));
+    await user.click(screen.getByRole("button", { name: "Deactivate Contract work" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Deactivate Contract work?" })).getByRole("button", { name: "Deactivate" }));
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "Contract work" })).not.toBeInTheDocument());
   });
 
-  it("sends the category filter to the API and shows only the matching records", async () => {
+  it("shows a load error with retry instead of an empty list", async () => {
     const user = userEvent.setup();
-    renderWithAuth(<TransactionsView />);
-    expect(await screen.findByText("Rice")).toBeInTheDocument();
-    expect(screen.getByText("Bus")).toBeInTheDocument();
+    const original = backend.fetchMock.getMockImplementation()!;
+    backend.fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/api/v1/income-sources")) throw new TypeError("Failed to fetch");
+      return original(input, init);
+    });
+    renderWithShellStub(<IncomeSourcesPage />);
+    expect(await screen.findByText(/couldn't reach Divido/)).toBeInTheDocument();
+    expect(screen.queryByText("No income sources yet")).not.toBeInTheDocument();
 
-    await waitFor(() => expect(screen.getByRole("option", { name: "Transport" })).toBeInTheDocument());
-    await user.selectOptions(screen.getByLabelText("Category:"), "cat-2");
-
-    await waitFor(() => expect(screen.queryByText("Rice")).not.toBeInTheDocument());
-    expect(screen.getByText("Bus")).toBeInTheDocument();
-    const lastList = backend.callsTo("/api/v1/transactions").at(-1);
-    expect(lastList?.url).toContain("categoryId=cat-2");
-    expect(lastList?.url).toContain("page=0");
-  });
-
-  it("shows a filtered empty state with a working clear action", async () => {
-    const user = userEvent.setup();
-    renderWithAuth(<TransactionsView />);
-    await screen.findByText("Rice");
-
-    await user.click(screen.getByRole("tab", { name: "Income" }));
-    expect(await screen.findByText("No transactions match these filters")).toBeInTheDocument();
-
-    const clearButtons = screen.getAllByRole("button", { name: "Clear filters" });
-    await user.click(clearButtons[clearButtons.length - 1]);
-    expect(await screen.findByText("Rice")).toBeInTheDocument();
-  });
-
-  it("shows an error with retry, never stale or sample records, when loading fails", async () => {
-    const user = userEvent.setup();
-    backend.state.overrides.set("/api/v1/transactions", serverError("Something went wrong on our side."));
-    renderWithAuth(<TransactionsView />);
-
-    expect(await screen.findByText(/Could not load transactions/i)).toBeInTheDocument();
-    expect(screen.queryByText("Rice")).not.toBeInTheDocument();
-
+    backend.fetchMock.mockImplementation(original);
     await user.click(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByText("Rice")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Monthly Salary" })).toBeInTheDocument();
   });
 });

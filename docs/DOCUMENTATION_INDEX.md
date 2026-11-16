@@ -75,7 +75,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 |---|---|---|
 | [`04-architecture/README.md`](04-architecture/README.md) | Section entry point | Proposed — verify against the repository before freezing |
 | [`04-architecture/system-architecture.md`](04-architecture/system-architecture.md) | System architecture | Proposed — repository verification and owner approval required |
-| [`04-architecture/frontend-architecture.md`](04-architecture/frontend-architecture.md) | Frontend architecture | Proposed |
+| [`04-architecture/frontend-architecture.md`](04-architecture/frontend-architecture.md) | Frontend architecture | Proposed; §9 records the structure implemented by DIV-041 |
 | [`04-architecture/backend-architecture.md`](04-architecture/backend-architecture.md) | Backend architecture | Proposed |
 | [`04-architecture/database-schema.md`](04-architecture/database-schema.md) | Conceptual database schema | Conceptual model — not a migration specification |
 | [`04-architecture/security-architecture.md`](04-architecture/security-architecture.md) | Security architecture | Proposed baseline — security review required |
@@ -161,7 +161,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`10-phases/PHASE-02-transactions.md`](10-phases/PHASE-02-transactions.md) | Phase 02: transactions | COMPLETED — PR #16, verified on `main` 2026-11-04; one test-gate item conditional on the pending month/timezone policy |
 | [`10-phases/PHASE-03-budget-dashboard.md`](10-phases/PHASE-03-budget-dashboard.md) | Phase 03: budgets and dashboard | Proposed sequence |
 | [`10-phases/PHASE-04-insights-reflection.md`](10-phases/PHASE-04-insights-reflection.md) | Phase 04: insights and reflection | Conditional proposed phase |
-| [`10-phases/PHASE-04-decisions.md`](10-phases/PHASE-04-decisions.md) | Phase 04 decision summary (DEC-029 to DEC-042) | Proposed; owner approval required |
+| [`10-phases/PHASE-04-decisions.md`](10-phases/PHASE-04-decisions.md) | Phase 04 decision summary (DEC-029 to DEC-042) | DEC-029 approved 2026-11-16; others proposed, owner approval required |
 | [`10-phases/PHASE-05-release.md`](10-phases/PHASE-05-release.md) | Phase 05: release readiness | Proposed |
 
 ## Planned but not created

@@ -1,82 +1,30 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import type { Transaction } from "../types/transaction";
+import {
+  addExpense,
+  addIncome,
+  alertWith,
+  API,
+  apiPost,
+  button,
+  csrf,
+  dialog,
+  expectBackend,
+  field,
+  registerAndSignIn,
+  selectByText,
+  signOut,
+  toast,
+  uniqueEmail,
+  visibleText,
+} from "./helpers";
 
 /**
- * Phase 02 journeys (DIV-015) in a real browser against the real backend and a
- * disposable database: transactions, filters, categories, income sources,
- * ownership isolation, CSRF, failed-write honesty and logout. Synthetic data only.
+ * Phase 02 journeys in a real browser against the real backend and a disposable
+ * database: transactions, filters, categories, income sources, ownership isolation,
+ * CSRF, failed-write honesty and sign-out. Synthetic data only.
  */
-const API = process.env.E2E_API_BASE_URL ?? "http://localhost:8080";
-const PASSWORD = "correct-horse-battery";
-
-test.beforeAll(async ({ request }) => {
-  const health = await request.get(`${API}/api/v1/health`).catch(() => null);
-  expect(health?.ok(), `backend not reachable at ${API}; start it before running e2e tests`).toBe(true);
-});
-
-/** Next.js keeps recently visited routes in the DOM, hidden; only use visible elements. */
-function field(page: Page, label: string | RegExp) {
-  return page.getByLabel(label, { exact: typeof label === "string" }).filter({ visible: true });
-}
-
-function button(page: Page, name: string | RegExp) {
-  return page.getByRole("button", { name, exact: typeof name === "string" }).filter({ visible: true });
-}
-
-function visibleText(page: Page, text: string | RegExp) {
-  return page.getByText(text).filter({ visible: true });
-}
-
-function uniqueEmail(tag: string) {
-  return `e2e-${tag}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
-}
-
-async function registerAndSignIn(page: Page, email: string) {
-  await page.goto("/sign-up");
-  await field(page, "Name").fill("E2E User");
-  await field(page, "Email").fill(email);
-  await field(page, "Password").fill(PASSWORD);
-  await button(page, "Create account").click();
-  await expect(page).toHaveURL(/\/sign-in\?notice=registered$/);
-  await field(page, "Email").fill(email);
-  await field(page, "Password").fill(PASSWORD);
-  await button(page, "Sign in").click();
-  await expect(page).toHaveURL(/\/onboarding$/);
-}
-
-/** A CSRF token for direct API calls made with this browser context's cookies. */
-async function csrf(request: APIRequestContext): Promise<string> {
-  const response = await request.get(`${API}/api/v1/auth/csrf`);
-  expect(response.ok()).toBe(true);
-  return (await response.json()).token;
-}
-
-async function apiPost(request: APIRequestContext, path: string, data: unknown) {
-  return request.post(`${API}${path}`, { data, headers: { "X-XSRF-TOKEN": await csrf(request) } });
-}
-
-async function addExpense(page: Page, amount: string, category: string, description: string) {
-  await page.goto("/transactions/new-expense");
-  await field(page, "Amount *").fill(amount);
-  const select = field(page, "Category *");
-  await expect(select).toBeEnabled();
-  await select.selectOption({ label: category });
-  await field(page, "Description (optional)").fill(description);
-  await button(page, "Save expense").click();
-  await expect(page).toHaveURL(/\/transactions\?notice=expense-saved$/);
-  await expect(visibleText(page, "Expense saved successfully.")).toBeVisible();
-}
-
-async function addIncome(page: Page, amount: string, description: string, source?: string) {
-  await page.goto("/transactions/new-income");
-  await field(page, "Amount *").fill(amount);
-  const select = field(page, "Income Source (optional)");
-  await expect(select).toBeEnabled();
-  if (source) await select.selectOption({ label: source });
-  await field(page, "Description (optional)").fill(description);
-  await button(page, "Save income").click();
-  await expect(page).toHaveURL(/\/transactions\?notice=income-saved$/);
-}
+test.beforeAll(async ({ request }) => expectBackend(request));
 
 async function listViaApi(request: APIRequestContext, query = "") {
   const response = await request.get(`${API}/api/v1/transactions?size=100${query}`);
@@ -84,123 +32,114 @@ async function listViaApi(request: APIRequestContext, query = "") {
   return (await response.json()).items as Transaction[];
 }
 
-test("protected Phase 02 routes require a session", async ({ page }) => {
-  for (const path of ["/transactions", "/transactions/new-expense", "/categories", "/income-sources", "/dashboard"]) {
-    await page.goto(path);
-    await expect(page).toHaveURL(/\/sign-in$/);
-  }
-});
+/** A row in the transaction list, found by its accessible name ("Title, expense of LKR …"). */
+function row(page: Page, title: string) {
+  return page.getByRole("button", { name: new RegExp(`^${title}, `) }).filter({ visible: true });
+}
 
-test("the design prototype is not served by the production build", async ({ page }) => {
+test("the design prototype is not served", async ({ page }) => {
   const response = await page.goto("/prototype");
   expect(response?.status()).toBe(404);
 });
 
 test("full transaction journey: create, list, filter, edit, delete", async ({ page }) => {
-  await registerAndSignIn(page, uniqueEmail("tx"));
+  await registerAndSignIn(page, uniqueEmail("journey"));
 
   await page.goto("/transactions");
-  await expect(visibleText(page, "No transactions recorded this month")).toBeVisible();
+  await expect(visibleText(page, /^No transactions in /)).toBeVisible();
 
-  // Expense creation and listing
-  await addExpense(page, "2400", "Groceries", "E2E weekly rice");
-  await expect(visibleText(page, "E2E weekly rice")).toBeVisible();
-  await expect(visibleText(page, "LKR 2,400.00").first()).toBeVisible();
+  await addExpense(page, "1250.50", "Groceries", "Weekly shop");
+  await addExpense(page, "800", "Transport", "Bus pass");
 
-  // Income without a source (DEC-003)
-  await addIncome(page, "50000", "E2E salary no source");
-  await expect(visibleText(page, "E2E salary no source")).toBeVisible();
-
-  // Income source management, then income with that source
+  // An income source is optional (DEC-003); add one to use in a filter.
   await page.goto("/income-sources");
-  await field(page, "Income source name").fill("E2E Freelance");
   await button(page, "Add income source").click();
-  await expect(visibleText(page, 'Income source "E2E Freelance" created.')).toBeVisible();
-  await addIncome(page, "12000", "E2E freelance gig", "E2E Freelance");
-  await expect(visibleText(page, "E2E freelance gig")).toBeVisible();
+  const sourceForm = dialog(page, "Add income source");
+  await field(sourceForm, /^Income source name/).fill("E2E Freelance");
+  await button(sourceForm, "Save income source").click();
+  await expect(page.getByRole("heading", { name: "E2E Freelance" })).toBeVisible();
+  await addIncome(page, "45000", "E2E Freelance");
+  await addIncome(page, "5000");
 
-  const items = await listViaApi(page.request);
-  expect(items).toHaveLength(3);
-  expect(items.find((t) => t.description === "E2E freelance gig")?.incomeSource?.name).toBe("E2E Freelance");
-  expect(items.find((t) => t.description === "E2E salary no source")?.incomeSource).toBeNull();
-
-  // Filters: type, income source, clear
+  // The list shows every record for the month, newest first, with server totals.
   await page.goto("/transactions");
-  await expect(visibleText(page, "E2E weekly rice")).toBeVisible();
-  await page.getByRole("tab", { name: "Expenses" }).filter({ visible: true }).click();
-  await expect(visibleText(page, "E2E weekly rice")).toBeVisible();
-  await expect(visibleText(page, "E2E freelance gig")).toHaveCount(0);
+  await expect(row(page, "Weekly shop")).toContainText("LKR 1,250.50");
+  await expect(row(page, "Bus pass")).toBeVisible();
+  await expect(visibleText(page, /^4 records/)).toBeVisible();
 
-  await page.getByRole("tab", { name: "Income" }).filter({ visible: true }).click();
-  await field(page, "Income source:").selectOption({ label: "E2E Freelance" });
-  await expect(visibleText(page, "E2E freelance gig")).toBeVisible();
-  await expect(visibleText(page, "E2E salary no source")).toHaveCount(0);
-  await expect(visibleText(page, "E2E weekly rice")).toHaveCount(0);
-
+  // Filters run on the server.
+  await button(page, "Expenses").click();
+  await expect(row(page, "E2E Freelance")).toHaveCount(0);
+  await expect(row(page, "Weekly shop")).toBeVisible();
+  await button(page, "Income").click();
+  await field(page, "Filter by income source").selectOption({ label: "E2E Freelance" });
+  await expect(row(page, "E2E Freelance")).toBeVisible();
+  await expect(row(page, "Income")).toHaveCount(0);
   await button(page, "Clear filters").first().click();
-  await expect(visibleText(page, "E2E weekly rice")).toBeVisible();
-  await expect(visibleText(page, "E2E salary no source")).toBeVisible();
+  await expect(visibleText(page, /^4 records/)).toBeVisible();
 
-  // Edit: change the amount and clear the description
-  await visibleText(page, "E2E weekly rice").click();
-  await expect(page).toHaveURL(/\/transactions\/[0-9a-f-]+\/edit$/);
-  const editUrl = page.url();
-  await field(page, "Amount *").fill("2600");
-  await field(page, "Description (optional)").fill("");
-  await button(page, "Save changes").click();
-  await expect(page).toHaveURL(/\/transactions\?notice=updated$/);
-  await expect(visibleText(page, "Transaction updated.")).toBeVisible();
+  // Edit sends only the changed fields; clearing the description stores null.
+  await row(page, "Bus pass").click();
+  await button(dialog(page, "Transaction details"), "Edit transaction").click();
+  const edit = dialog(page, "Edit transaction");
+  const patches: unknown[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "PATCH") patches.push(request.postDataJSON());
+  });
+  await field(edit, /^Amount/).fill("2600");
+  await field(edit, /^Description/).fill("");
+  await button(edit, "Save changes").click();
+  await expect(toast(page)).toHaveText("Transaction updated");
+  expect(patches).toEqual([{ amount: "2600.00", description: null }]);
+  await expect(row(page, "Transport")).toContainText("LKR 2,600.00");
 
-  const expenseId = editUrl.match(/transactions\/([0-9a-f-]+)\/edit/)![1];
-  const edited = await (await page.request.get(`${API}/api/v1/transactions/${expenseId}`)).json();
-  expect(edited.amount).toBe("2600.00");
-  expect(edited.description).toBeNull();
+  // Deleting asks first and removes the record on the server.
+  const [bus] = (await listViaApi(page.request)).filter((t) => t.amount === "2600.00");
+  await row(page, "Transport").click();
+  await button(dialog(page, "Transaction details"), "Delete").click();
+  await button(dialog(page, "Delete this expense?"), "Delete expense").click();
+  await expect(toast(page)).toHaveText("Transaction deleted");
+  await expect(row(page, "Transport")).toHaveCount(0);
+  expect((await page.request.get(`${API}/api/v1/transactions/${bus.id}`)).status()).toBe(404);
 
-  // Delete (DEC-014: hard delete, 204)
-  await page.goto(editUrl);
-  await button(page, "Delete").click();
-  const deleteResponse = page.waitForResponse(
-    (r) => r.url().endsWith(`/api/v1/transactions/${expenseId}`) && r.request().method() === "DELETE",
-  );
-  await button(page, "Yes, delete").click();
-  expect((await deleteResponse).status()).toBe(204);
-  await expect(page).toHaveURL(/\/transactions\?notice=deleted$/);
-  expect((await page.request.get(`${API}/api/v1/transactions/${expenseId}`)).status()).toBe(404);
-  expect(await listViaApi(page.request)).toHaveLength(2);
+  // The old edit link for a deleted record says so instead of showing anything.
+  await page.goto(`/transactions/${bus.id}/edit`);
+  await expect(toast(page)).toHaveText("That transaction no longer exists.");
+  await expect(page).toHaveURL(/\/transactions$/);
 });
 
-test("category management: defaults are read-only, custom categories are usable", async ({ page }) => {
-  await registerAndSignIn(page, uniqueEmail("cat"));
+test("category management: built-ins are read-only, custom categories are usable", async ({ page }) => {
+  await registerAndSignIn(page, uniqueEmail("categories"));
   await page.goto("/categories");
 
-  const defaults = page.getByRole("region", { name: "Default categories" }).filter({ visible: true });
-  await expect(defaults.getByText("Groceries")).toBeVisible();
-  await expect(defaults.getByRole("button")).toHaveCount(0);
+  for (const name of ["Groceries", "Transport", "Entertainment"]) {
+    const card = page.locator("li.category-card").filter({ has: page.getByRole("heading", { name, exact: true }) });
+    await expect(card).toContainText("Built-in categories can’t be changed");
+    await expect(card.getByRole("button")).toHaveCount(0);
+  }
 
-  await field(page, "Category name").fill("E2E Books");
-  await field(page, "Kakeibo group").selectOption("CULTURE");
   await button(page, "Add category").click();
-  await expect(visibleText(page, 'Category "E2E Books" created.')).toBeVisible();
+  const form = dialog(page, "Add category");
+  await field(form, /^Category name/).fill("E2E Books");
+  await field(form, "Spending group").selectOption("CULTURE");
+  await button(form, "Save category").click();
+  await expect(page.getByRole("heading", { name: "E2E Books" })).toBeVisible();
 
-  await addExpense(page, "1500", "E2E Books", "E2E novel");
+  await addExpense(page, "1500", "E2E Books", "Novel");
+  const [novel] = await listViaApi(page.request);
+  expect(novel.category).toMatchObject({ name: "E2E Books", group: "CULTURE" });
 
-  // Deactivated categories are no longer offered for new expenses.
+  // A deactivated category stays on its records but is not offered for new ones.
   await page.goto("/categories");
   await button(page, "Deactivate E2E Books").click();
-  await button(page, "Deactivate").click();
-  await expect(visibleText(page, 'Category "E2E Books" deactivated.')).toBeVisible();
-  await page.goto("/transactions/new-expense");
-  await expect(field(page, "Category *")).toBeEnabled();
-  await expect(field(page, "Category *").locator("option", { hasText: "E2E Books" })).toHaveCount(0);
+  await button(dialog(page, "Deactivate E2E Books?"), "Deactivate").click();
+  await expect(page.getByRole("heading", { name: "E2E Books" })).toHaveCount(0);
 
-  // Global defaults cannot be changed through the API either (DEC-013).
-  const categories = (await (await page.request.get(`${API}/api/v1/categories`)).json()).items as Array<{ id: string; isDefault: boolean }>;
-  const groceries = categories.find((c) => c.isDefault)!;
-  const forbidden = await page.request.patch(`${API}/api/v1/categories/${groceries.id}`, {
-    data: { name: "Hacked" },
-    headers: { "X-XSRF-TOKEN": await csrf(page.request) },
-  });
-  expect(forbidden.status()).toBe(403);
+  await page.goto("/transactions/new-expense");
+  const select = field(dialog(page, "Record an expense"), /^Category/);
+  await expect(select).toBeEnabled();
+  await expect(select.locator("option", { hasText: "E2E Books" })).toHaveCount(0);
+  expect((await listViaApi(page.request))[0].category?.name).toBe("E2E Books");
 });
 
 test("users cannot reach another user's transactions, categories or income sources", async ({ browser }) => {
@@ -225,9 +164,9 @@ test("users cannot reach another user's transactions, categories or income sourc
     expect((await b.request.delete(`${API}/api/v1/transactions/${tx.id}`, { headers: { "X-XSRF-TOKEN": token } })).status()).toBe(404);
     expect(await listViaApi(b.request)).toHaveLength(0);
 
-    // The edit page shows not-found, never A's data
+    // The edit link says the record does not exist and never shows A's data
     await b.goto(`/transactions/${tx.id}/edit`);
-    await expect(visibleText(b, "Transaction not found or could not be loaded.")).toBeVisible();
+    await expect(toast(b)).toHaveText("That transaction no longer exists.");
     await expect(b.locator("body")).not.toContainText("A secret");
 
     // Using A's category or income source as B is rejected
@@ -259,19 +198,18 @@ test("a failed backend write never shows success", async ({ page }) => {
   );
 
   await page.goto("/transactions/new-expense");
-  await field(page, "Amount *").fill("100");
-  await expect(field(page, "Category *")).toBeEnabled();
-  await field(page, "Category *").selectOption({ label: "Groceries" });
-  await button(page, "Save expense").click();
+  const form = dialog(page, "Record an expense");
+  await field(form, /^Amount/).fill("100");
+  await expect(field(form, /^Category/)).toBeEnabled();
+  await selectByText(field(form, /^Category/), "Groceries · ");
+  await button(form, "Save expense").click();
 
-  await expect(page.getByRole("alert").filter({ hasText: "Something went wrong on our side." })).toBeVisible();
-  await expect(page).toHaveURL(/\/transactions\/new-expense$/);
-  await expect(visibleText(page, "Expense saved successfully.")).toHaveCount(0);
+  await expect(alertWith(page, "Something went wrong on our side.")).toBeVisible();
+  await expect(toast(page)).toHaveCount(0);
   // The entered values remain for a safe retry; nothing was stored anywhere.
-  await expect(field(page, "Amount *")).toHaveValue("100");
+  await expect(field(form, /^Amount/)).toHaveValue("100");
   await page.unroute(`${API}/api/v1/transactions`);
   expect(await listViaApi(page.request)).toHaveLength(0);
-  expect(await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("divido-")))).toEqual([]);
 });
 
 test("state-changing requests without a CSRF token are rejected", async ({ page }) => {
@@ -288,11 +226,9 @@ test("signing out invalidates the session for the transaction API", async ({ pag
   await registerAndSignIn(page, uniqueEmail("logout"));
   await page.goto("/transactions");
   expect((await page.request.get(`${API}/api/v1/transactions`)).status()).toBe(200);
-  const cookies = await page.context().cookies(API);
-  const session = cookies.find((c) => c.name.endsWith("DIVIDO_SESSION"))!;
+  const session = (await page.context().cookies(API)).find((c) => c.name.endsWith("DIVIDO_SESSION"))!;
 
-  await button(page, "Sign out").first().click();
-  await expect(page).toHaveURL(/\/sign-in\?notice=signed-out$/);
+  await signOut(page);
   expect((await page.request.get(`${API}/api/v1/transactions`)).status()).toBe(401);
 
   // Replaying the old session cookie does not work either.

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend-local-api",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["NEXT_PUBLIC_API_BASE_URL=http://localhost:8080", "npm", "--prefix", "frontend", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}

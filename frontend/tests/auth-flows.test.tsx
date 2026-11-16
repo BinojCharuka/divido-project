@@ -1,11 +1,11 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Activity, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import HomePage from "@/app/page";
-import OnboardingPage from "@/app/onboarding/page";
-import SignInPage from "@/app/sign-in/page";
-import SignUpPage from "@/app/sign-up/page";
+import AppLayout from "@/app/(authenticated)/layout";
+import SignInPage from "@/app/(public)/sign-in/page";
+import SignUpPage from "@/app/(public)/sign-up/page";
 import { apiRequest, clearCsrfToken } from "@/lib/api/client";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { installFakeBackend } from "./fakeBackend";
@@ -16,6 +16,7 @@ let searchParams = new URLSearchParams();
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
   useSearchParams: () => searchParams,
+  usePathname: () => "/dashboard",
 }));
 const reloadTo = vi.fn();
 vi.mock("@/lib/navigation", async (original) => ({
@@ -48,6 +49,19 @@ afterEach(() => {
 
 function renderPage(page: ReactNode) {
   return render(<AuthProvider>{page}</AuthProvider>);
+}
+
+/** The signed-in app shell around a stand-in page. */
+const ProtectedPage = () => (
+  <AppLayout>
+    <p>Protected content</p>
+  </AppLayout>
+);
+
+async function signOutVia(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("button", { name: "Sign out" }));
+  const dialog = await screen.findByRole("dialog", { name: "Sign out of Divido?" });
+  await user.click(within(dialog).getByRole("button", { name: "Sign out" }));
 }
 
 function signedIn(email = "user@example.com") {
@@ -265,27 +279,28 @@ describe("sign-in", () => {
 
 describe("protected page and sign-out", () => {
   it("redirects to sign-in without a session and never shows the protected content", async () => {
-    renderPage(<OnboardingPage />);
+    renderPage(<ProtectedPage />);
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/sign-in"));
-    expect(screen.queryByText(/signed in as/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
   });
 
   it("shows the signed-in user", async () => {
     signedIn();
-    renderPage(<OnboardingPage />);
-    expect(await screen.findByText("user@example.com")).toBeInTheDocument();
+    renderPage(<ProtectedPage />);
+    expect(await screen.findByText("Protected content")).toBeInTheDocument();
+    expect(screen.getAllByText("user").length).toBeGreaterThan(0); // display name from the email
   });
 
   it("signs out, clears the user and goes to sign-in", async () => {
     signedIn();
     const user = userEvent.setup();
-    renderPage(<OnboardingPage />);
-    await user.click(await screen.findByRole("button", { name: "Sign out" }));
+    renderPage(<ProtectedPage />);
+    await signOutVia(user);
 
     // A full page load, so routes kept hidden by Next.js lose their state too.
     await waitFor(() => expect(reloadTo).toHaveBeenCalledWith("/sign-in?notice=signed-out"));
     expect(backend.state.signedInAs).toBeNull();
-    expect(screen.queryByText("user@example.com")).not.toBeInTheDocument();
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
     const [logout] = backend.callsTo("/api/v1/auth/logout");
     expect(logout.headers["X-XSRF-TOKEN"]).toBeTruthy();
 
@@ -305,25 +320,27 @@ describe("protected page and sign-out", () => {
   it("treats sign-out of an already-ended session as signed out", async () => {
     signedIn();
     const user = userEvent.setup();
-    renderPage(<OnboardingPage />);
-    const button = await screen.findByRole("button", { name: "Sign out" });
+    renderPage(<ProtectedPage />);
+    await screen.findByText("Protected content");
     backend.expireSession();
-    await user.click(button);
+    await signOutVia(user);
 
     await waitFor(() => expect(reloadTo).toHaveBeenCalledWith("/sign-in?notice=signed-out"));
-    expect(screen.queryByText("user@example.com")).not.toBeInTheDocument();
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
   });
 
   it("keeps the user signed in and explains when sign-out cannot reach the server", async () => {
     signedIn();
     const user = userEvent.setup();
-    renderPage(<OnboardingPage />);
-    const button = await screen.findByRole("button", { name: "Sign out" });
+    renderPage(<ProtectedPage />);
+    await screen.findByText("Protected content");
+    await user.click(screen.getByRole("button", { name: "Sign out" }));
+    const dialog = await screen.findByRole("dialog", { name: "Sign out of Divido?" });
     backend.fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
-    await user.click(button);
+    await user.click(within(dialog).getByRole("button", { name: "Sign out" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("couldn't reach Divido");
-    expect(screen.getByText("user@example.com")).toBeInTheDocument();
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("couldn't reach Divido");
+    expect(screen.getByText("Protected content")).toBeInTheDocument();
     expect(reloadTo).not.toHaveBeenCalled();
   });
 });
@@ -331,8 +348,8 @@ describe("protected page and sign-out", () => {
 describe("session expiry", () => {
   it("clears the user and reloads sign-in when a request finds the session ended", async () => {
     signedIn();
-    renderPage(<OnboardingPage />);
-    await screen.findByText("user@example.com");
+    renderPage(<ProtectedPage />);
+    await screen.findByText("Protected content");
 
     backend.expireSession();
     await act(async () => {
@@ -340,7 +357,7 @@ describe("session expiry", () => {
     });
 
     expect(reloadTo).toHaveBeenCalledWith("/sign-in?notice=session-ended");
-    expect(screen.queryByText("user@example.com")).not.toBeInTheDocument();
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
   });
 
   it("ignores a 401 while already signed out, so it cannot loop", async () => {

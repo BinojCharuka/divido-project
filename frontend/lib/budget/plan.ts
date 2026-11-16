@@ -120,3 +120,17 @@ export function formFromBudget(budget: MonthlyBudgetInput): BudgetFormValues {
 export function absAmount(value: string): string {
   return value.startsWith("-") ? value.slice(1) : value;
 }
+
+/** True when every form amount equals the saved plan to the cent. */
+export function sameAsSaved(values: BudgetFormValues, saved: MonthlyBudgetInput | null): boolean {
+  if (!saved) return false;
+  const eq = (a: string, b: string) => {
+    const left = toCents(a);
+    return left !== null && left === toCents(b);
+  };
+  return (
+    eq(values.plannedIncome, saved.plannedIncome) &&
+    eq(values.savingsTarget, saved.savingsTarget) &&
+    BUDGET_GROUPS.every((g) => eq(values.allocations[g], saved.allocations[g]))
+  );
+}

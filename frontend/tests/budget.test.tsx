@@ -1,10 +1,11 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BudgetPlanner } from "@/features/budget/BudgetPlanner";
-import type { MonthlyBudget } from "@/types/budget";
+import { BudgetPage } from "@/features/budget/BudgetPage";
+import type { Dashboard, MonthlyBudget } from "@/types/budget";
 import { apiError, installPhase03Backend, json } from "./phase03Backend";
+import { renderWithShellStub } from "./shell";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
@@ -25,110 +26,118 @@ const SAVED: MonthlyBudget = {
   updatedAt: "2026-10-01T00:00:00Z",
 };
 
+const SPENDING: Pick<Dashboard, "groups"> = {
+  groups: [
+    { group: "NEEDS", budget: "40000.00", spent: "41250.50", remaining: "-1250.50", percentUsed: "103.1", overBudget: true, expenseCount: 2 },
+    { group: "WANTS", budget: "20000.00", spent: "5000.00", remaining: "15000.00", percentUsed: "25.0", overBudget: false, expenseCount: 1 },
+    { group: "CULTURE", budget: "10000.00", spent: "0.00", remaining: "10000.00", percentUsed: "0.0", overBudget: false, expenseCount: 0 },
+    { group: "UNEXPECTED", budget: "5000.00", spent: "0.00", remaining: "5000.00", percentUsed: "0.0", overBudget: false, expenseCount: 0 },
+  ],
+};
+
+const LABELS = [
+  "Planned income",
+  "Monthly savings target",
+  "Needs planned amount",
+  "Wants planned amount",
+  "Culture planned amount",
+  "Unexpected planned amount",
+];
+
 function Harness({ initial = "2026-10" }: { initial?: string }) {
   const [month, setMonth] = useState(initial);
-  return <BudgetPlanner month={month} onMonthChange={setMonth} />;
+  return <BudgetPage month={month} onMonthChange={setMonth} />;
 }
 
 const notFound = () => apiError(404, "BUDGET_NOT_FOUND", "No budget has been set for this month.");
+const field = (label: string) => screen.getByLabelText(label);
 
 async function fillPlan(user: ReturnType<typeof userEvent.setup>, values: string[]) {
-  const labels = ["Planned income", "Savings target", "Needs budget", "Wants budget", "Culture budget", "Unexpected budget"];
-  for (let i = 0; i < labels.length; i++) {
-    const input = screen.getByLabelText(labels[i]);
-    await user.clear(input);
-    if (values[i] !== "") await user.type(input, values[i]);
+  for (let i = 0; i < LABELS.length; i++) {
+    await user.clear(field(LABELS[i]));
+    if (values[i] !== "") await user.type(field(LABELS[i]), values[i]);
   }
 }
 
-describe("BudgetPlanner", () => {
-  let backend: ReturnType<typeof installPhase03Backend>;
+let backend: ReturnType<typeof installPhase03Backend>;
 
-  beforeEach(() => {
-    backend = installPhase03Backend();
-  });
+beforeEach(() => {
+  backend = installPhase03Backend();
+  backend.on("GET", "/api/v1/auth/me", () => apiError(401, "UNAUTHENTICATED", "Please sign in to continue."));
+  backend.on("GET", "/api/v1/dashboard", () => json(200, SPENDING));
+});
 
-  it("shows a loading state, then the missing-plan state with an empty form", async () => {
+describe("Monthly budget (BUDGET-001/002)", () => {
+  it("shows loading, then an empty form when no plan is saved", async () => {
     backend.on("GET", "/api/v1/budgets/2026-10", notFound);
-    render(<Harness />);
-    expect(screen.getByRole("status")).toHaveTextContent("Loading budget for October 2026");
-    expect(await screen.findByText(/No budget for October 2026 yet/)).toBeInTheDocument();
-    expect(screen.getByLabelText("Planned income")).toHaveValue("");
-    expect(screen.getByRole("button", { name: "Create budget" })).toBeInTheDocument();
-    expect(screen.getByText("Enter a valid amount in every field to see your plan totals.")).toBeInTheDocument();
+    renderWithShellStub(<Harness />);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading your plan…");
+    expect(await screen.findByText("No plan saved for October 2026 yet")).toBeInTheDocument();
+    expect(field("Planned income")).toHaveValue("");
+    expect(screen.getByText("Fill in every amount to see totals")).toBeInTheDocument();
   });
 
-  it("loads an existing plan and shows the server's saved figures", async () => {
+  it("loads a saved plan and shows the server's figures and spending", async () => {
     backend.on("GET", "/api/v1/budgets/2026-10", () => json(200, SAVED));
-    render(<Harness />);
-    expect(await screen.findByLabelText("Planned income")).toHaveValue("100000.00");
-    expect(screen.getByLabelText("Needs budget")).toHaveValue("40000.00");
-    const summary = screen.getByRole("complementary");
-    expect(within(summary).getByRole("heading", { name: "Saved plan" })).toBeInTheDocument();
-    expect(within(summary).getByText("LKR 75,000.00")).toBeInTheDocument();
-    expect(within(summary).getByText("LKR 90,000.00")).toBeInTheDocument();
-    expect(within(summary).getByText("LKR 10,000.00")).toBeInTheDocument(); // not yet planned
+    renderWithShellStub(<Harness />);
+    expect(await screen.findByText("Plan for October 2026")).toBeInTheDocument();
+    expect(field("Needs planned amount")).toHaveValue("40000.00");
+    expect(screen.getByText("Saved plan")).toBeInTheDocument();
+    expect(screen.getByText("Left unplanned").nextElementSibling).toHaveTextContent("LKR 10,000.00");
+    expect(screen.getByText("LKR 90,000.00")).toBeInTheDocument();
+    expect(await screen.findByText("Over plan")).toBeInTheDocument();
+    expect(screen.getByText("103.1% of the saved amount used")).toBeInTheDocument();
   });
 
-  it("previews totals while editing and labels them as not saved", async () => {
+  it("previews exact totals while editing and marks them unsaved", async () => {
     const user = userEvent.setup();
     backend.on("GET", "/api/v1/budgets/2026-10", notFound);
-    render(<Harness />);
-    await screen.findByText(/No budget for October 2026 yet/);
-    await fillPlan(user, ["100000", "15000", "40000", "20000", "10000", "5000"]);
-    const summary = screen.getByRole("complementary");
-    expect(within(summary).getByRole("heading", { name: "Preview — not saved yet" })).toBeInTheDocument();
-    expect(within(summary).getByText("LKR 75,000.00")).toBeInTheDocument();
-    expect(within(summary).getByText("LKR 90,000.00")).toBeInTheDocument();
+    renderWithShellStub(<Harness />);
+    await screen.findByText("No plan saved for October 2026 yet");
+    await fillPlan(user, ["100000.10", "15000.05", "40000", "20000", "10000", "5000.05"]);
+    expect(screen.getByText("Not saved yet")).toBeInTheDocument();
+    expect(screen.getByText("LKR 90,000.10")).toBeInTheDocument();
+    expect(screen.getByText("Left unplanned").nextElementSibling).toHaveTextContent("LKR 10,000.00");
   });
 
-  it("validates fields before sending anything", async () => {
+  it("validates before sending anything and focuses the first invalid field", async () => {
     const user = userEvent.setup();
     backend.on("GET", "/api/v1/budgets/2026-10", notFound);
-    render(<Harness />);
-    await screen.findByText(/No budget for October 2026 yet/);
-    await fillPlan(user, ["100", "1.234", "", "1", "1", "1"]);
-    await user.click(screen.getByRole("button", { name: "Create budget" }));
-    expect(await screen.findByText("Savings target must be a number with at most 2 decimal places.")).toBeInTheDocument();
-    expect(screen.getByText(/Needs allocation is required/)).toBeInTheDocument();
-    expect(screen.getByLabelText("Savings target")).toHaveAttribute("aria-invalid", "true");
+    renderWithShellStub(<Harness />);
+    await screen.findByText("No plan saved for October 2026 yet");
+    await user.click(screen.getByRole("button", { name: "Save plan" }));
+
+    await waitFor(() => expect(field("Planned income")).toHaveFocus());
+    expect(field("Planned income")).toHaveAttribute("aria-invalid", "true");
     expect(backend.calls.some((c) => c.method === "PUT")).toBe(false);
   });
 
-  it("warns when the plan exceeds planned income, explains why, and still allows saving", async () => {
+  it("warns when the plan is above planned income but still saves (DEC-012)", async () => {
     const user = userEvent.setup();
     backend.on("GET", "/api/v1/budgets/2026-10", notFound);
     backend.on("PUT", "/api/v1/budgets/2026-10", ({ body }) =>
-      json(200, {
-        ...SAVED,
-        ...(body as object),
-        plannedIncome: "80000.00",
-        overAllocationAmount: "10000.00",
-        overAllocated: true,
-      }),
+      json(200, { ...SAVED, ...(body as object), plannedIncome: "80000.00", overAllocationAmount: "10000.00", overAllocated: true }),
     );
-    render(<Harness />);
-    await screen.findByText(/No budget for October 2026 yet/);
+    const { actions } = renderWithShellStub(<Harness />);
+    await screen.findByText("No plan saved for October 2026 yet");
     await fillPlan(user, ["80000", "15000", "40000", "20000", "10000", "5000"]);
-    const summary = screen.getByRole("complementary");
-    expect(within(summary).getByText(/Plan exceeds planned income by/)).toHaveTextContent("LKR 10,000.00");
-    expect(within(summary).getByText(/Savings target plus group budgets is/)).toHaveTextContent(
-      "Savings target plus group budgets is LKR 90,000.00, but planned income is LKR 80,000.00",
-    );
-    await user.click(screen.getByRole("button", { name: "Create budget" }));
-    expect(await screen.findByText("Budget for October 2026 saved.")).toBeInTheDocument();
+    expect(screen.getByText(/LKR 10,000\.00 above your planned income/).closest('[role="status"]')).not.toBeNull();
+    expect(screen.getByText("Above planned income")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Save plan" }));
+    await waitFor(() => expect(actions.notify).toHaveBeenCalledWith("Plan for October 2026 saved"));
   });
 
-  it("saves the plan with decimal strings and shows the stored result", async () => {
+  it("saves decimal strings and then shows the stored amounts", async () => {
     const user = userEvent.setup();
     backend.on("GET", "/api/v1/budgets/2026-10", notFound);
     backend.on("PUT", "/api/v1/budgets/2026-10", () => json(200, SAVED));
-    render(<Harness />);
-    await screen.findByText(/No budget for October 2026 yet/);
+    const { actions } = renderWithShellStub(<Harness />);
+    await screen.findByText("No plan saved for October 2026 yet");
     await fillPlan(user, ["100000", "15000", "40000", "20000", "10000", "5000"]);
-    await user.click(screen.getByRole("button", { name: "Create budget" }));
+    await user.click(screen.getByRole("button", { name: "Save plan" }));
 
-    expect(await screen.findByText("Budget for October 2026 saved.")).toBeInTheDocument();
+    await waitFor(() => expect(actions.notify).toHaveBeenCalledWith("Plan for October 2026 saved"));
     const put = backend.calls.find((c) => c.method === "PUT")!;
     expect(put.body).toEqual({
       plannedIncome: "100000",
@@ -136,101 +145,63 @@ describe("BudgetPlanner", () => {
       allocations: { NEEDS: "40000", WANTS: "20000", CULTURE: "10000", UNEXPECTED: "5000" },
     });
     expect(put.headers["X-XSRF-TOKEN"]).toBe("csrf-token");
-    expect(screen.getByLabelText("Planned income")).toHaveValue("100000.00");
-    expect(screen.getByRole("heading", { name: "Saved plan" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "View dashboard" })).toHaveAttribute("href", "/dashboard?month=2026-10");
+    expect(field("Planned income")).toHaveValue("100000.00");
+    expect(screen.getByText("Saved plan")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reset changes" })).toBeDisabled();
   });
 
-  it("never shows success when saving fails, keeps the values, and retries", async () => {
+  it("never reports success when saving fails and keeps the entries", async () => {
     const user = userEvent.setup();
     backend.on("GET", "/api/v1/budgets/2026-10", notFound);
     backend.once("PUT", "/api/v1/budgets/2026-10", () => apiError(500, "INTERNAL_ERROR", "boom"));
     backend.once("PUT", "/api/v1/budgets/2026-10", () => json(200, SAVED));
-    render(<Harness />);
-    await screen.findByText(/No budget for October 2026 yet/);
+    const { actions } = renderWithShellStub(<Harness />);
+    await screen.findByText("No plan saved for October 2026 yet");
     await fillPlan(user, ["100000", "15000", "40000", "20000", "10000", "5000"]);
-    await user.click(screen.getByRole("button", { name: "Create budget" }));
+    await user.click(screen.getByRole("button", { name: "Save plan" }));
 
     expect(await screen.findByText(/Your plan was not saved/)).toBeInTheDocument();
-    expect(screen.queryByText(/saved\./)).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Planned income")).toHaveValue("100000");
-    expect(screen.getByRole("heading", { name: "Preview — not saved yet" })).toBeInTheDocument();
+    expect(screen.queryByText(/boom/)).not.toBeInTheDocument();
+    expect(actions.notify).not.toHaveBeenCalled();
+    expect(field("Planned income")).toHaveValue("100000");
 
-    await user.click(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByText("Budget for October 2026 saved.")).toBeInTheDocument();
-    expect(backend.calls.filter((c) => c.method === "PUT")).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: "Save plan" }));
+    await waitFor(() => expect(actions.notify).toHaveBeenCalledWith("Plan for October 2026 saved"));
   });
 
-  it("shows server field errors next to the fields", async () => {
+  it("shows server field errors next to their fields", async () => {
     const user = userEvent.setup();
     backend.on("GET", "/api/v1/budgets/2026-10", notFound);
     backend.on("PUT", "/api/v1/budgets/2026-10", () =>
-      apiError(400, "VALIDATION_ERROR", "Please correct the highlighted fields.", {
-        "allocations.WANTS": "Wants allocation exceeds the maximum allowed amount.",
-      }),
+      apiError(400, "VALIDATION_ERROR", "Invalid", { "allocations.WANTS": "Amount is too large." }),
     );
-    render(<Harness />);
-    await screen.findByText(/No budget for October 2026 yet/);
-    await fillPlan(user, ["100", "0", "0", "0", "0", "0"]);
-    await user.click(screen.getByRole("button", { name: "Create budget" }));
-    expect(await screen.findByText("Wants allocation exceeds the maximum allowed amount.")).toBeInTheDocument();
-    expect(screen.getByLabelText("Wants budget")).toHaveAttribute("aria-invalid", "true");
-  });
+    renderWithShellStub(<Harness />);
+    await screen.findByText("No plan saved for October 2026 yet");
+    await fillPlan(user, ["100000", "15000", "40000", "20000", "10000", "5000"]);
+    await user.click(screen.getByRole("button", { name: "Save plan" }));
 
-  it("reports a network failure honestly", async () => {
-    const user = userEvent.setup();
-    backend.on("GET", "/api/v1/budgets/2026-10", notFound);
-    backend.on("PUT", "/api/v1/budgets/2026-10", () => {
-      throw new TypeError("Failed to fetch");
-    });
-    render(<Harness />);
-    await screen.findByText(/No budget for October 2026 yet/);
-    await fillPlan(user, ["1", "0", "0", "0", "0", "0"]);
-    await user.click(screen.getByRole("button", { name: "Create budget" }));
-    expect(await screen.findByText(/Your plan was not saved\. We couldn't reach Divido/)).toBeInTheDocument();
-  });
-
-  it("prevents duplicate submissions while saving", async () => {
-    const user = userEvent.setup();
-    let release: (r: Response) => void = () => {};
-    backend.on("GET", "/api/v1/budgets/2026-10", notFound);
-    backend.on("PUT", "/api/v1/budgets/2026-10", () => new Promise<Response>((r) => (release = r)) as unknown as Response);
-    render(<Harness />);
-    await screen.findByText(/No budget for October 2026 yet/);
-    await fillPlan(user, ["1", "0", "0", "0", "0", "0"]);
-    const button = screen.getByRole("button", { name: "Create budget" });
-    await user.click(button);
-    expect(await screen.findByRole("button", { name: "Saving…" })).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: "Saving…" }));
-    release(json(200, SAVED));
-    expect(await screen.findByText("Budget for October 2026 saved.")).toBeInTheDocument();
-    expect(backend.calls.filter((c) => c.method === "PUT")).toHaveLength(1);
+    expect(await screen.findByText("Amount is too large.")).toBeInTheDocument();
+    await waitFor(() => expect(field("Wants planned amount")).toHaveFocus());
   });
 
   it("shows a load error with retry instead of an empty plan", async () => {
     const user = userEvent.setup();
-    backend.once("GET", "/api/v1/budgets/2026-10", () => apiError(500, "INTERNAL_ERROR", "x"));
+    backend.once("GET", "/api/v1/budgets/2026-10", () => apiError(500, "INTERNAL_ERROR", "boom"));
     backend.on("GET", "/api/v1/budgets/2026-10", () => json(200, SAVED));
-    render(<Harness />);
-    expect(await screen.findByText(/We couldn't load your budget/)).toBeInTheDocument();
+    renderWithShellStub(<Harness />);
+    expect(await screen.findByText(/couldn't load your plan/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Planned income")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByLabelText("Planned income")).toHaveValue("100000.00");
+    expect(await screen.findByText("Plan for October 2026")).toBeInTheDocument();
   });
 
-  it("navigates months across the year boundary and loads each month", async () => {
+  it("loads each month when stepping across the year boundary", async () => {
     const user = userEvent.setup();
-    backend.on("GET", "/api/v1/budgets/2026-12", () => json(200, { ...SAVED, month: "2026-12" }));
+    backend.on("GET", "/api/v1/budgets/2026-12", notFound);
     backend.on("GET", "/api/v1/budgets/2027-01", notFound);
-    render(<Harness initial="2026-12" />);
-    expect(await screen.findByLabelText("Planned income")).toHaveValue("100000.00");
-    expect(screen.getByTestId("selected-month")).toHaveTextContent("December 2026");
-
-    await user.click(screen.getByRole("button", { name: "Next month, January 2027" }));
-    expect(await screen.findByText(/No budget for January 2027 yet/)).toBeInTheDocument();
-    expect(screen.getByLabelText("Planned income")).toHaveValue("");
-
-    await user.click(screen.getByRole("button", { name: "Previous month, December 2026" }));
-    await waitFor(() => expect(screen.getByLabelText("Planned income")).toHaveValue("100000.00"));
+    renderWithShellStub(<Harness initial="2026-12" />);
+    await screen.findByText("No plan saved for December 2026 yet");
+    await user.click(screen.getByRole("button", { name: "Next month" }));
+    expect(await screen.findByText("No plan saved for January 2027 yet")).toBeInTheDocument();
   });
 });

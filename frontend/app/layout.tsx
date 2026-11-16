@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth/AuthProvider";
 import "./globals.css";
 import "@/styles/figma-styles.css";
 import "@/styles/design-system.css";
+import "@/styles/app.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
