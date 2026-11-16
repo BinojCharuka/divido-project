@@ -8,9 +8,9 @@
 
 ## A. Overall Project Status
 
-- **Current Development Phase:** Phase 03 — Budget & Dashboard is merged to `main` via PR #18 (merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`); post-merge verification is pending. Phase 02 — Transactions is `COMPLETED` (PR #16, merge commit `0a898a0`).
+- **Current Development Phase:** Phase 03 — Budget & Dashboard is merged to `main` via PR #18 (merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`); post-merge checks passed on `main` at `2779a5e` (2026-11-16, see Section B); closeout waits on DIV-036. Phase 02 — Transactions is `COMPLETED` (PR #16, merge commit `0a898a0`).
 - **Current Milestone:** Milestone 03 — Budget & Dashboard: `MERGED — POST-MERGE VERIFICATION PENDING` (PR #18, merge commit `fe6e10455463b5ea1b49d5540f13bdf5418a7a8d`).
-- **Current Active Tasks:** DIV-041 (Figma UI as the production UI, Phase 03 completion) is implemented on branch `feature/div-041-figma-ui-phase-03-completion`, not yet committed or merged. DEC-029 was approved by the owner on 2026-11-16. DIV-037 merged (PR #22, `3a80c20`). DIV-039 / PR #23 is superseded by DIV-041. DIV-036 stays blocked on a valid production connection; DIV-027 and DIV-028 await the other Phase 04 decisions (DEC-030 to DEC-042).
+- **Current Active Tasks:** DIV-041 merged to `main` via PR #25 (squash commit `2779a5e`, 2026-11-16); PR #23 (DIV-039) closed as superseded. DEC-029 approved 2026-11-16. DIV-036 stays blocked on an owner-supervised production connection; DIV-027 and DIV-028 await DEC-030 to DEC-042.
 - **Current Task Owners:** 
   - Backend: Project Owner / Claude Code
   - Frontend: Implementation Assistant / Frontend Developer
@@ -51,7 +51,8 @@
 - **Transaction Filters:** Month, type, category and income source filters are wired to `GET /api/v1/transactions`, with "Clear filters", reset to page 0, and filtered-empty and error states (DIV-024 / PR #16).
 - **Verification at `7f3f4b9` (2026-11-05, clean export):** `tsc --noEmit` PASS; `vitest run` 137/137 PASS, but no test covered the prototype then mounted on production routes; `next build` PASS; `eslint .` FAIL (10 errors, 18 warnings); `./mvnw -q -B verify` FAIL (354 run, 1 failure). Playwright not run. **PR #22 branch:** `./mvnw -q -B verify` PASS, 360 tests. **PR #23 branch, before merging latest `main`:** `tsc --noEmit` PASS; `vitest run` 157/157 PASS; `npm run test:e2e` including production build 35/35 PASS against a local backend on a disposable `postgres:18-alpine` database with auth rate limits raised; `npm run lint` FAIL (8 errors, all in `features/prototype/FigmaApp.tsx`, plus 18 warnings). **PR #23 merged with `b44c9c7`:** `tsc --noEmit` PASS; `vitest run` 157/157 PASS; Playwright not re-run. These are branch results, not `main` results. No Neon access.
 - **Budget & Dashboard:** Implemented and merged to `main` via PR #18 (V4 migration file included; Neon application is a separate deployment step). The PR's reported checks are recorded below; post-merge verification is pending. Insights, Reflection and Profile & Settings remain decision-gated/backlogged.
-- **DIV-041 branch verification (2026-11-16, uncommitted working tree on `feature/div-041-figma-ui-phase-03-completion`):** `npm run typecheck` PASS; `npm test` 121/121 PASS (10 files; component tests rewritten for the new UI); `npm run lint` PASS (0 errors, 2 pre-existing `<img>` warnings in `DividoLoadingScreen.tsx`); `npm run build` PASS; Playwright 21/21 PASS against the dev server and 21/21 PASS against the production build (`next build` + `next start`), both on a local backend with a disposable `postgres:18-alpine` database and raised auth rate limits; impeccable `detect` reports only the Inter font choice from the Figma design. Manual check on the same local stack: sign-up, sign-in, add expense, save an over-allocated plan, dashboard figures and warning, categories and transactions pages; no horizontal scroll at 375px on the main pages. Backend code unchanged on this branch. Not checked: a visual pass in light and dark themes (the browser pane was hidden, so screenshots were not reliable), and Neon production (DIV-036).
+- **Post-merge verification on `main` at `2779a5e` (2026-11-16, after PR #25):** `npm run typecheck` PASS; `npm run lint` 0 errors (2 pre-existing warnings); `npm test` 121/121 PASS; `npm run build` PASS; `./mvnw -q -B verify` PASS, 360 tests, 0 failures (Testcontainers). Playwright not re-run on `main`; it ran on the identical branch tree (below).
+- **DIV-041 branch verification (2026-11-16, before PR #25, on `feature/div-041-figma-ui-phase-03-completion`):** `npm run typecheck` PASS; `npm test` 121/121 PASS (10 files; component tests rewritten for the new UI); `npm run lint` PASS (0 errors, 2 pre-existing `<img>` warnings in `DividoLoadingScreen.tsx`); `npm run build` PASS; Playwright 21/21 PASS against the dev server and 21/21 PASS against the production build (`next build` + `next start`), both on a local backend with a disposable `postgres:18-alpine` database and raised auth rate limits; impeccable `detect` reports only the Inter font choice from the Figma design. Manual check on the same local stack: sign-up, sign-in, add expense, save an over-allocated plan, dashboard figures and warning, categories and transactions pages; no horizontal scroll at 375px on the main pages. Backend code unchanged on this branch. Not checked: a visual pass in light and dark themes (the browser pane was hidden, so screenshots were not reliable), and Neon production (DIV-036).
 - **Onboarding:** Route `frontend/app/(public)/onboarding/page.tsx` redirects to `/dashboard` until DIV-023 is decided. Backend currently always returns `onboardingComplete: false`. Full multi-step stepper flow scheduled under DIV-023.
 
 ---
@@ -100,13 +101,14 @@
 | **DIV-037** | Fix migration-count test regression | 04 gate | P0 | DIV-036 V5 file (PR #20) | Backend | `MERGED — PR #22 (3a80c20)` | Replace the hardcoded migration count with robust history checks, and rehearse the DIV-036 sequence on disposable databases with a synthetic legacy V4. |
 | **DIV-038** | Phase 04 governance reconciliation | 04 gate | P1 | None | Project Owner | `IN_REVIEW` | Reconcile tracker and traceability with the code, and record proposed decisions DEC-029 to DEC-042 without approving them. |
 | **DIV-039** | Production route safety | 04 gate | P0 | DIV-015, DIV-026 | Frontend | `SUPERSEDED — by DIV-041` | Serve API-backed components behind the session gate, make the prototype development-only, clear financial data left in browser storage, and test what production routes mount. Superseded on 2026-11-16 when the owner approved DEC-029 as "Figma UI stays, old UI removed"; PR #23 to be closed with a note. |
-| **DIV-041** | Figma UI as production UI; Phase 03 completion | 03 / 04 gate | P0 | DEC-029 (approved 2026-11-16), DIV-025, DIV-026 | Frontend | `IMPLEMENTED — NOT COMMITTED` | Remove the old UI and the prototype component. Rebuild the Figma design as layered, API-backed pages and components (shell, ui, forms, financial, feedback, features) behind the session gate. No browser-side money calculation beyond the exact budget preview, no "available money" figure (BR-008), no prototype-only features without an API. Rewrite component and E2E tests for the new UI. Branch `feature/div-041-figma-ui-phase-03-completion`. |
+| **DIV-041** | Figma UI as production UI; Phase 03 completion | 03 / 04 gate | P0 | DEC-029 (approved 2026-11-16), DIV-025, DIV-026 | Frontend | `MERGED — PR #25 (2779a5e)` | Remove the old UI and the prototype component. Rebuild the Figma design as layered, API-backed pages and components (shell, ui, forms, financial, feedback, features) behind the session gate. No browser-side money calculation beyond the exact budget preview, no "available money" figure (BR-008), no prototype-only features without an API. Rewrite component and E2E tests for the new UI. Branch `feature/div-041-figma-ui-phase-03-completion`. |
 
 ---
 
 ## D. Current Work Breakdown
 
 ### Completed
+- **DIV-041 — Figma UI as the production UI (PR #25, `2779a5e`, 2026-11-16):** old UI and prototype removed; Figma design rebuilt as layered, API-backed components; component and E2E tests rewritten; checks pass on `main` (Section B). Insights and Reflection show "coming in a later update" until DEC-030 is decided.
 - Phase 00 baseline and Testcontainers setup.
 - Phase 01 complete authentication stack (backend registration, session authentication, CSRF hardening, frontend forms, session gate, and E2E tests).
 - Phase 02 planning (`phase-02-transaction-ui-plan.md` in PR #7) and UI foundation (PR #8).
@@ -130,7 +132,6 @@
 - **DEC-013 default categories:** names and mappings approved by the project owner on 2026-11-04 and recorded in `decision-log.md` (PR #16).
 
 ### Currently In Progress / In Review
-- **DIV-041 — Figma UI as the production UI:** implemented on `feature/div-041-figma-ui-phase-03-completion`; checks in Section B. Waiting for the owner to approve the commit and PR. Insights and Reflection show "coming in a later update" until DEC-030 is decided.
 - **DIV-017, DIV-025, DIV-026 (Phase 03) — PR #18:** PR-local verification reported backend `./mvnw test` 354/354; frontend typecheck pass, `npm test` 137/137, `npm run test:e2e` 22/22 against an isolated backend and disposable Postgres, production build pass. `npm run lint` reports pre-existing findings only (prototype, `insights.ts`, `AuthPageShell.tsx`). No post-merge `main` re-run yet.
 - **DIV-036 — PR #20:** Read-only production inspection confirmed V4 history mismatch and existing legacy objects. V5 migration and recovery runbook are proposed. A disposable Neon branch previously verified the target `monthly_budgets` table structure; production has not been changed.
 
@@ -144,7 +145,7 @@
 - **Month/timezone date policy:** resolved by `DEC-028` (2026-11-04). Transactions belong to the calendar month of their date-only date; "today"/"current month" use `Asia/Colombo` in backend and frontend (PR #18).
 
 ### What Must Be Done Next & Why
-1. **Commit DIV-041 and open its PR** (owner approval needed), close PR #23 as superseded, merge, then re-run all checks on `main`. Until then `main` still serves the prototype on production routes.
+1. **Done: DIV-041 merged (PR #25) and PR #23 closed.** Production routes on `main` now serve the API-backed Figma UI behind the session gate.
 2. **Decide DEC-030 to DEC-042.** DIV-027 and DIV-028 can't start without them. DEC-029 is approved.
 3. **Agree a PR-only rule for `main`.** It has no branch protection, and direct commits have twice changed production routes without review or doc updates.
 4. **Owner-supervised DIV-036.** Correct the secrets file, quit Antigravity, run read-only `flyway info`, then the separately approved `repair` and `migrate`. `/budget` and `/dashboard` need `monthly_budgets`, which production doesn't have until V5 runs.
@@ -211,7 +212,8 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **#20** | https://github.com/KasunHerath-dev/divido/pull/20 | `fix/neon-flyway-v4-drift` | `main` | `a670c3f` | `MERGED` | Merged 2026-11-04 | DIV-036 V5 migration and runbook; commit `c244c94`. Production not changed. |
 | **#21** | https://github.com/KasunHerath-dev/divido/pull/21 | `feature/div-017-phase-03-budget-dashboard` | `main` | `92f2ea0` | `CLOSED` | Closed | Reused the Phase 03 branch already squash-merged by PR #18. Closed without merging. |
 | **#22** | https://github.com/KasunHerath-dev/divido/pull/22 | `feature/div-037-backend-test-fix` | `main` | `0f2e7ad` | `MERGED` | Merged | DIV-037; squash commit `3a80c20`. |
-| **#23** | https://github.com/KasunHerath-dev/divido/pull/23 | `fix/div-039-production-route-safety` | `main` | `9fa0b5d` | `OPEN — SUPERSEDED` | To close | DIV-039. Superseded by DIV-041 after DEC-029 was approved on 2026-11-16. Not merged. |
+| **#23** | https://github.com/KasunHerath-dev/divido/pull/23 | `fix/div-039-production-route-safety` | `main` | `9fa0b5d` | `CLOSED` | Closed 2026-11-16 | DIV-039. Superseded by DIV-041 / PR #25 after DEC-029 was approved. Not merged. |
+| **#25** | https://github.com/KasunHerath-dev/divido/pull/25 | `feature/div-041-figma-ui-phase-03-completion` | `main` | `11ffcce` | `MERGED` | Merged 2026-11-16 | DIV-041 Figma UI as production UI; squash commit `2779a5e`. No CI configured; local checks recorded in Section B. |
 
 *Backup Branches:*
 - `backup/div-008-pre-cleanup` (SHA `fefe3b0`): Preserves full prototype including future-phase budget, dashboard, categories, and settings code.
