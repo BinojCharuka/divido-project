@@ -6,6 +6,12 @@
       "runtimeExecutable": "env",
       "runtimeArgs": ["NEXT_PUBLIC_API_BASE_URL=http://localhost:8080", "npm", "--prefix", "frontend", "run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "backend-local-db",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "set -a && . /tmp/claude-1000/-home-kasun-herath-Projects-DIVIDO-divido/76bfc697-df84-41b9-98bc-0b79528f2265/scratchpad/backend-compose.env && set +a && cd backend && exec ./mvnw -q spring-boot:run"],
+      "port": 8080
     }
   ]
 }
