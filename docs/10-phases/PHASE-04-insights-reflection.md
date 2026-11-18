@@ -1,7 +1,7 @@
 # Phase 04 — Spending Insights and Reflection
 
-**Status:** IMPLEMENTED on branch `feature/div-027-028-insights-reflection` (2026-11-16) — not yet merged, deployed, or applied to production  
-**Gates:** Decisions DEC-030 to DEC-042 approved 2026-11-16 ([`PHASE-04-decisions.md`](PHASE-04-decisions.md)); DIV-036 completed and verified 2026-11-16. V6 (`V6__reflections.sql`) is written; production apply is a release step.  
+**Status:** MERGED to `main` via PR #28 (squash commit `ac5033d`, 2026-11-16) — V6 production rollout and smoke test pending  
+**Gates:** Decisions DEC-030 to DEC-042 approved 2026-11-16 ([`PHASE-04-decisions.md`](PHASE-04-decisions.md)); DIV-036 completed and verified 2026-11-16. V6 (`V6__reflections.sql`) is merged; production rollout follows [`../09-release-operations/neon-v6-reflections-rollout.md`](../09-release-operations/neon-v6-reflections-rollout.md).  
 **Primary outcome:** Provide explainable spending-pattern observations and reflection tools without overstating what the data proves.
 
 ## Goal
@@ -65,7 +65,8 @@ Add value beyond transaction recording only after enough trustworthy history exi
 - Insights: `GET /api/v1/insights?month` — see [`../05-api/insights-api.md`](../05-api/insights-api.md). Rules: DEC-031, DEC-032, DEC-033, DEC-041. Nothing stored.
 - Reflections: `GET/PUT/DELETE /api/v1/reflections/{month}`, `GET /api/v1/reflections` — see [`../05-api/reflections-api.md`](../05-api/reflections-api.md). Rules: DEC-034 to DEC-040. Tables `reflections`, `reflection_answers` (V6).
 - UI: `/insights` and `/reflection` on the Figma UI (DEC-029), plain labels with one Kakeibo explanation on the reflection page (DEC-042).
-- Remaining before the phase is closed: review and merge, apply V6 to production, production smoke check. The legacy `monthly_reflections` row stays untouched (DEC-036).
+- Merged via PR #28 (`ac5033d`, 2026-11-16).
+- Remaining before the phase is closed: apply V6 to production and run the smoke check ([`../09-release-operations/neon-v6-reflections-rollout.md`](../09-release-operations/neon-v6-reflections-rollout.md)). The legacy `monthly_reflections` row stays untouched (DEC-036).
 
 ## Scope guard
 
