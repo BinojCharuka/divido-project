@@ -89,8 +89,8 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 |---|---|---|
 | [`05-api/README.md`](05-api/README.md) | Section entry point | Proposed contract |
 | [`05-api/api-conventions.md`](05-api/api-conventions.md) | API conventions and error format | Proposed — owner approval required |
-| [`05-api/authentication-api.md`](05-api/authentication-api.md) | Authentication API, incl. password reset AUTH-007/008 | Proposed contract; AUTH-007/008 implemented on branch (DIV-029) |
-| [`05-api/profile-api.md`](05-api/profile-api.md) | Profile and account API (PROFILE-001..005) | Implemented on branch (DIV-022, DIV-023, DIV-035); not frozen |
+| [`05-api/authentication-api.md`](05-api/authentication-api.md) | Authentication API, incl. password reset AUTH-007/008 | Proposed contract; AUTH-007/008 implemented (DIV-029, PR #31) |
+| [`05-api/profile-api.md`](05-api/profile-api.md) | Profile and account API (PROFILE-001..005) | Implemented (DIV-022, DIV-023, DIV-035; PR #31); not frozen |
 | [`05-api/categories-api.md`](05-api/categories-api.md) | Categories API | Proposed contract |
 | [`05-api/income-sources-api.md`](05-api/income-sources-api.md) | Income sources API | Proposed contract |
 | [`05-api/transactions-api.md`](05-api/transactions-api.md) | Transactions API | Proposed contract |

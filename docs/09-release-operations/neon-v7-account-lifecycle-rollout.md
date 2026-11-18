@@ -1,7 +1,7 @@
 # Neon V7 Account Lifecycle Rollout — Production Runbook
 
 **Status:** PROPOSED — not yet run. Owner supervision required.
-**Applies to:** `backend/src/main/resources/db/migration/V7__account_lifecycle.sql` for DIV-022, DIV-023, DIV-029 and DIV-035 (`DEC-043` to `DEC-046`). It is on branch `feature/div-022-023-029-035-account` and not merged yet.
+**Applies to:** `backend/src/main/resources/db/migration/V7__account_lifecycle.sql` for DIV-022, DIV-023, DIV-029 and DIV-035 (`DEC-043` to `DEC-046`). It was merged to `main` via PR #31 (squash commit `5746118`, 2026-11-18).
 **Previous runbook:** [`neon-v6-reflections-rollout.md`](neon-v6-reflections-rollout.md). V6 must be applied and verified first.
 
 ## 1. What V7 does

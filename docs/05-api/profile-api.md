@@ -1,6 +1,6 @@
 # Profile and Account API
 
-**Status:** Implemented (DIV-022, DIV-023, DIV-035) on branch `feature/div-022-023-029-035-account`, following `DEC-043`, `DEC-044` and `DEC-046` (APPROVED). The contract is not frozen.
+**Status:** Implemented (DIV-022, DIV-023, DIV-035) — `main` via PR #31 (squash commit `5746118`, 2026-11-18), following `DEC-043`, `DEC-044` and `DEC-046` (APPROVED). The contract is not frozen.
 
 All endpoints:
 

@@ -11,10 +11,10 @@ This document is the product-level requirement register. Detailed use cases and 
 |---|---|---|---|
 | REQ-AUTH-001 | A user can register, sign in, and sign out. | Must | PROPOSED |
 | REQ-AUTH-002 | An authenticated user can access only their own personal finance data. | Must | PROPOSED |
-| REQ-PROF-001 | A user can view and update profile preferences. | Must | IMPLEMENTED on branch (DIV-022, `DEC-043`) |
-| REQ-ONB-001 | A new user can complete guided onboarding. | Must | IMPLEMENTED on branch (DIV-023, `DEC-044`) |
-| REQ-AUTH-003 | A user who forgot their password can reset it with an emailed single-use link. | Should | IMPLEMENTED on branch (DIV-029, `DEC-045`) |
-| REQ-ACC-001 | A user can permanently delete their account and all its data. | Should | IMPLEMENTED on branch (DIV-035, `DEC-046`) |
+| REQ-PROF-001 | A user can view and update profile preferences. | Must | IMPLEMENTED (PR #31) (DIV-022, `DEC-043`) |
+| REQ-ONB-001 | A new user can complete guided onboarding. | Must | IMPLEMENTED (PR #31) (DIV-023, `DEC-044`) |
+| REQ-AUTH-003 | A user who forgot their password can reset it with an emailed single-use link. | Should | IMPLEMENTED (PR #31) (DIV-029, `DEC-045`) |
+| REQ-ACC-001 | A user can permanently delete their account and all its data. | Should | IMPLEMENTED (PR #31) (DIV-035, `DEC-046`) |
 | REQ-CAT-001 | The app provides built-in expense categories mapped to four Kakeibo groups. | Must | PROPOSED |
 | REQ-CAT-002 | A user can create, rename, and archive their own custom categories. | Must | PROPOSED |
 | REQ-INC-001 | A user can create and manage multiple income sources. | Must | PROPOSED |
