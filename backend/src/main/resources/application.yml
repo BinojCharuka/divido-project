@@ -52,6 +52,21 @@ divido:
     register:
       limit: ${DIVIDO_RATE_LIMIT_REGISTER_LIMIT:10}
       window: ${DIVIDO_RATE_LIMIT_REGISTER_WINDOW:1m}
+    password-reset:
+      limit: ${DIVIDO_RATE_LIMIT_PASSWORD_RESET_LIMIT:5}
+      window: ${DIVIDO_RATE_LIMIT_PASSWORD_RESET_WINDOW:1m}
+    password-check:
+      limit: ${DIVIDO_RATE_LIMIT_PASSWORD_CHECK_LIMIT:10}
+      window: ${DIVIDO_RATE_LIMIT_PASSWORD_CHECK_WINDOW:1m}
+  # Password reset email (DEC-045). With mail disabled, no email is sent and a
+  # warning without the link is logged. SMTP settings come from SPRING_MAIL_HOST,
+  # SPRING_MAIL_PORT, SPRING_MAIL_USERNAME and SPRING_MAIL_PASSWORD.
+  mail:
+    enabled: ${DIVIDO_MAIL_ENABLED:false}
+    from: ${DIVIDO_MAIL_FROM:Divido <no-reply@divido.local>}
+  app:
+    # The frontend origin used in reset links, e.g. https://app.example.com
+    public-url: ${DIVIDO_APP_PUBLIC_URL:http://localhost:3000}
 
 management:
   endpoints:

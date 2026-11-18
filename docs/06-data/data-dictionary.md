@@ -27,6 +27,30 @@ This document describes candidate logical fields, not guaranteed column names. E
 
 Do not add duplicate fields if the existing schema already models them under different names.
 
+**Added in `V7__account_lifecycle.sql` (DIV-022, DIV-023, DIV-029):**
+
+| Column | Meaning | Type | Rules |
+|---|---|---|---|
+| `onboarding_completed_at` | When onboarding was finished or skipped (`DEC-044`) | `TIMESTAMPTZ` | `NULL` = not yet. Backfilled to `created_at` for accounts that existed at V7. Set once. |
+| `credentials_version` | Password generation (`DEC-043`, `DEC-045`) | `INTEGER` | `NOT NULL DEFAULT 0`, `CHECK >= 0`. Incremented on every password change or reset; a session signed in with an older value is ended on its next request. |
+
+The production database also has legacy `app_users.onboarding_complete` and `app_users.locale` columns from the earlier V4 ([neon-flyway-v4-drift.md](../09-release-operations/neon-flyway-v4-drift.md)). V7 uses different names on purpose and the application never reads the legacy columns.
+
+`display_name` (V1, `NOT NULL`, 1–100 characters) is now editable through PROFILE-002 (`DEC-043`).
+
+## 2a. `password_reset_tokens` — implemented (V7, DIV-029)
+
+| Column | Meaning | Type | Rules |
+|---|---|---|---|
+| `id` | Primary key | `UUID` | `DEFAULT gen_random_uuid()` |
+| `user_id` | Account | `UUID` | `NOT NULL`, FK `app_users(id) ON DELETE CASCADE`; indexed |
+| `token_hash` | SHA-256 of the emailed token | `CHAR(64)` | `NOT NULL`, `UNIQUE`, `CHECK ~ '^[0-9a-f]{64}$'`. The token itself is never stored. |
+| `expires_at` | 30 minutes after creation (`DEC-045`) | `TIMESTAMPTZ` | `NOT NULL`; compared with the application clock |
+| `used_at` | When the token was consumed | `TIMESTAMPTZ` | `NULL` until used; set atomically |
+| `created_at` | Creation instant | `TIMESTAMPTZ` | Set from the application clock |
+
+At most one row per account: a new request deletes earlier rows. A successful reset deletes all rows of the account.
+
 ## 3. `categories` — existing table (`V1__init.sql`, extended in `V2__categories_and_income_sources.sql`)
 
 | Field | Meaning | Type | Rules / notes |
@@ -103,11 +127,9 @@ Constraint `uq_monthly_budgets_user_month UNIQUE (user_id, budget_month)`; its i
 
 Superseded by the four allocation columns in `monthly_budgets` (DIV-025).
 
-## 8. `user_preferences` — proposed if separate table
+## 8. (not created) `user_preferences`
 
-Candidate fields: `user_id` (PK/FK), `locale`, `currency_code`, `time_zone`, `created_at`, `updated_at`.
-
-Do not create this table if approved design keeps these settings on `app_users`.
+Not needed: currency, timezone and language are fixed for the MVP (`DEC-043`) and are not stored per user.
 
 ## 9. `reflections` and `reflection_answers` — implemented (V6, DIV-028)
 

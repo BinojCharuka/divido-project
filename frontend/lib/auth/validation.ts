@@ -36,3 +36,24 @@ export function validateSignUp(input: { email: string; password: string; display
 function clean(errors: FieldErrors): FieldErrors {
   return Object.fromEntries(Object.entries(errors).filter(([, message]) => message)) as FieldErrors;
 }
+
+export function validateDisplayName(displayName: string): string | undefined {
+  const name = displayName.trim();
+  if (!name) return "Enter your name.";
+  if (name.length > 100) return "Use 100 characters or fewer.";
+  return undefined;
+}
+
+/** A new password and its confirmation, with the same rules as sign-up. */
+export function validateNewPassword(password: string, confirmation: string): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!password) errors.newPassword = "Enter a new password.";
+  else if (password.length < 8) errors.newPassword = "Use at least 8 characters.";
+  else if (new TextEncoder().encode(password).length > 72) errors.newPassword = "Use a shorter password.";
+  if (!errors.newPassword && password !== confirmation) errors.confirmPassword = "The passwords don't match.";
+  return clean(errors);
+}
+
+export function validateEmail(email: string): string | undefined {
+  return checkEmail(email);
+}

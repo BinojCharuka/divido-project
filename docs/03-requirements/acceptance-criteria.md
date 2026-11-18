@@ -118,3 +118,12 @@ Given a form submission has validation errors, when errors are displayed, then e
 
 ### AC-032 — No false success
 Given a request fails or its outcome is unknown, when the UI receives no confirmed success response, then it must not display a success state or clear user-entered values as if the save completed.
+
+### AC-033 — Neutral reset request
+Given anyone submits a well-formed email on the forgot-password page, when the request is accepted, then the same message is shown whether or not an account exists; for an account, one email with a single-use link valid for 30 minutes is sent, and earlier links stop working (`DEC-045`).
+
+### AC-034 — Reset with a link
+Given a valid, unused, unexpired reset link, when the user sets a new password of 8–72 characters, then the password changes, the link stops working, every session of the account ends, and the user is sent to sign in. An invalid, expired or used link shows one neutral message with a way to request a new link.
+
+### AC-035 — Delete account
+Given a signed-in user enters their password and types `DELETE`, when they confirm, then the account and all its data are deleted at once, the session ends, and the sign-in page says the account was deleted. A wrong password or confirmation deletes nothing (`DEC-046`).

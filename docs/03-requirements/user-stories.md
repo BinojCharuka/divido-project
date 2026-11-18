@@ -14,7 +14,7 @@ As a visitor, I want to create an individual account so that my financial record
 - **UX:** UX-P02
 - **Depends on:** Approved authentication and security decisions
 - **Acceptance:** AC-001, AC-002
-- **TBD:** Identifier, verification, recovery, password policy.
+- **Decided:** email identifier and 8–72 character passwords (`DEC-021` to `DEC-024`); no email verification in the MVP; recovery by emailed reset link (`DEC-045`, see US-019).
 
 ### US-002 — Sign in and sign out
 As a returning user, I want to sign in and securely end my session.
@@ -27,11 +27,11 @@ As a returning user, I want to sign in and securely end my session.
 ### US-003 — Complete initial setup
 As a new user, I want to set my preferences and initial plan so that the dashboard can explain my intended money plan.
 
-- **Priority:** P0 if onboarding is required; otherwise P1
+- **Priority:** P1 (onboarding is skippable)
 - **Use case:** UC-003
 - **UX:** UX-P03
 - **Acceptance:** AC-005
-- **TBD:** Mandatory fields and skippable steps.
+- **Decided (`DEC-044`):** three steps: welcome; this month's planned income and savings; done. Every step can be skipped. Finishing or skipping is stored once. An existing plan is never overwritten. Implemented in DIV-023.
 
 ## Epic E-02 — Income and expenses
 
@@ -145,7 +145,7 @@ As a user, I want to review my basic preferences so that the app uses the correc
 - **Use case:** UC-014
 - **UX:** UX-P12
 - **Acceptance:** AC-025
-- **TBD:** Final preferences and editable settings.
+- **Decided (`DEC-043`):** the display name and the password can change; the password change needs the current password. Currency (LKR), timezone (Asia/Colombo) and language (English) are shown read-only. Implemented in DIV-022.
 
 ## Epic E-06 — Security and reliability
 
@@ -162,6 +162,22 @@ As a user, I want every record protected by server-side ownership checks so that
 - **Priority:** P0
 - **Use cases:** UC-002, UC-005–UC-016
 - **Acceptance:** AC-027, AC-028
+
+### US-019 — Reset a forgotten password
+As a user who forgot my password, I want to get a reset link by email so that I can sign in again without anyone learning whether my email is registered.
+
+- **Priority:** P1
+- **UX:** `/forgot-password`, `/reset-password`
+- **Acceptance:** AC-033, AC-034
+- **Decided:** `DEC-045`; implemented in DIV-029.
+
+### US-020 — Delete my account
+As a user, I want to delete my account and all my data myself so that nothing of mine stays in the app.
+
+- **Priority:** P1
+- **UX:** Settings → Delete account
+- **Acceptance:** AC-035
+- **Decided:** `DEC-046`; implemented in DIV-035.
 
 ## Story implementation checklist
 

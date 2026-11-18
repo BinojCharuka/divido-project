@@ -39,7 +39,7 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
     "We couldn't load your dashboard. Check your connection and try again.",
   );
 
-  const name = displayNameFor(user?.email);
+  const name = displayNameFor(user);
   const monthLabel = formatMonthYear(month);
   const budgetHref = `/budget?month=${month}`;
 

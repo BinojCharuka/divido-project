@@ -35,16 +35,22 @@ The retention period for soft-deleted rows is TBD. Do not assume indefinite rete
 
 ## 4. Account closure and permanent deletion
 
-Before production, define:
-- Whether users can close/delete their account.
-- Confirmation and re-authentication requirements.
-- How financial records, categories, plans, reflections, and sessions are handled.
-- Whether any records must be retained for legal/security reasons.
-- How backups age out after deletion.
-- Whether deletion is immediate or scheduled.
-- How the user is informed of completion.
+Approved as `DEC-046` (2026-11-18) and implemented in DIV-035 ([PROFILE-005](../05-api/profile-api.md#profile-005--delete-account)):
 
-Do not implement account deletion by blindly cascading all rows until the data-lifecycle policy is approved.
+- **Who and how:** a signed-in user can delete their own account from Settings. They must re-enter the password and type `DELETE`.
+- **When:** deletion is immediate and permanent. There is no grace period and no restore.
+- **What:** one database transaction removes the account and everything it owns:
+  - transactions (deleted first, because their category and income-source keys are `ON DELETE RESTRICT`);
+  - budgets;
+  - reflections and their answers;
+  - custom categories;
+  - income sources;
+  - password reset tokens;
+  - legacy production rows in `budgets` and `monthly_reflections`, which cascade from `app_users`.
+- **Kept:** no records are kept for legal or security reasons in the MVP.
+- **Session:** the session making the request is signed out. Any other session of the account fails on its next request, because the account no longer exists.
+- **Confirmation to the user:** the sign-in page says "Your account and all its data have been deleted."
+- **Backups:** deleted data stays in database backups until they expire under the provider's retention period. The exact period and restore rules remain open under DIV-033.
 
 ## 5. Reflection privacy
 
@@ -55,12 +61,12 @@ Reflection answers may contain sensitive personal details. Approved rules (DEC-0
 - Editable at any time; deletion is permanent and user-initiated. No drafts on the server or in the browser.
 - Kept until the user deletes it or the account is removed (`ON DELETE CASCADE` from `app_users`).
 - Not used for analytics; the history list never includes answer text.
-- Still open: backups may hold deleted reflections until the backup expires (DIV-033), and account deletion is not yet a feature (DIV-035).
-- The legacy production table `monthly_reflections` holds one row from the earlier V4. It is untouched and not shown in the app (DEC-036); its retention must be decided with DIV-035.
+- Still open: backups may hold deleted reflections until the backup expires (DIV-033). Account deletion removes all reflections at once (DIV-035, `DEC-046`).
+- The legacy production table `monthly_reflections` holds one row from the earlier V4. It is untouched and not shown in the app (DEC-036); deleting the owning account removes it through its `ON DELETE CASCADE` key (DIV-035).
 
 ## 6. Logs and sessions
 
-- Never log passwords, session IDs, CSRF tokens, reset tokens, or unnecessary transaction/reflection content.
+- Never log passwords, session IDs, CSRF tokens, reset tokens or reset links, or unnecessary transaction/reflection content.
 - Keep operational logs only for an approved period and restrict access.
 - Expire and invalidate sessions according to the security policy.
 - Keep audit/correlation IDs free of personal information.
@@ -79,7 +85,7 @@ Before release, document:
 
 1. Transaction soft-delete and restore inclusion in MVP.
 2. Retention period for deleted transactions.
-3. Account closure/permanent deletion behavior.
+3. ~~Account closure/permanent deletion behavior.~~ Decided 2026-11-18 (`DEC-046`, DIV-035).
 4. ~~Reflection inclusion and retention.~~ Decided 2026-11-16 (DEC-030, DEC-038); backups and the legacy row remain open (DIV-033, DIV-035).
 5. Session retention and expiry.
 6. Log retention and redaction.

@@ -8,6 +8,6 @@ import java.util.UUID;
  */
 public record AuthUserResponse(AuthUser user) {
 
-    public record AuthUser(UUID id, String email, boolean onboardingComplete) {
+    public record AuthUser(UUID id, String email, String displayName, boolean onboardingComplete) {
     }
 }

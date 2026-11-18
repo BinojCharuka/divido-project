@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { ApiError, setUnauthenticatedListener } from "@/lib/api/client";
 import * as authApi from "@/lib/auth/api";
 import type { SignInInput, User } from "@/lib/auth/api";
-import { reloadTo, signInPath } from "@/lib/navigation";
+import { reloadTo, signInPath, type SignInNotice } from "@/lib/navigation";
 
 /**
  * Session state for the whole app, learned from GET /api/v1/auth/me. It drives
@@ -21,6 +21,10 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   /** Check the session again, e.g. after the API was unreachable. */
   refresh: () => Promise<void>;
+  /** Replace the user after a profile change or onboarding. */
+  updateUser: (changes: Partial<Pick<User, "displayName" | "onboardingComplete">>) => void;
+  /** The server already ended the session (e.g. account deleted): drop it and reload sign-in. */
+  endSession: (notice: SignInNotice) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -48,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /** Drop the user now, then reload so hidden routes lose their state too. */
   const endSession = useCallback(
-    (notice: "signed-out" | "session-ended") => {
+    (notice: SignInNotice) => {
       signedInRef.current = false;
       applySession({ status: "signed-out", user: null });
       reloadTo(signInPath(notice));
@@ -102,9 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     endSession("signed-out");
   }, [endSession]);
 
+  const updateUser = useCallback((changes: Partial<Pick<User, "displayName" | "onboardingComplete">>) => {
+    setUser((current) => (current ? { ...current, ...changes } : current));
+  }, []);
+
   const value = useMemo(
-    () => ({ status, user, signIn, signOut, refresh }),
-    [status, user, signIn, signOut, refresh],
+    () => ({ status, user, signIn, signOut, refresh, updateUser, endSession }),
+    [status, user, signIn, signOut, refresh, updateUser, endSession],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

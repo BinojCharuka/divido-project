@@ -72,20 +72,15 @@ Do not assume Spring Boot automatically reads a shell `.env` file. Use the repos
 
 ## 6. Local run commands
 
-The exact commands depend on current scripts and should be confirmed by the repository owner. Typical examples, not guaranteed project commands:
+Verified on 2026-11-18 (DIV-022/023/029/035). The step-by-step commands are in the repository [README](../../README.md#local-development). In short:
 
-```bash
-# Backend, from backend/ (if Maven wrapper or mvn is configured)
-./mvnw spring-boot:run
+| Part | How it runs |
+|---|---|
+| PostgreSQL 18 and Mailpit | `compose.yaml` at the repository root: `docker compose up -d`, with the database password in the root `.env` (template `.env.example`). The database listens on `127.0.0.1:5435`. Mailpit's SMTP is on `127.0.0.1:1025`; its inbox at http://localhost:8025 shows password reset emails. |
+| Backend | From `backend/`: copy `.env.example` to `.env.local`, load it with `set -a && . ./.env.local && set +a`, then `./mvnw spring-boot:run`. Flyway migrates the local database on startup. |
+| Frontend | From `frontend/`: `npm ci`, copy `.env.example` to `.env.local` (`NEXT_PUBLIC_API_BASE_URL=http://localhost:8080`), then `npm run dev`. |
 
-# Or, if no Maven wrapper is committed
-mvn spring-boot:run
-
-# Frontend, from frontend/ (use the package manager matching the lockfile)
-npm run dev
-```
-
-Do not document both commands as mandatory if the repository uses a different tool. Prefer a committed Maven wrapper and one package-manager lockfile for reproducibility if the team approves.
+Use `backend/.env.local` rather than `backend/.env` for the local settings, so a local run can never pick up settings meant for another environment by mistake. All `.env*` files except the `.env.example` templates are git-ignored.
 
 ### Backend tests (verified in DIV-003)
 

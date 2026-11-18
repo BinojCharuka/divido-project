@@ -40,6 +40,11 @@ public class AppUser {
     @Column(nullable = false, length = 100)
     private String timezone;
 
+    /** V7: database default 0, changed only through AccountRepository. */
+    @Generated
+    @Column(name = "credentials_version", nullable = false)
+    private int credentialsVersion;
+
     @Generated
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -79,6 +84,10 @@ public class AppUser {
 
     public String getTimezone() {
         return timezone;
+    }
+
+    public int getCredentialsVersion() {
+        return credentialsVersion;
     }
 
     public Instant getCreatedAt() {

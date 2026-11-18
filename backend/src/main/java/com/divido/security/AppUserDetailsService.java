@@ -19,7 +19,8 @@ public class AppUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) {
         return users.findByEmail(email)
-                .map(user -> new DividoUserDetails(user.getId(), user.getEmail(), user.getPasswordHash()))
+                .map(user -> new DividoUserDetails(user.getId(), user.getEmail(), user.getPasswordHash(),
+                        user.getCredentialsVersion()))
                 // The message never includes the email.
                 .orElseThrow(() -> new UsernameNotFoundException("No matching account"));
     }

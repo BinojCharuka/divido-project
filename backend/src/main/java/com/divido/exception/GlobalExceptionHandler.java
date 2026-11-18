@@ -53,6 +53,12 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.CONFLICT, "REFLECTION_CONFLICT", ex.getMessage());
     }
 
+    /** DEC-045: one neutral answer for unknown, malformed, expired and used tokens. */
+    @ExceptionHandler(PasswordResetInvalidException.class)
+    public ResponseEntity<ApiError> handlePasswordResetInvalid(PasswordResetInvalidException ex) {
+        return error(HttpStatus.BAD_REQUEST, "PASSWORD_RESET_INVALID", ex.getMessage());
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableBody(HttpMessageNotReadableException ex) {
         return error(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "The request body could not be read.");

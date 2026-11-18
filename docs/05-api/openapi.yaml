@@ -80,7 +80,8 @@ paths:
         '201':
           description: >
             Account created. `user.email` is the normalized (trimmed, lower-cased)
-            email and `onboardingComplete` is `false`. No password, hash or session
+            email, `displayName` the trimmed name, and `onboardingComplete` is `false`
+            (DEC-044). No password, hash or session
             identifier is returned, and no cookie is set.
           content:
             application/json:
@@ -120,7 +121,8 @@ paths:
         '200':
           description: >
             Signed in. The session ID is only in the HttpOnly cookie, never in the
-            body. `onboardingComplete` is always `false` until onboarding exists.
+            body. `displayName` and `onboardingComplete` are read from the database
+            (DEC-043, DEC-044).
           headers:
             Set-Cookie:
               description: >
@@ -206,10 +208,66 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CsrfTokenResponse'
+  /api/v1/auth/password-reset/request:
+    post:
+      tags: [Authentication]
+      summary: Request a password reset link (AUTH-007, implemented in DIV-029; DEC-045)
+      description: >
+        Public; needs a CSRF token. Always `202` for a valid email, whether or not
+        it has an account. For an account, a single-use 30-minute link
+        `{public-url}/reset-password#token=<token>` is emailed in the background;
+        only the SHA-256 hash of the token is stored and earlier links stop
+        working. At most 3 links per email per 10 minutes (silently enforced).
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '202':
+          description: Accepted. No body.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+  /api/v1/auth/password-reset/confirm:
+    post:
+      tags: [Authentication]
+      summary: Set a new password with a reset link (AUTH-008, implemented in DIV-029; DEC-045)
+      description: >
+        Public; needs a CSRF token. Consumes the token atomically, stores the new
+        password and ends every session of the account.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+      responses:
+        '204':
+          description: Password changed. No body.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          description: >
+            `VALIDATION_ERROR` for the new password, or `PASSWORD_RESET_INVALID`
+            when the token is malformed, unknown, expired or already used.
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
   /api/v1/profile:
     get:
       tags: [Profile]
-      summary: Read current profile
+      summary: Read own profile (PROFILE-001, implemented in DIV-022)
       responses:
         '200':
           description: Profile
@@ -217,9 +275,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Profile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     patch:
       tags: [Profile]
-      summary: Update current profile/preferences
+      summary: Update display name (PROFILE-002, implemented in DIV-022; DEC-043)
+      description: Only `displayName` can change; other fields are ignored.
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
       requestBody:
         required: true
         content:
@@ -235,6 +298,83 @@ paths:
                 $ref: '#/components/schemas/Profile'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
+    delete:
+      tags: [Profile]
+      summary: Delete own account and all its data (PROFILE-005, implemented in DIV-035; DEC-046)
+      description: >
+        Needs the password and the word `DELETE`. Deletes everything the account
+        owns in one transaction, then signs the session out and expires its cookies.
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDeletionRequest'
+      responses:
+        '204':
+          description: Account deleted and signed out. No body.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          description: >
+            `VALIDATION_ERROR` with `fieldErrors.confirmation` or `fieldErrors.password`.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+  /api/v1/profile/onboarding-complete:
+    post:
+      tags: [Profile]
+      summary: Mark onboarding finished or skipped (PROFILE-003, implemented in DIV-023; DEC-044)
+      description: Idempotent; later calls change nothing.
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
+      responses:
+        '200':
+          description: Profile with `onboardingComplete` true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
+  /api/v1/profile/password:
+    post:
+      tags: [Profile]
+      summary: Change password (PROFILE-004, implemented in DIV-022; DEC-043)
+      description: >
+        Needs the current password. This session stays signed in under a new
+        session ID; every other session of the account ends.
+      parameters:
+        - $ref: '#/components/parameters/XsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+      responses:
+        '204':
+          description: Password changed. No body.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          description: >
+            `VALIDATION_ERROR` with `fieldErrors.currentPassword` or `fieldErrors.newPassword`.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfInvalid'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
   /api/v1/categories:
     get:
       tags: [Categories]
@@ -889,7 +1029,7 @@ components:
             every call and never equals the raw cookie value.
     AuthUser:
       type: object
-      required: [id, email, onboardingComplete]
+      required: [id, email, displayName, onboardingComplete]
       properties:
         id:
           type: string
@@ -897,6 +1037,9 @@ components:
         email:
           type: string
           format: email
+        displayName:
+          type: string
+          maxLength: 100
         onboardingComplete:
           type: boolean
     AuthUserResponse:
@@ -907,37 +1050,80 @@ components:
           $ref: '#/components/schemas/AuthUser'
     Profile:
       type: object
+      required: [id, email, displayName, currency, timeZone, locale, onboardingComplete]
       properties:
         id:
           type: string
           format: uuid
+        email:
+          type: string
+          format: email
+          description: Cannot be changed.
         displayName:
           type: string
-          description: >
-            Set at registration (DEC-021); the V1 `display_name` column is NOT NULL.
-        locale:
-          type: string
-          default: en
+          maxLength: 100
         currency:
           type: string
-          default: LKR
+          enum: [LKR]
+          description: Fixed for the MVP (DEC-043).
         timeZone:
           type: string
-          default: Asia/Colombo
+          enum: [Asia/Colombo]
+          description: Fixed for the MVP (DEC-043).
+        locale:
+          type: string
+          enum: [en]
+          description: Fixed for the MVP (DEC-043).
         onboardingComplete:
           type: boolean
     ProfileUpdate:
       type: object
+      required: [displayName]
       properties:
         displayName:
           type: string
-        locale:
+          minLength: 1
+          maxLength: 100
+          description: Trimmed; must not contain NUL.
+    PasswordChangeRequest:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
           type: string
-        currency:
+        newPassword:
           type: string
-        timeZone:
+          minLength: 8
+          maxLength: 72
+          description: At most 72 UTF-8 bytes; must differ from the current password.
+    AccountDeletionRequest:
+      type: object
+      required: [password, confirmation]
+      properties:
+        password:
           type: string
-      additionalProperties: false
+        confirmation:
+          type: string
+          const: DELETE
+    PasswordResetRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+    PasswordResetConfirm:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+          pattern: '^[A-Za-z0-9_-]{43}$'
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 72
     KakeiboGroup:
       type: string
       description: >

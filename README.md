@@ -45,25 +45,49 @@ These are project notes, not a substitute for checking the current code, depende
 
 ## Local development
 
-The exact commands depend on the package scripts, Maven configuration, and environment variables currently in the repository. Inspect the relevant files before running commands.
+Everything runs on your machine: PostgreSQL and Mailpit in Docker, the backend with Maven, the frontend with npm. Nothing here touches production.
 
-### Frontend
+**Prerequisites:** Docker with Compose, Java 21, Node.js and npm.
 
-1. Open a terminal in `frontend/`.
-2. Check `package.json` for the package manager and available scripts.
-3. Install dependencies using the package manager and lockfile used by the repository.
-4. Configure the required local environment variables without committing secrets.
-5. Run the development script defined in `package.json`.
+### 1. Database and mail catcher
 
-### Backend
+From the repository root:
 
-1. Open a terminal in `backend/`.
-2. Check `pom.xml` and the Java version required by the project.
-3. Configure the required database and application settings through local environment variables or an untracked local configuration.
-4. Confirm the target database and Flyway migration state before starting the application.
-5. Run the Maven command supported by the repository, then verify the health endpoint if one is configured.
+```bash
+cp .env.example .env        # then set DIVIDO_LOCAL_DB_PASSWORD to any local value
+docker compose up -d        # PostgreSQL on localhost:5435, Mailpit on localhost:1025 / :8025
+```
 
-Do not copy production credentials into source files. Never commit `.env` files, passwords, tokens, or other secrets. The repository's current configuration and the relevant document [`docs/09-release-operations/configuration-and-secrets.md`](docs/09-release-operations/configuration-and-secrets.md) should determine the exact setup.
+Mailpit catches every email the backend sends, such as password reset links. Read them at http://localhost:8025.
+
+### 2. Backend (`backend/`)
+
+```bash
+cp .env.example .env.local  # set DB_PASSWORD to the same value as DIVIDO_LOCAL_DB_PASSWORD
+set -a && . ./.env.local && set +a && ./mvnw spring-boot:run
+```
+
+The API listens on http://localhost:8080. Flyway applies all migrations to the local database on startup. Never point `DB_URL` at a shared or production database when running locally.
+
+Tests do not need the compose stack: `./mvnw verify` starts its own PostgreSQL with Testcontainers.
+
+### 3. Frontend (`frontend/`)
+
+```bash
+npm ci
+cp .env.example .env.local  # NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+npm run dev
+```
+
+Open http://localhost:3000.
+
+Other scripts: `npm test`, `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:e2e`.
+
+### Stopping and resetting
+
+`docker compose down` stops the containers. `docker compose down -v` also deletes the local database volume. That cannot be undone and removes all local test data.
+
+Do not copy production credentials into source files. Never commit `.env` files, passwords, tokens, or other secrets. See [`docs/09-release-operations/configuration-and-secrets.md`](docs/09-release-operations/configuration-and-secrets.md) for every setting.
 
 ## Development workflow
 

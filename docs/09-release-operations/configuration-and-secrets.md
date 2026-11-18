@@ -56,6 +56,11 @@ Maintain an inventory table like this, filling in exact property names from the 
 | Allowed frontend origin(s) | Backend | No | Per environment | Exact origin allowlist |
 | CSRF/session settings | Backend/frontend | Depends | Per environment | Verify actual framework configuration |
 | Error monitoring DSN | Relevant app | Depends on provider | If enabled | Treat according to provider's exposure model |
+| `DIVIDO_MAIL_ENABLED` | Backend | No | All backend environments | `false` by default: nothing is sent, and a warning without the link is logged. Set to `true` locally with Mailpit, and in production once SMTP is configured (DIV-029, `DEC-045`). |
+| `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | Backend | The password is a secret | Where mail is enabled | Locally: Mailpit, `localhost:1025`, no credentials. In production: the chosen SMTP provider (not chosen yet). |
+| `DIVIDO_MAIL_FROM` | Backend | No | Where mail is enabled | Sender of reset emails, e.g. `Divido <no-reply@example.com>`. Quote it in shell env files. |
+| `DIVIDO_APP_PUBLIC_URL` | Backend | No | All backend environments | Frontend origin used in reset links, e.g. `https://app.example.com`. Validated at startup: an `http(s)` URL with no query string. |
+| `divido.rate-limit.password-reset.*`, `divido.rate-limit.password-check.*` | Backend | No | Optional | Defaults: 5 per minute per IP for the reset request and confirm endpoints; 10 per minute per IP for password change and account deletion. |
 
 This is a template, not a verified list of variables currently implemented.
 

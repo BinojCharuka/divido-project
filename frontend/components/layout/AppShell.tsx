@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     [dataVersion],
   );
 
-  const userName = displayNameFor(user?.email);
+  const userName = displayNameFor(user);
   const initials = userName ? userName.slice(0, 2).toUpperCase() : "DV";
 
   return (

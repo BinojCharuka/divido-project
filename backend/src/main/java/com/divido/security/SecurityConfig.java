@@ -26,6 +26,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfAuthenticationStrategy;
@@ -36,6 +37,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.divido.repository.AccountRepository;
 
 import java.net.URI;
 import java.time.Duration;
@@ -83,15 +86,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CsrfTokenRepository csrfTokenRepository,
             SecurityContextRepository securityContextRepository, ApiSecurityErrorHandler errorHandler,
-            RateLimitingFilter rateLimitingFilter)
+            RateLimitingFilter rateLimitingFilter, AccountRepository accounts)
             throws Exception {
 
         http
             .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
+            // Not a bean, so it runs only here and is not also registered as a servlet filter.
+            .addFilterAfter(new SessionCredentialsFilter(accounts), SecurityContextHolderFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/health", "/actuator/health", "/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login",
+                        "/api/v1/auth/password-reset/request", "/api/v1/auth/password-reset/confirm").permitAll()
                 .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf

@@ -29,6 +29,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final String LOGIN_PATH = "/api/v1/auth/login";
     private static final String REGISTER_PATH = "/api/v1/auth/register";
+    private static final String RESET_REQUEST_PATH = "/api/v1/auth/password-reset/request";
+    private static final String RESET_CONFIRM_PATH = "/api/v1/auth/password-reset/confirm";
+    private static final String PASSWORD_CHANGE_PATH = "/api/v1/profile/password";
+    private static final String PROFILE_PATH = "/api/v1/profile";
 
     // Strict IPv4 literal: 4 decimal octets 0-255, no leading zeroes unless single digit '0'
     private static final Pattern IPV4_PATTERN = Pattern.compile(
@@ -73,14 +77,33 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         }
 
         String path = request.getRequestURI();
-        boolean isPost = HttpMethod.POST.matches(request.getMethod());
+        String method = request.getMethod();
+        String endpointKey;
+        RateLimitProperties.Policy policy;
+        if (HttpMethod.POST.matches(method) && LOGIN_PATH.equals(path)) {
+            endpointKey = "login";
+            policy = properties.getLogin();
+        } else if (HttpMethod.POST.matches(method) && REGISTER_PATH.equals(path)) {
+            endpointKey = "register";
+            policy = properties.getRegister();
+        } else if (HttpMethod.POST.matches(method) && RESET_REQUEST_PATH.equals(path)) {
+            endpointKey = "reset-request";
+            policy = properties.getPasswordReset();
+        } else if (HttpMethod.POST.matches(method) && RESET_CONFIRM_PATH.equals(path)) {
+            endpointKey = "reset-confirm";
+            policy = properties.getPasswordReset();
+        } else if ((HttpMethod.POST.matches(method) && PASSWORD_CHANGE_PATH.equals(path))
+                || (HttpMethod.DELETE.matches(method) && PROFILE_PATH.equals(path))) {
+            // One bucket for both: each checks the account password (DEC-043, DEC-046).
+            endpointKey = "password-check";
+            policy = properties.getPasswordCheck();
+        } else {
+            endpointKey = null;
+            policy = null;
+        }
 
-        if (isPost && (LOGIN_PATH.equals(path) || REGISTER_PATH.equals(path))) {
+        if (endpointKey != null) {
             String clientIp = resolveClientIp(request);
-            String endpointKey = LOGIN_PATH.equals(path) ? "login" : "register";
-            RateLimitProperties.Policy policy = LOGIN_PATH.equals(path)
-                    ? properties.getLogin()
-                    : properties.getRegister();
 
             String bucketKey = endpointKey + ":" + clientIp;
             long nowMs = clock.millis();

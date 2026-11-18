@@ -40,6 +40,21 @@ public class RateLimitProperties {
     @NotNull
     private Policy register = new Policy(10, Duration.ofMinutes(1));
 
+    /**
+     * Rate limit policy for password reset request and confirm (DEC-045), per endpoint.
+     */
+    @Valid
+    @NotNull
+    private Policy passwordReset = new Policy(5, Duration.ofMinutes(1));
+
+    /**
+     * Rate limit policy for requests that check the account password: password change
+     * (POST /api/v1/profile/password) and account deletion (DELETE /api/v1/profile).
+     */
+    @Valid
+    @NotNull
+    private Policy passwordCheck = new Policy(10, Duration.ofMinutes(1));
+
     @PostConstruct
     public void validate() {
         if (login == null) {
@@ -51,6 +66,14 @@ public class RateLimitProperties {
             throw new IllegalStateException("divido.rate-limit.register policy must not be null");
         }
         register.validate("divido.rate-limit.register");
+        if (passwordReset == null) {
+            throw new IllegalStateException("divido.rate-limit.password-reset policy must not be null");
+        }
+        passwordReset.validate("divido.rate-limit.password-reset");
+        if (passwordCheck == null) {
+            throw new IllegalStateException("divido.rate-limit.password-check policy must not be null");
+        }
+        passwordCheck.validate("divido.rate-limit.password-check");
     }
 
     public boolean isEnabled() {
@@ -83,6 +106,22 @@ public class RateLimitProperties {
 
     public void setRegister(Policy register) {
         this.register = register;
+    }
+
+    public Policy getPasswordReset() {
+        return passwordReset;
+    }
+
+    public void setPasswordReset(Policy passwordReset) {
+        this.passwordReset = passwordReset;
+    }
+
+    public Policy getPasswordCheck() {
+        return passwordCheck;
+    }
+
+    public void setPasswordCheck(Policy passwordCheck) {
+        this.passwordCheck = passwordCheck;
     }
 
     public static class Policy {

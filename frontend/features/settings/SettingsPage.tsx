@@ -1,21 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { ArrowRight, BriefcaseBusiness, Check, CircleUserRound, Moon, ShoppingBasket, Sun } from "lucide-react";
-import { displayNameFor } from "@/lib/auth/displayName";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { APP_TIME_ZONE } from "@/lib/formatting/dates";
 import { useDividoTheme } from "@/lib/theme";
+import { DeleteAccountDialog, DisplayNameForm, PasswordForm } from "./AccountForms";
 
 /**
- * Settings. Profile editing waits for the profile API (DIV-022, decision required),
- * so account details are read-only here.
+ * Settings (DIV-022, DEC-043): display name and password can change; email, currency,
+ * timezone and language are fixed for the MVP. Account deletion is DIV-035 (DEC-046).
  */
 export function SettingsPage() {
   const { user } = useAuth();
   const { theme, setTheme } = useDividoTheme();
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   return (
     <>
@@ -30,17 +33,21 @@ export function SettingsPage() {
               <h2 id="account-heading">Account</h2>
             </div>
           </div>
-          <dl className="account-details">
+          <dl className="account-details account-email">
             <div>
               <dt>Email address</dt>
               <dd>{user?.email}</dd>
             </div>
-            <div>
-              <dt>Shown as</dt>
-              <dd>{displayNameFor(user?.email)}</dd>
-            </div>
           </dl>
-          <p className="settings-note">Editing your profile will come in a later update.</p>
+          <DisplayNameForm key={user?.displayName} />
+          <details
+            className="profile-details"
+            open={passwordOpen}
+            onToggle={(e) => setPasswordOpen(e.currentTarget.open)}
+          >
+            <summary>Change password</summary>
+            {passwordOpen && <PasswordForm onDone={() => setPasswordOpen(false)} />}
+          </details>
         </section>
 
         <section className="settings-block" aria-labelledby="money-heading">
@@ -124,7 +131,18 @@ export function SettingsPage() {
             ))}
           </div>
         </section>
+
+        <section className="panel settings-block danger-zone" aria-labelledby="delete-heading">
+          <div>
+            <h2 id="delete-heading">Delete account</h2>
+            <p>Permanently delete your account and all of its data. This can&apos;t be undone.</p>
+          </div>
+          <Button variant="destructive" onClick={() => setDeleting(true)}>
+            Delete account
+          </Button>
+        </section>
       </div>
+      {deleting && <DeleteAccountDialog onClose={() => setDeleting(false)} />}
     </>
   );
 }

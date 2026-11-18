@@ -89,8 +89,8 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 |---|---|---|
 | [`05-api/README.md`](05-api/README.md) | Section entry point | Proposed contract |
 | [`05-api/api-conventions.md`](05-api/api-conventions.md) | API conventions and error format | Proposed — owner approval required |
-| [`05-api/authentication-api.md`](05-api/authentication-api.md) | Authentication API | Proposed contract |
-| [`05-api/profile-api.md`](05-api/profile-api.md) | Profile and preferences API | Proposed contract |
+| [`05-api/authentication-api.md`](05-api/authentication-api.md) | Authentication API, incl. password reset AUTH-007/008 | Proposed contract; AUTH-007/008 implemented on branch (DIV-029) |
+| [`05-api/profile-api.md`](05-api/profile-api.md) | Profile and account API (PROFILE-001..005) | Implemented on branch (DIV-022, DIV-023, DIV-035); not frozen |
 | [`05-api/categories-api.md`](05-api/categories-api.md) | Categories API | Proposed contract |
 | [`05-api/income-sources-api.md`](05-api/income-sources-api.md) | Income sources API | Proposed contract |
 | [`05-api/transactions-api.md`](05-api/transactions-api.md) | Transactions API | Proposed contract |
@@ -109,7 +109,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`06-data/data-dictionary.md`](06-data/data-dictionary.md) | Field catalogue | Proposed field catalogue |
 | [`06-data/migration-policy.md`](06-data/migration-policy.md) | Flyway migration policy | Required development rule |
 | [`06-data/seed-data.md`](06-data/seed-data.md) | Seed data policy | Proposed — default categories approved (DEC-013, 2026-11-04); Kakeibo group display copy needs owner review |
-| [`06-data/data-retention.md`](06-data/data-retention.md) | Data retention and lifecycle | Proposed policy |
+| [`06-data/data-retention.md`](06-data/data-retention.md) | Data retention and lifecycle | Proposed policy; account deletion §4 approved (`DEC-046`) |
 
 ## 07 — Development
 
@@ -151,6 +151,7 @@ For authoring and review progress by folder, see [`00-governance/documentation-s
 | [`09-release-operations/release-checklist.md`](09-release-operations/release-checklist.md) | Go/no-go checklist | Proposed |
 | [`09-release-operations/neon-flyway-v4-drift.md`](09-release-operations/neon-flyway-v4-drift.md) | Supervised recovery plan for production V4 history drift and V5 rollout, with the 2026-11-16 verification record | COMPLETED — production verified 2026-11-16 |
 | [`09-release-operations/neon-v6-reflections-rollout.md`](09-release-operations/neon-v6-reflections-rollout.md) | Supervised production rollout of V6 (`reflections`, `reflection_answers`) for DIV-028: preflight, verification SQL, smoke test and record | PROPOSED — not yet run |
+| [`09-release-operations/neon-v7-account-lifecycle-rollout.md`](09-release-operations/neon-v7-account-lifecycle-rollout.md) | Supervised production rollout of V7 (account lifecycle: onboarding flag, credentials version, reset tokens) and the mail settings | PROPOSED — not yet run |
 
 ## 10 — Phases
 

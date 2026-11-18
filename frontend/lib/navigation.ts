@@ -8,7 +8,20 @@ export function reloadTo(path: string): void {
 }
 
 /** Query values for /sign-in that explain why the user is there. */
-export type SignInNotice = "registered" | "signed-out" | "session-ended";
+export type SignInNotice = "registered" | "signed-out" | "session-ended" | "password-reset" | "account-deleted";
+
+export const SIGN_IN_NOTICES: readonly SignInNotice[] = [
+  "registered",
+  "signed-out",
+  "session-ended",
+  "password-reset",
+  "account-deleted",
+];
+
+/** Where a signed-in user starts: onboarding until it is finished or skipped (DEC-044). */
+export function homeFor(user: { onboardingComplete: boolean } | null): string {
+  return user && !user.onboardingComplete ? "/onboarding" : "/dashboard";
+}
 
 export function signInPath(notice: SignInNotice): string {
   return `/sign-in?notice=${notice}`;

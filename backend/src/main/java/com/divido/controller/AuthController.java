@@ -5,6 +5,8 @@ import com.divido.dto.CsrfTokenResponse;
 import com.divido.dto.LoginRequest;
 import com.divido.dto.RegisterRequest;
 import com.divido.entity.AppUser;
+import com.divido.exception.ResourceNotFoundException;
+import com.divido.repository.AccountRepository;
 import com.divido.security.DividoUserDetails;
 import com.divido.service.LoginService;
 import com.divido.service.RegistrationService;
@@ -32,32 +34,36 @@ public class AuthController {
     private final RegistrationService registrationService;
     private final LoginService loginService;
     private final LogoutHandler logoutHandler;
+    private final AccountRepository accounts;
 
     public AuthController(RegistrationService registrationService, LoginService loginService,
-            LogoutHandler logoutHandler) {
+            LogoutHandler logoutHandler, AccountRepository accounts) {
         this.registrationService = registrationService;
         this.loginService = loginService;
         this.logoutHandler = logoutHandler;
+        this.accounts = accounts;
     }
 
     /** DEC-025: creates the account only; the client signs in separately. */
     @PostMapping("/register")
     public ResponseEntity<AuthUserResponse> register(@Valid @RequestBody RegisterRequest request) {
         AppUser user = registrationService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse(user.getId(), user.getEmail()));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new AuthUserResponse(new AuthUserResponse.AuthUser(user.getId(), user.getEmail(),
+                        user.getDisplayName(), false)));
     }
 
     @PostMapping("/login")
     public AuthUserResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
         DividoUserDetails user = loginService.login(request, httpRequest, httpResponse);
-        return userResponse(user.getId(), user.getUsername());
+        return userResponse(user.getId());
     }
 
     /** Identity comes only from the session; request parameters are never consulted. */
     @GetMapping("/me")
     public AuthUserResponse me(@AuthenticationPrincipal DividoUserDetails user) {
-        return userResponse(user.getId(), user.getUsername());
+        return userResponse(user.getId());
     }
 
     @PostMapping("/logout")
@@ -76,8 +82,11 @@ public class AuthController {
         return new CsrfTokenResponse(token.getHeaderName(), token.getToken());
     }
 
-    private static AuthUserResponse userResponse(UUID id, String email) {
-        // No onboarding flow exists yet, so no user has completed it.
-        return new AuthUserResponse(new AuthUserResponse.AuthUser(id, email, false));
+    /** Read fresh from the database: the display name can change (DEC-043), onboarding too (DEC-044). */
+    private AuthUserResponse userResponse(UUID id) {
+        AccountRepository.Profile profile = accounts.findProfile(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found."));
+        return new AuthUserResponse(new AuthUserResponse.AuthUser(profile.id(), profile.email(),
+                profile.displayName(), profile.onboardingComplete()));
     }
 }

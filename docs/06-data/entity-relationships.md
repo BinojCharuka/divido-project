@@ -20,8 +20,11 @@ This diagram is logical. It does not decide whether global default categories ar
 
 ## 2. Entity descriptions
 
-### `app_users` — existing candidate
-Stores account identity and authentication-related data. Inspect the current table before proposing new columns. Password hashes and authentication metadata must never be returned from public API DTOs.
+### `app_users` — implemented (V1, extended in V7)
+Stores account identity and authentication-related data. V7 adds `onboarding_completed_at` (DEC-044) and `credentials_version` (DEC-043, DEC-045). Password hashes and authentication metadata must never be returned from public API DTOs. Deleting a user (DEC-046) removes its transactions first, because their category and income-source keys are `ON DELETE RESTRICT`. Every other user-owned table cascades.
+
+### `password_reset_tokens` — implemented (V7, DIV-029)
+At most one live reset token per user, stored as a SHA-256 hash, cascading from `app_users`. See the [data dictionary](data-dictionary.md).
 
 ### `categories` — existing candidate
 Stores predefined and/or user-created expense categories and their Kakeibo group mapping. The ownership/default-category model is unresolved.
@@ -35,8 +38,8 @@ Stores recorded income and expenses if the single-table design is approved. It m
 ### `monthly_budgets` — implemented (V4, DIV-025)
 One row per user and calendar month holding planned income, savings target and the four Kakeibo group allocations (Needs, Wants, Culture, Unexpected) as columns. Replaces the earlier `monthly_plans` + `monthly_group_budgets` proposal. See the [data dictionary](data-dictionary.md).
 
-### `user_preferences` — proposed
-Stores editable settings only if they do not fit the approved existing `app_users` design. Avoid duplicating the same preference in multiple places.
+### `user_preferences` — not created
+Currency, timezone and language are fixed for the MVP (DEC-043), so there is nothing to store.
 
 ### `reflections` and `reflection_answers` — implemented (V6, DIV-028)
 One reflection per user and calendar month, with one answer row per answered question. Question sets are versioned (`question_set_version`); `version` is the optimistic lock (DEC-039). Both cascade from `app_users`. The legacy production table `monthly_reflections` is separate and untouched (DEC-036). See the [data dictionary](data-dictionary.md).

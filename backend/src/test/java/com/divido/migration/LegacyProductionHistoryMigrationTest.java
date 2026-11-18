@@ -52,7 +52,7 @@ class LegacyProductionHistoryMigrationTest {
         ValidateResult result = repository().validateWithResult();
 
         assertThat(result.validationSuccessful).as("V4 drift must fail validation").isFalse();
-        assertThat(repository().info().pending()).extracting(m -> m.getVersion().getVersion()).containsExactly("5", "6");
+        assertThat(repository().info().pending()).extracting(m -> m.getVersion().getVersion()).containsExactly("5", "6", "7");
     }
 
     @Test
@@ -70,7 +70,7 @@ class LegacyProductionHistoryMigrationTest {
                 .containsEntry("description", "monthly budgets")
                 .containsEntry("script", LEGACY_V4_SCRIPT)
                 .containsEntry("success", true);
-        assertThat(repository().info().pending()).extracting(m -> m.getVersion().getVersion()).containsExactly("5", "6");
+        assertThat(repository().info().pending()).extracting(m -> m.getVersion().getVersion()).containsExactly("5", "6", "7");
     }
 
     @Test
@@ -102,6 +102,22 @@ class LegacyProductionHistoryMigrationTest {
         assertThat(tableExists("reflections")).isTrue();
         assertThat(tableExists("reflection_answers")).isTrue();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM reflections", Integer.class)).isZero();
+
+        // V7 (DEC-044, DEC-045) uses new column names beside the legacy profile columns:
+        // the existing account counts as onboarded, the legacy flag is left as it was.
+        assertThat(jdbc.queryForObject("SELECT onboarding_completed_at IS NOT NULL FROM app_users WHERE id = ?",
+                Boolean.class, userId)).isTrue();
+        assertThat(jdbc.queryForObject("SELECT onboarding_complete FROM app_users WHERE id = ?", Boolean.class, userId))
+                .isFalse();
+        assertThat(jdbc.queryForObject("SELECT credentials_version FROM app_users WHERE id = ?", Integer.class, userId))
+                .isZero();
+        assertThat(tableExists("password_reset_tokens")).isTrue();
+
+        // DEC-046 account deletion, as AccountRepository runs it, also removes the legacy rows.
+        jdbc.update("DELETE FROM transactions WHERE user_id = ?", userId);
+        assertThat(jdbc.update("DELETE FROM app_users WHERE id = ?", userId)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM monthly_reflections", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM budgets", Integer.class)).isZero();
     }
 
     @Test
@@ -115,6 +131,7 @@ class LegacyProductionHistoryMigrationTest {
         assertThat(tableExists("monthly_budgets")).isTrue();
         assertThat(tableExists("monthly_reflections")).isFalse();
         assertThat(tableExists("reflections")).isTrue();
+        assertThat(tableExists("password_reset_tokens")).isTrue();
     }
 
     /** V1-V3 from the repository, then the legacy V4, as recorded in production's history. */

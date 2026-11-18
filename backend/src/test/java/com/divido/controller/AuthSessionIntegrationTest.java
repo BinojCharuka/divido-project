@@ -63,7 +63,7 @@ class AuthSessionIntegrationTest {
 		assertThat(result).hasStatus(HttpStatus.OK);
 		assertThat(result).bodyJson().extractingPath("$").asMap().containsOnlyKeys("user");
 		assertThat(result).bodyJson().extractingPath("$.user").asMap()
-				.containsOnlyKeys("id", "email", "onboardingComplete");
+				.containsOnlyKeys("id", "email", "displayName", "onboardingComplete");
 		assertThat(result).bodyJson().extractingPath("$.user.id").isEqualTo(id);
 		assertThat(result).bodyJson().extractingPath("$.user.email").isEqualTo("person@example.com");
 		assertThat(result).bodyJson().extractingPath("$.user.onboardingComplete").isEqualTo(false);
@@ -180,7 +180,7 @@ class AuthSessionIntegrationTest {
 
 		assertThat(result).hasStatus(HttpStatus.OK);
 		assertThat(result).bodyJson().extractingPath("$.user").asMap()
-				.containsOnlyKeys("id", "email", "onboardingComplete");
+				.containsOnlyKeys("id", "email", "displayName", "onboardingComplete");
 		assertThat(result).bodyJson().extractingPath("$.user.id").isEqualTo(id);
 		assertThat(result).bodyJson().extractingPath("$.user.email").isEqualTo("me@example.com");
 		assertThat(body(result)).doesNotContainIgnoringCase("password");

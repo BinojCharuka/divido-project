@@ -1,8 +1,8 @@
-import { OnboardingRedirect } from "@/features/entry/OnboardingRedirect";
+import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
 
 // Client-rendered behind the session check, so there is no instant shell to validate.
 export const instant = false;
 
 export default function Page() {
-  return <OnboardingRedirect />;
+  return <OnboardingScreen />;
 }

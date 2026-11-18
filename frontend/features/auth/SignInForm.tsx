@@ -10,18 +10,18 @@ import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { validateSignIn, type FieldErrors } from "@/lib/auth/validation";
-import type { SignInNotice } from "@/lib/navigation";
+import { homeFor, type SignInNotice } from "@/lib/navigation";
 import { useFocusFirstInvalid } from "@/lib/useFocusFirstInvalid";
-
-export const SIGNED_IN_HOME = "/dashboard";
 
 const NOTICES: Record<SignInNotice, string> = {
   registered: "Your account has been created. Sign in to continue.",
   "signed-out": "You have signed out.",
   "session-ended": "Your session has ended. Sign in again to continue.",
+  "password-reset": "Your password has been changed. Sign in with your new password.",
+  "account-deleted": "Your account and all its data have been deleted.",
 };
 
-/** UX-P01. Sign-in form. Password recovery waits for DIV-029 (decision required). */
+/** UX-P01. Sign-in form, with the way into password recovery (DIV-029). */
 export function SignInForm({ notice }: { notice: SignInNotice | null }) {
   const router = useRouter();
   const { signIn } = useAuth();
@@ -51,9 +51,9 @@ export function SignInForm({ notice }: { notice: SignInNotice | null }) {
 
     setPending(true);
     try {
-      await signIn(input);
+      const signedIn = await signIn(input);
       setPassword("");
-      router.replace(SIGNED_IN_HOME);
+      router.replace(homeFor(signedIn));
     } catch (error) {
       const apiError = error instanceof ApiError ? error : null;
       setFieldErrors(apiError?.kind === "validation" ? apiError.fieldErrors : {});
@@ -94,6 +94,14 @@ export function SignInForm({ notice }: { notice: SignInNotice | null }) {
         onChange={(e) => setPassword(e.target.value)}
         error={fieldErrors.password}
         icon={<Lock size={17} />}
+        headerRight={
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 underline-offset-4 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        }
         rightAction={
           <button
             type="button"

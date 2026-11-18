@@ -8,7 +8,23 @@ import type { Transaction } from "@/types/transaction";
  */
 export type Call = { method: string; path: string; headers: Record<string, string>; body: unknown; url: string };
 
-const USER = { id: "00000000-0000-4000-8000-000000000001", onboardingComplete: false };
+const USER_ID = "00000000-0000-4000-8000-000000000001";
+
+export type FakeAccount = { password: string; displayName?: string; onboardingComplete?: boolean };
+
+/** The `user` object for an account; existing accounts have finished onboarding unless a test says not. */
+function userFor(email: string, account: FakeAccount | undefined) {
+  return {
+    id: USER_ID,
+    email,
+    displayName: account?.displayName ?? email.split("@")[0],
+    onboardingComplete: account?.onboardingComplete ?? true,
+  };
+}
+
+function profileFor(email: string, account: FakeAccount | undefined) {
+  return { ...userFor(email, account), currency: "LKR", timeZone: "Asia/Colombo", locale: "en" };
+}
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -64,7 +80,11 @@ function resolveIncomeSource(id: string, customIncomeSources: FakeIncomeSource[]
 
 export function installFakeBackend() {
   const state = {
-    accounts: new Map<string, { password: string }>(),
+    accounts: new Map<string, FakeAccount>(),
+    budgets: new Map<string, unknown>(),
+    /** Reset tokens that still work, mapped to the account email. */
+    resetTokens: new Map<string, string>(),
+    resetRequests: [] as string[],
     signedInAs: null as string | null,
     csrf: null as string | null,
     issued: 0,
@@ -99,7 +119,7 @@ export function installFakeBackend() {
     }
     if (method === "GET" && path === "/api/v1/auth/me") {
       return state.signedInAs
-        ? json(200, { user: { ...USER, email: state.signedInAs } })
+        ? json(200, { user: userFor(state.signedInAs, state.accounts.get(state.signedInAs)) })
         : error(401, "UNAUTHENTICATED", "Please sign in to continue.");
     }
 
@@ -111,13 +131,14 @@ export function installFakeBackend() {
     }
 
     if (method === "POST" && path === "/api/v1/auth/register") {
-      const { email, password } = body as { email: string; password: string };
+      const { email, password, displayName } = body as { email: string; password: string; displayName: string };
       const normalized = email.toLowerCase();
       if (state.accounts.has(normalized)) {
         return error(409, "REGISTRATION_CONFLICT", "We couldn't create an account with these details.");
       }
-      state.accounts.set(normalized, { password });
-      return json(201, { user: { ...USER, email: normalized } });
+      const account = { password, displayName, onboardingComplete: false };
+      state.accounts.set(normalized, account);
+      return json(201, { user: userFor(normalized, account) });
     }
     if (method === "POST" && path === "/api/v1/auth/login") {
       const { email, password } = body as { email: string; password: string };
@@ -127,13 +148,87 @@ export function installFakeBackend() {
       }
       state.signedInAs = normalized;
       state.csrf = null; // replaced at sign-in
-      return json(200, { user: { ...USER, email: normalized } });
+      return json(200, { user: userFor(normalized, state.accounts.get(normalized)) });
     }
     if (method === "POST" && path === "/api/v1/auth/logout") {
       if (!state.signedInAs) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
       state.signedInAs = null;
       state.csrf = null; // cleared at sign-out
       return new Response(null, { status: 204 });
+    }
+
+    // Password reset (AUTH-007/008): neutral reply, single-use tokens.
+    if (method === "POST" && path === "/api/v1/auth/password-reset/request") {
+      const email = String((body as { email: string }).email).trim().toLowerCase();
+      state.resetRequests.push(email);
+      if (state.accounts.has(email)) state.resetTokens.set(`token-for-${email}`, email);
+      return new Response(null, { status: 202 });
+    }
+    if (method === "POST" && path === "/api/v1/auth/password-reset/confirm") {
+      const { token, newPassword } = body as { token: string; newPassword: string };
+      const email = state.resetTokens.get(token);
+      if (!email) {
+        return error(400, "PASSWORD_RESET_INVALID", "This reset link is invalid or has expired. Request a new one.");
+      }
+      state.resetTokens.delete(token);
+      state.accounts.get(email)!.password = newPassword;
+      if (state.signedInAs === email) state.signedInAs = null;
+      return new Response(null, { status: 204 });
+    }
+
+    // Profile (PROFILE-001..005)
+    if (path === "/api/v1/profile" || path.startsWith("/api/v1/profile/")) {
+      const email = state.signedInAs;
+      const account = email ? state.accounts.get(email) : undefined;
+      if (!email || !account) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
+      if (method === "GET" && path === "/api/v1/profile") return json(200, profileFor(email, account));
+      if (method === "PATCH" && path === "/api/v1/profile") {
+        account.displayName = String((body as { displayName: string }).displayName).trim();
+        return json(200, profileFor(email, account));
+      }
+      if (method === "POST" && path === "/api/v1/profile/onboarding-complete") {
+        account.onboardingComplete = true;
+        return json(200, profileFor(email, account));
+      }
+      if (method === "POST" && path === "/api/v1/profile/password") {
+        const { currentPassword, newPassword } = body as { currentPassword: string; newPassword: string };
+        if (currentPassword !== account.password) {
+          return error(400, "VALIDATION_ERROR", "Some fields are invalid.", {
+            currentPassword: "The current password is incorrect.",
+          });
+        }
+        account.password = newPassword;
+        return new Response(null, { status: 204 });
+      }
+      if (method === "DELETE" && path === "/api/v1/profile") {
+        const { password, confirmation } = body as { password: string; confirmation: string };
+        if (confirmation !== "DELETE") {
+          return error(400, "VALIDATION_ERROR", "Some fields are invalid.", { confirmation: "Type DELETE to confirm." });
+        }
+        if (password !== account.password) {
+          return error(400, "VALIDATION_ERROR", "Some fields are invalid.", { password: "The password is incorrect." });
+        }
+        state.accounts.delete(email);
+        state.signedInAs = null;
+        state.csrf = null;
+        return new Response(null, { status: 204 });
+      }
+    }
+
+    // Budgets, as far as onboarding uses them (BUDGET-001/002)
+    const budgetMatch = path.match(/^\/api\/v1\/budgets\/(\d{4}-\d{2})$/);
+    if (budgetMatch) {
+      if (!state.signedInAs) return error(401, "UNAUTHENTICATED", "Please sign in to continue.");
+      const month = budgetMatch[1];
+      if (method === "GET") {
+        const stored = state.budgets.get(month);
+        return stored ? json(200, stored) : error(404, "BUDGET_NOT_FOUND", "No budget for this month.");
+      }
+      if (method === "PUT") {
+        const stored = { month, ...(body as object) };
+        state.budgets.set(month, stored);
+        return json(200, stored);
+      }
     }
 
     const searchParams = new URL(url, "http://frontend.test").searchParams;

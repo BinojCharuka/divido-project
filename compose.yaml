@@ -1,0 +1,35 @@
+# Local development only: PostgreSQL for the backend and Mailpit to catch emails
+# (password reset links, DEC-045). Never point these at real user data.
+#
+#   cp .env.example .env            # once; set DIVIDO_LOCAL_DB_PASSWORD
+#   docker compose up -d
+#
+# PostgreSQL: localhost:5435 (database and user "divido")
+# Mailpit:    SMTP localhost:1025, inbox http://localhost:8025
+name: divido-local
+
+services:
+  db:
+    image: postgres:18.4-alpine
+    environment:
+      POSTGRES_DB: divido
+      POSTGRES_USER: divido
+      POSTGRES_PASSWORD: ${DIVIDO_LOCAL_DB_PASSWORD:?Set DIVIDO_LOCAL_DB_PASSWORD in .env (see .env.example)}
+    ports:
+      - "127.0.0.1:${DIVIDO_LOCAL_DB_PORT:-5435}:5432"
+    volumes:
+      - divido-local-db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U divido -d divido"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.30.6
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+volumes:
+  divido-local-db:

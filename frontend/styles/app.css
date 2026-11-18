@@ -133,3 +133,18 @@
 @media (max-width: 640px) {
   .reflection-history { padding: 18px 16px; }
 }
+
+/* Settings account forms (DIV-022, DIV-035) */
+.account-email { grid-template-columns: 1fr; margin-bottom: 24px; }
+.account-form { max-width: 450px; }
+.account-form-actions { display: flex; justify-content: flex-start; }
+.profile-details form .account-form-actions { margin-top: 4px; }
+@media (max-width: 640px) {
+  .danger-zone { flex-direction: column; align-items: flex-start; }
+  .danger-zone > .button { margin-left: 0; }
+}
+
+/* Onboarding (DIV-023) */
+.onboarding-steps { display: flex; gap: 6px; margin-bottom: 20px; }
+.onboarding-steps span { height: 4px; flex: 1; border-radius: 9999px; background: rgb(113 113 122 / .2); }
+.onboarding-steps span[data-done="true"] { background: rgb(5 150 105); }

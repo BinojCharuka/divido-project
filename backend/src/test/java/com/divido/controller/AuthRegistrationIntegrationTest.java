@@ -104,7 +104,8 @@ class AuthRegistrationIntegrationTest {
 
 		assertThat(result).hasStatus(HttpStatus.CREATED);
 		assertThat(result).bodyJson().extractingPath("$.user").asMap()
-				.containsOnlyKeys("id", "email", "onboardingComplete");
+				.containsOnlyKeys("id", "email", "displayName", "onboardingComplete");
+		assertThat(result).bodyJson().extractingPath("$.user.displayName").isEqualTo("Public Fields");
 		assertThat(result).bodyJson().extractingPath("$").asMap().containsOnlyKeys("user");
 		String raw = result.getResponse().getContentAsString();
 		assertThat(raw).doesNotContain(PASSWORD).doesNotContain(stored).doesNotContainIgnoringCase("password");
