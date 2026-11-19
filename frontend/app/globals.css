@@ -38,15 +38,46 @@ html[data-theme='dark'],
 }
 
 html, body {
-  overflow-x: hidden;
-  max-width: 100vw;
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+  position: relative;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
-/* Global Mobile Touch & Gesture Optimizations */
+/* Global Mobile Touch, Gesture & Zoom Containment */
 * {
   -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+/* Prevent auto-zoom on input focus on iOS Safari by ensuring >= 16px font-size */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  .field > input,
+  .field > select,
+  .field > textarea,
+  .search-input input,
+  .month-selector select,
+  .compact-money > input,
+  .money-input > input {
+    font-size: 16px !important;
+  }
+}
+
+/* Shell & page level overflow containment */
+.app-shell,
+.main-shell,
+.main-content,
+.page-transition-host {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
 }
 
 button, a, input, select, textarea, [role="button"] {

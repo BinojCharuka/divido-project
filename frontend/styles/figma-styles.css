@@ -775,27 +775,78 @@ html:not(.dark) .dashboard-savings-note,
 }
 
 @media (max-width: 640px) {
-  .dashboard-reference-frame { padding: 14px; border-radius: 16px; }
-  .available-card-value { font-size: 28px; }
-  .available-balance-card { padding: 18px 20px; }
+  .dashboard-reference-frame {
+    padding: 16px 14px !important;
+    border-radius: 18px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .dashboard-reference-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+  .dashboard-reference-greeting {
+    font-size: clamp(18px, 5.2vw, 22px) !important;
+    line-height: 1.3 !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    width: 100% !important;
+  }
+  .dashboard-reference-controls {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+  }
+  .available-balance-card {
+    padding: 20px 18px !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .available-card-value {
+    font-size: clamp(24px, 7.5vw, 34px) !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+    line-height: 1.15 !important;
+  }
+  .available-card-footer {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
   .dashboard-stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .dashboard-stat-card {
-    padding: 11px 13px !important;
+    padding: 13px 14px !important;
     min-height: auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
   }
   .dashboard-stat-header {
     font-size: 11px !important;
     gap: 5px !important;
+    white-space: nowrap !important;
   }
   .dashboard-stat-value {
-    font-size: 18px !important;
-    margin-top: 4px !important;
+    font-size: clamp(15px, 4.2vw, 19px) !important;
+    margin-top: 5px !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
   }
   .dashboard-stat-value > span {
-    font-size: 12px !important;
+    font-size: 11px !important;
   }
 }
 
@@ -984,11 +1035,15 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
   .dashboard-reference-frame .budget-grid {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .dashboard-reference-frame .budget-card {
-    padding: 18px 20px !important;
+    padding: 16px 16px !important;
     border-radius: 16px !important;
     min-height: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .dashboard-reference-frame .budget-card-top {
     margin-bottom: 12px !important;
@@ -1005,14 +1060,19 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
   }
   .dashboard-reference-frame .budget-name {
     font-size: 15px !important;
+    word-break: break-word !important;
   }
   .dashboard-reference-frame .budget-arrow {
     width: 16px !important;
     height: 16px !important;
   }
   .dashboard-reference-frame .budget-value {
-    font-size: 22px !important;
+    font-size: clamp(18px, 5.2vw, 22px) !important;
     letter-spacing: -0.4px !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
   }
   .dashboard-reference-frame .budget-value > span {
     font-size: 12px !important;
@@ -1020,6 +1080,7 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
   .dashboard-reference-frame .budget-planned {
     font-size: 12px !important;
     margin-top: 3px !important;
+    word-break: break-word !important;
   }
   .dashboard-reference-frame .progress-track {
     height: 6px !important;
@@ -1028,9 +1089,16 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
   .dashboard-reference-frame .budget-card-bottom {
     font-size: 12px !important;
     margin-top: 10px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
   }
   .dashboard-reference-frame .budget-card-bottom > strong {
     font-size: 12px !important;
+    white-space: nowrap !important;
+    margin-left: auto !important;
   }
 }
 
@@ -1499,7 +1567,12 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
   .topbar-right { gap: 11px; }
   .topbar-divider { display: none; }
   .topbar-location { font-size: 12px; gap: 12px; }
-  .main-content { padding: 24px 16px 125px; }
+  .main-content {
+    padding: 20px 14px max(140px, calc(110px + env(safe-area-inset-bottom, 16px))) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
   .page-heading { margin-bottom: 24px; gap: 21px; }
   h1 { font-size: 28px; letter-spacing: -1px; }
   .eyebrow { font-size: 8px; margin-bottom: 7px; }
@@ -1547,13 +1620,43 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
   .money-summary-note { font-size: 9px; margin-top: 22px; }
   .transaction-table-header { display: none; }
   .panel-heading { padding: 20px 16px 0; margin-bottom: 11px; }
-  .transaction-list { padding: 0 16px; }
-  .transaction-row { gap: 10px; min-height: 72px; position: relative; }
-  .transaction-description { padding-right: 0; padding-bottom: 2px; gap: 6px; }
-  .transaction-description strong { font-size: 10px; }
-  .transaction-description > span { font-size: 9px; }
-  .transaction-date { display: none; }
-  .transaction-amount { font-size: 11px; min-width: 99px; }
+  .transaction-list { padding: 0 14px !important; width: 100% !important; box-sizing: border-box !important; }
+  .transaction-row {
+    gap: 10px !important;
+    min-height: 64px !important;
+    position: relative !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .transaction-description {
+    padding-right: 0 !important;
+    padding-bottom: 2px !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+  .transaction-description strong {
+    font-size: 13px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.3 !important;
+  }
+  .transaction-description > span {
+    font-size: 11px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+  .transaction-date { display: none !important; }
+  .transaction-amount {
+    font-size: 13px !important;
+    min-width: auto !important;
+    flex-shrink: 0 !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums !important;
+  }
   .transaction-icon { width: 33px; height: 33px; }
   .transaction-icon svg { width: 17px; }
   .recent-footer { flex-wrap: wrap; padding: 14px 16px; gap: 12px; }
@@ -1880,9 +1983,14 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
   }
   .modal-heading h2 { font-size: 20px; }
   .modal-heading p { font-size: 11px; }
-  .field > input, .field > select { min-height: 45px; }
-  .modal-actions { gap: 8px; }
-  .modal-actions .button { font-size: 11px; padding: 11px 12px; }
+  .field > input, .field > select, .field > textarea {
+    min-height: 46px !important;
+    font-size: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .modal-actions { gap: 10px; }
+  .modal-actions .button { font-size: 13px !important; min-height: 44px !important; padding: 11px 16px !important; }
   .modal-actions .button svg { width: 14px; }
   .detail-amount > span:nth-child(2) { font-size: 29px; }
   .onboarding-content > h3 { font-size: 22px; }
@@ -1891,40 +1999,40 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
   .auth-card { padding: 27px 22px; }
 }
 @media (max-width: 359px) {
-  .main-content { padding-left: 16px; padding-right: 16px; }
-  h1 { font-size: 25px; }
-  .summary-card { padding: 14px 11px; }
-  .summary-value { font-size: 22px; }
-  .summary-value > span { font-size: 11px; }
-  .summary-label { font-size: 9px; }
-  .summary-hint { font-size: 7px; }
-  .budget-card { padding: 14px 10px; }
-  .budget-name { font-size: 10px; }
-  .budget-card-top { gap: 6px; }
-  .budget-arrow { display: none; }
-  .budget-value { font-size: 16px; }
-  .budget-value > span { font-size: 7px; }
-  .budget-card-bottom { font-size: 7px; }
-  .budget-card-bottom > strong { font-size: 7px; }
-  .transaction-list { padding-left: 12px; padding-right: 12px; }
-  .transaction-row { gap: 8px; }
-  .transaction-amount { min-width: 89px; font-size: 10px; }
-  .transaction-description strong { font-size: 9px; }
-  .transaction-description > span { font-size: 8px; }
-  .transaction-icon { height: 29px; width: 29px; }
-  .section-heading p { font-size: 8px; }
-  .section-heading .text-button { font-size: 8px; }
-  .section-heading h2 { font-size: 16px; }
-  .page-heading-actions > .button { font-size: 10px; padding: 10px 11px; gap: 5px; }
-  .month-selector { gap: 6px; padding: 0 9px; }
-  .month-selector select { font-size: 10px; width: 90px; }
-  .insight-banner { padding: 18px 13px; }
-  .insight-banner > div { min-width: 180px; }
-  .insight-banner h3 { font-size: 11px; }
-  .insight-banner p { font-size: 9px; }
-  .full-list .transaction-amount { min-width: 88px; font-size: 10px; }
-  .full-list .transaction-description strong { font-size: 9px; }
-  .full-list .transaction-description > span { font-size: 8px; }
+  .main-content { padding-left: 12px !important; padding-right: 12px !important; }
+  h1 { font-size: 24px !important; }
+  .summary-card { padding: 14px 12px !important; }
+  .summary-value { font-size: 20px !important; }
+  .summary-value > span { font-size: 12px !important; }
+  .summary-label { font-size: 11px !important; }
+  .summary-hint { font-size: 10px !important; }
+  .budget-card { padding: 14px 12px !important; }
+  .budget-name { font-size: 13px !important; }
+  .budget-card-top { gap: 8px !important; }
+  .budget-arrow { display: none !important; }
+  .budget-value { font-size: 18px !important; }
+  .budget-value > span { font-size: 11px !important; }
+  .budget-card-bottom { font-size: 11px !important; }
+  .budget-card-bottom > strong { font-size: 11px !important; }
+  .transaction-list { padding-left: 12px !important; padding-right: 12px !important; }
+  .transaction-row { gap: 8px !important; }
+  .transaction-amount { min-width: auto !important; font-size: 12px !important; }
+  .transaction-description strong { font-size: 12px !important; }
+  .transaction-description > span { font-size: 10px !important; }
+  .transaction-icon { height: 30px !important; width: 30px !important; }
+  .section-heading p { font-size: 11px !important; }
+  .section-heading .text-button { font-size: 11px !important; }
+  .section-heading h2 { font-size: 16px !important; }
+  .page-heading-actions > .button { font-size: 12px !important; padding: 10px 12px !important; gap: 6px !important; }
+  .month-selector { gap: 4px !important; padding: 0 8px !important; }
+  .month-selector select { font-size: 12px !important; width: auto !important; }
+  .insight-banner { padding: 16px 12px !important; }
+  .insight-banner > div { min-width: 160px !important; }
+  .insight-banner h3 { font-size: 13px !important; }
+  .insight-banner p { font-size: 11px !important; }
+  .full-list .transaction-amount { min-width: auto !important; font-size: 12px !important; }
+  .full-list .transaction-description strong { font-size: 12px !important; }
+  .full-list .transaction-description > span { font-size: 10px !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
