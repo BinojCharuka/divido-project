@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { TransactionDialogs, type TransactionDialogState } from "@/features/transactions/TransactionDialogs";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { displayNameFor } from "@/lib/auth/displayName";
@@ -40,13 +40,56 @@ export function AppShell({ children }: { children: ReactNode }) {
 function AppShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const { isTransitioning } = usePageTransition();
+  const { phase, isTransitioning, triggerReveal } = usePageTransition();
+  const contentRef = useRef<HTMLDivElement>(null);
   // Safe to read storage up front: the shell renders only after the client-side session check.
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [dialog, setDialog] = useState<"help" | "signout" | null>(null);
   const [toast, setToast] = useState("");
   const [transactionDialog, setTransactionDialog] = useState<TransactionDialogState>(null);
   const [dataVersion, setDataVersion] = useState(0);
+
+  // Coordinate destination page readiness behind the curtain
+  useEffect(() => {
+    if (phase !== "preparing") return;
+
+    const checkReady = () => {
+      if (!contentRef.current) return false;
+      // If a loading panel is still mounted, not ready yet
+      const loading = contentRef.current.querySelector(
+        ".loading-panel, [role='status']:not(.page-transition-curtain)",
+      );
+      if (loading) return false;
+      return contentRef.current.children.length > 0;
+    };
+
+    if (checkReady()) {
+      const frameId = requestAnimationFrame(() => triggerReveal());
+      return () => cancelAnimationFrame(frameId);
+    }
+
+    const observer = new MutationObserver(() => {
+      if (checkReady()) {
+        observer.disconnect();
+        triggerReveal();
+      }
+    });
+
+    if (contentRef.current) {
+      observer.observe(contentRef.current, { childList: true, subtree: true });
+    }
+
+    // Safety timeout: never leave user on black screen if a request stalls or fails
+    const timer = setTimeout(() => {
+      observer.disconnect();
+      triggerReveal();
+    }, 1800);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
+  }, [pathname, phase, triggerReveal]);
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((previous) => {
@@ -95,8 +138,12 @@ function AppShellInner({ children }: { children: ReactNode }) {
             onHelp={() => setDialog("help")}
             onSignOut={() => setDialog("signout")}
           />
-          <main className={`main-content ${isTransitioning ? "page-outgoing" : ""}`}>
-            <div key={pathname} className="page-transition-slide-down page-incoming-settle">
+          <main className={`main-content ${isTransitioning && phase === "preparing" ? "page-outgoing" : ""}`}>
+            <div
+              ref={contentRef}
+              key={pathname}
+              className={`page-transition-host ${phase === "swiping" ? "page-upward-swipe-enter" : ""} ${phase === "preparing" ? "page-preparing-hidden" : ""}`}
+            >
               {children}
             </div>
           </main>

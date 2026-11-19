@@ -12,51 +12,61 @@ import {
 } from "react";
 import { PageTransitionOverlay } from "./PageTransitionOverlay";
 
+export type TransitionPhase = "hidden" | "preparing" | "swiping";
+
 interface PageTransitionContextValue {
+  phase: TransitionPhase;
   isTransitioning: boolean;
   targetRoute: string;
   startTransition: (href: string) => void;
+  triggerReveal: () => void;
 }
 
 const PageTransitionContext = createContext<PageTransitionContextValue>({
+  phase: "hidden",
   isTransitioning: false,
   targetRoute: "",
   startTransition: () => {},
+  triggerReveal: () => {},
 });
 
 export function usePageTransition() {
   return useContext(PageTransitionContext);
 }
 
-const ANIMATION_DURATION = 440; // milliseconds for counter 0 -> 100%
-const ROUTE_PUSH_DELAY = 180; // milliseconds to call router.push during counter
-const HOLD_AT_100_MS = 60; // hold at 100% before curtain lifts
-const CURTAIN_LIFT_MS = 380; // milliseconds for curtain to slide up
+const SWIPE_REVEAL_DURATION_MS = 380;
 
 export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const currentPath = usePathname();
 
-  const [phase, setPhase] = useState<"hidden" | "active" | "revealing">("hidden");
-  const [progress, setProgress] = useState(0);
+  const [phase, setPhase] = useState<TransitionPhase>("hidden");
   const [targetRoute, setTargetRoute] = useState("");
 
   const isTransitioningRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
-  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  const swipeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const clearAllTimers = useCallback(() => {
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
+  const clearTimer = useCallback(() => {
+    if (swipeTimerRef.current) {
+      clearTimeout(swipeTimerRef.current);
+      swipeTimerRef.current = null;
     }
-    timeoutsRef.current.forEach(clearTimeout);
-    timeoutsRef.current = [];
   }, []);
 
   useEffect(() => {
-    return () => clearAllTimers();
-  }, [clearAllTimers]);
+    return () => clearTimer();
+  }, [clearTimer]);
+
+  const triggerReveal = useCallback(() => {
+    clearTimer();
+    setPhase("swiping");
+
+    swipeTimerRef.current = setTimeout(() => {
+      setPhase("hidden");
+      setTargetRoute("");
+      isTransitioningRef.current = false;
+    }, SWIPE_REVEAL_DURATION_MS);
+  }, [clearTimer]);
 
   const startTransition = useCallback(
     (href: string) => {
@@ -78,72 +88,24 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
 
       if (isTransitioningRef.current) return;
 
-      clearAllTimers();
+      clearTimer();
       isTransitioningRef.current = true;
       setTargetRoute(href);
-      setPhase("active");
-      setProgress(0);
+      setPhase("preparing");
 
-      const startTime = performance.now();
-      let routePushed = false;
-
-      // Animate percentage counter from 0 to 100
-      const tick = (now: number) => {
-        const elapsed = now - startTime;
-        const rawT = Math.min(1, elapsed / ANIMATION_DURATION);
-        // Cubic ease-out
-        const easedT = 1 - Math.pow(1 - rawT, 2.6);
-        const currentPercent = Math.min(100, Math.round(easedT * 100));
-
-        setProgress(currentPercent);
-
-        // Midway through the counter, perform the background route transition
-        if (!routePushed && elapsed >= ROUTE_PUSH_DELAY) {
-          routePushed = true;
-          try {
-            router.push(href);
-          } catch {
-            // Safe fallback
-          }
-        }
-
-        if (rawT < 1) {
-          rafRef.current = requestAnimationFrame(tick);
-        } else {
-          // Counter reached 100%
-          setProgress(100);
-          if (!routePushed) {
-            routePushed = true;
-            router.push(href);
-          }
-
-          // Hold briefly at 100% so the user perceives the complete transition
-          const holdTimer = setTimeout(() => {
-            setPhase("revealing");
-
-            // Allow the curtain lift animation to finish
-            const exitTimer = setTimeout(() => {
-              setPhase("hidden");
-              setProgress(0);
-              setTargetRoute("");
-              isTransitioningRef.current = false;
-            }, CURTAIN_LIFT_MS);
-
-            timeoutsRef.current.push(exitTimer);
-          }, HOLD_AT_100_MS);
-
-          timeoutsRef.current.push(holdTimer);
-        }
-      };
-
-      rafRef.current = requestAnimationFrame(tick);
+      // Start loading destination page immediately behind the veil
+      try {
+        router.push(href);
+      } catch {
+        // Fallback
+      }
     },
-    [clearAllTimers, router],
+    [clearTimer, router],
   );
 
-  // Transition handler specifically for browser Back / Forward (popstate)
-  const triggerPopTransition = useCallback(
-    (newPath: string) => {
+  // Popstate (Browser Back/Forward)
+  useEffect(() => {
+    const handlePopState = () => {
       if (
         typeof window !== "undefined" &&
         window.matchMedia &&
@@ -152,54 +114,12 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (isTransitioningRef.current) return;
-
-      clearAllTimers();
-      isTransitioningRef.current = true;
-      setTargetRoute(newPath);
-      setPhase("active");
-      setProgress(0);
-
-      const startTime = performance.now();
-      const popDuration = 360;
-
-      const tick = (now: number) => {
-        const elapsed = now - startTime;
-        const rawT = Math.min(1, elapsed / popDuration);
-        const easedT = 1 - Math.pow(1 - rawT, 2.5);
-        const currentPercent = Math.min(100, Math.round(easedT * 100));
-
-        setProgress(currentPercent);
-
-        if (rawT < 1) {
-          rafRef.current = requestAnimationFrame(tick);
-        } else {
-          setProgress(100);
-          const holdTimer = setTimeout(() => {
-            setPhase("revealing");
-            const exitTimer = setTimeout(() => {
-              setPhase("hidden");
-              setProgress(0);
-              setTargetRoute("");
-              isTransitioningRef.current = false;
-            }, CURTAIN_LIFT_MS);
-            timeoutsRef.current.push(exitTimer);
-          }, 40);
-          timeoutsRef.current.push(holdTimer);
-        }
-      };
-
-      rafRef.current = requestAnimationFrame(tick);
-    },
-    [clearAllTimers],
-  );
-
-  // Listen for browser Back/Forward (popstate) navigation
-  useEffect(() => {
-    const handlePopState = () => {
       const newPath = window.location.pathname;
-      if (newPath !== currentPath) {
-        triggerPopTransition(newPath);
+      if (newPath !== currentPath && !isTransitioningRef.current) {
+        clearTimer();
+        isTransitioningRef.current = true;
+        setTargetRoute(newPath);
+        setPhase("preparing");
       }
     };
 
@@ -207,12 +127,12 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [currentPath, triggerPopTransition]);
+  }, [clearTimer, currentPath]);
 
   // Global click interception on internal links with capture: true
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      // If currently transitioning, block clicks to prevent repeated animations
+      // If currently transitioning, block clicks to prevent race conditions
       if (isTransitioningRef.current) {
         const anchor = (e.target as HTMLElement).closest("a");
         if (anchor) {
@@ -294,9 +214,11 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   return (
     <PageTransitionContext.Provider
       value={{
+        phase,
         isTransitioning,
         targetRoute,
         startTransition,
+        triggerReveal,
       }}
     >
       {children}
@@ -304,7 +226,6 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
         isOpen={isTransitioning}
         phase={phase}
         targetRoute={targetRoute}
-        progress={progress}
       />
     </PageTransitionContext.Provider>
   );

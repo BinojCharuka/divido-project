@@ -6,16 +6,20 @@ import { getRouteMetadata } from "./routeTitles";
 
 interface PageTransitionOverlayProps {
   isOpen: boolean;
-  phase: "hidden" | "active" | "revealing";
+  phase: "hidden" | "preparing" | "swiping";
   targetRoute: string;
-  progress: number;
 }
 
+/**
+ * Minimalist, luxury curtain overlay for Divido page transitions.
+ * Zero percentage counters, zero numerical loaders, zero progress bars.
+ * Keeps the viewport deep black while the destination page prepares in the background,
+ * then smoothly fades away as the new page executes its upward swipe reveal.
+ */
 export function PageTransitionOverlay({
   isOpen,
   phase,
   targetRoute,
-  progress,
 }: PageTransitionOverlayProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -29,79 +33,32 @@ export function PageTransitionOverlay({
 
   const metadata = getRouteMetadata(targetRoute);
 
-  // Progressive reveal values for the destination title
-  // Begins fading and sliding up once counter crosses 20%
-  const titleProgress = Math.max(0, Math.min(1, (progress - 20) / 45));
-  const titleOpacity = titleProgress;
-  const titleTranslateY = Math.round(20 * (1 - titleProgress));
-
   return createPortal(
     <div
-      className={`page-transition-overlay ${phase === "revealing" ? "is-revealing" : "is-active"}`}
+      className={`page-transition-curtain ${phase === "swiping" ? "is-swiping-out" : "is-preparing"}`}
       aria-hidden={!isOpen}
       role="status"
       aria-live="polite"
-      aria-label={`Navigating to ${metadata.title}`}
+      aria-label={`Opening ${metadata.title}`}
     >
-      <div className="transition-ambient-glow" />
+      <div className="curtain-ambient-glow" />
 
-      {/* Top Header Watermark */}
-      <header className="transition-header">
-        <div className="transition-brand">
+      {/* Minimalist Center Mark */}
+      <div className="curtain-center">
+        <div className="curtain-brand">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/webp/logo-fulls-dark.webp"
             alt="Divido"
-            className="transition-brand-logo"
-            width={120}
+            className="curtain-brand-logo"
+            width={124}
             height={32}
           />
         </div>
-        <div className="transition-system-pill">
-          <span className="transition-live-dot" />
-          <span>Divido System</span>
-        </div>
-      </header>
-
-      {/* Central Interactive Content */}
-      <div className="transition-center">
-        {/* Large Cinematic Percentage Counter */}
-        <div className="transition-counter-wrapper">
-          <div className="transition-counter" aria-hidden="true">
-            <span className="transition-counter-number">{progress}</span>
-            <span className="transition-counter-percent">%</span>
-          </div>
-
-          {/* Thin Glowing Progress Bar */}
-          <div className="transition-progress-track">
-            <div
-              className="transition-progress-fill"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Dynamic Destination Title Reveal */}
-        <div
-          className="transition-destination"
-          style={{
-            opacity: titleOpacity,
-            transform: `translate3d(0, ${titleTranslateY}px, 0)`,
-          }}
-        >
-          <div className="transition-eyebrow-row">
-            <span className="transition-eyebrow">{metadata.eyebrow}</span>
-          </div>
-          <h2 className="transition-title">{metadata.title}</h2>
-          <p className="transition-subtitle">{metadata.subtitle}</p>
+        <div className="curtain-pulse-bar">
+          <span className="curtain-pulse-dot" />
         </div>
       </div>
-
-      {/* Minimal Footer */}
-      <footer className="transition-footer">
-        <span>Personal budgeting workspace</span>
-        <span>Divido Engine</span>
-      </footer>
     </div>,
     document.body,
   );

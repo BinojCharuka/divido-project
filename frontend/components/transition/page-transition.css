@@ -1,10 +1,11 @@
 /* ==========================================================================
-   Divido – Premium Full-Screen Page Transition System
-   Built from scratch with zero external dependencies.
+   Divido – Premium Upward Swipe Page Transition System
+   Zero percentage counters. Zero fake loading bars.
+   Full-screen vertical swipe reveal upon actual destination page readiness.
    ========================================================================== */
 
-/* Full-Screen Transition Overlay */
-.page-transition-overlay {
+/* Full-Screen Minimalist Veil Curtain */
+.page-transition-curtain {
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -15,270 +16,144 @@
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(20px, 4.5vw, 44px) clamp(18px, 5.5vw, 56px);
+  align-items: center;
+  justify-content: center;
   pointer-events: all;
   user-select: none;
   overflow: hidden;
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
+  will-change: opacity;
   box-sizing: border-box;
 }
 
-/* Exit Curtain Lift: Smoothly wipes up off the screen to reveal destination */
-.page-transition-overlay.is-revealing {
-  transform: translate3d(0, -100%, 0);
-  transition: transform 0.38s cubic-bezier(0.76, 0, 0.24, 1);
+.page-transition-curtain.is-preparing {
+  opacity: 1;
+  animation: curtain-fade-in 0.16s ease-out both;
 }
 
-/* Ambient Radial Emerald Glow in the background */
-.transition-ambient-glow {
+.page-transition-curtain.is-swiping-out {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes curtain-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Ambient Emerald Radial Glow */
+.curtain-ambient-glow {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background: radial-gradient(
     circle at 50% 50%,
-    rgba(16, 185, 129, 0.12) 0%,
-    rgba(5, 150, 105, 0.04) 45%,
-    transparent 72%
+    rgba(16, 185, 129, 0.1) 0%,
+    rgba(5, 150, 105, 0.03) 45%,
+    transparent 68%
   );
   z-index: 1;
 }
 
-/* Top Header inside Overlay */
-.transition-header {
+/* Minimalist Center Mark */
+.curtain-center {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 16px;
   position: relative;
   z-index: 2;
-  width: 100%;
 }
 
-.transition-brand {
-  display: flex;
-  align-items: center;
-}
-
-.transition-brand-logo {
+.curtain-brand-logo {
   height: 28px;
   width: auto;
   object-fit: contain;
 }
 
-.transition-system-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 1.3px;
-  text-transform: uppercase;
-  color: #a7f3d0;
-  background: rgba(5, 150, 105, 0.14);
-  border: 1px solid rgba(52, 211, 153, 0.28);
-  border-radius: 999px;
-  padding: 5px 12px;
-}
-
-.transition-live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-  animation: transition-pulse-glow 1.8s ease-in-out infinite;
-}
-
-@keyframes transition-pulse-glow {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.55;
-    transform: scale(0.85);
-  }
-}
-
-/* Center Content: Counter, Progress & Destination Reveal */
-.transition-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-  margin: auto 0;
-  width: 100%;
-}
-
-.transition-counter-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
-/* Animated Percentage Counter */
-.transition-counter {
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
-  font-family: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
-  font-size: clamp(64px, 13vw, 118px);
-  font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: -3.5px;
-  color: #ffffff;
-  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.55);
-  font-variant-numeric: tabular-nums;
-}
-
-.transition-counter-number {
-  display: inline-block;
-  min-width: 2.2ch;
-  text-align: right;
-}
-
-.transition-counter-percent {
-  font-size: clamp(28px, 5.5vw, 50px);
-  font-weight: 750;
-  color: #10b981;
-  margin-left: 6px;
-  text-shadow: 0 0 20px rgba(16, 185, 129, 0.65);
-}
-
-/* Thin Glowing Progress Bar */
-.transition-progress-track {
-  width: clamp(210px, 42vw, 360px);
+.curtain-pulse-bar {
+  width: 36px;
   height: 3px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   overflow: hidden;
-  margin-top: 16px;
   position: relative;
 }
 
-.transition-progress-fill {
+.curtain-pulse-dot {
+  display: block;
+  width: 14px;
   height: 100%;
-  background: linear-gradient(90deg, #059669 0%, #10b981 70%, #34d399 100%);
-  box-shadow: 0 0 14px rgba(16, 185, 129, 0.85);
   border-radius: 999px;
-  will-change: width;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: curtain-sweep 1.2s ease-in-out infinite alternate;
 }
 
-/* Dynamic Destination Title Reveal */
-.transition-destination {
-  margin-top: clamp(22px, 4vw, 34px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  will-change: transform, opacity;
+@keyframes curtain-sweep {
+  0% {
+    transform: translateX(-10px);
+  }
+  100% {
+    transform: translateX(32px);
+  }
 }
 
-.transition-eyebrow-row {
-  margin-bottom: 8px;
-}
-
-.transition-eyebrow {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2.4px;
-  text-transform: uppercase;
-  color: #6ee7b7;
-  text-shadow: 0 0 10px rgba(110, 231, 183, 0.35);
-}
-
-.transition-title {
-  font-size: clamp(26px, 4.8vw, 44px);
-  font-weight: 750;
-  letter-spacing: -0.8px;
-  line-height: 1.15;
-  color: #ffffff;
-  margin: 0;
-}
-
-.transition-subtitle {
-  font-size: clamp(13px, 1.9vw, 15px);
-  font-weight: 450;
-  color: rgba(255, 255, 255, 0.65);
-  margin-top: 8px;
-  margin-bottom: 0;
-  max-width: 440px;
-}
-
-/* Minimal Footer inside Overlay */
-.transition-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  font-size: 11px;
-  letter-spacing: 0.8px;
-  color: rgba(255, 255, 255, 0.35);
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-/* Outgoing Page Animation on <main> */
+/* Outgoing Page Animation */
 .main-content.page-outgoing {
-  transform: scale(0.985);
-  opacity: 0.65;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+  transform: translate3d(0, -8px, 0);
+  opacity: 0.85;
+  transition: transform 0.18s ease-out, opacity 0.18s ease-out;
   pointer-events: none;
 }
 
-/* Incoming Page Settle Animation */
-.page-incoming-settle {
-  animation: page-settle 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+/* Host Container during Preparation */
+.page-preparing-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
-@keyframes page-settle {
+/* Phase 3 – Upward Swipe Reveal: The new page enters from bottom to top */
+.page-upward-swipe-enter {
+  animation: page-upward-swipe 0.38s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+  will-change: transform, opacity;
+}
+
+@keyframes page-upward-swipe {
   0% {
-    opacity: 0.75;
-    transform: translate3d(0, 10px, 0);
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.8;
   }
   100% {
-    opacity: 1;
     transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
 }
 
 /* Accessibility: Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
-  .page-transition-overlay {
+  .page-transition-curtain {
     display: none !important;
   }
   .main-content.page-outgoing {
     transform: none !important;
     opacity: 1 !important;
   }
-  .page-incoming-settle {
+  .page-preparing-hidden {
+    opacity: 1 !important;
+    pointer-events: all !important;
+  }
+  .page-upward-swipe-enter {
     animation: none !important;
     transform: none !important;
-  }
-}
-
-/* Mobile Responsiveness (<= 480px) */
-@media (max-width: 480px) {
-  .page-transition-overlay {
-    padding: 24px 20px;
-  }
-  .transition-brand-logo {
-    height: 24px;
-  }
-  .transition-system-pill {
-    font-size: 10px;
-    padding: 4px 10px;
-    letter-spacing: 1px;
-  }
-  .transition-footer {
-    font-size: 10px;
+    opacity: 1 !important;
   }
 }

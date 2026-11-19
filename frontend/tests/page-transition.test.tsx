@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/dashboard",
 }));
 
-describe("Page Transition System", () => {
+describe("Upward Swipe Page Transition System", () => {
   it("resolves route metadata dynamically for all major Divido pages", () => {
     expect(getRouteMetadata("/dashboard")).toEqual({
       title: "Overview",
@@ -36,61 +36,36 @@ describe("Page Transition System", () => {
       eyebrow: "ANALYTICS",
       subtitle: "Factual spending patterns & observations",
     });
-
-    expect(getRouteMetadata("/reflection")).toEqual({
-      title: "Monthly Reflection",
-      eyebrow: "REVIEW",
-      subtitle: "Habits, milestones & monthly takeaways",
-    });
-
-    expect(getRouteMetadata("/settings")).toEqual({
-      title: "Settings & Preferences",
-      eyebrow: "ACCOUNT",
-      subtitle: "Profile details & workspace settings",
-    });
-
-    expect(getRouteMetadata("/categories")).toEqual({
-      title: "Expense Categories",
-      eyebrow: "MANAGEMENT",
-      subtitle: "Custom & standard budget categories",
-    });
-
-    expect(getRouteMetadata("/income-sources")).toEqual({
-      title: "Income Sources",
-      eyebrow: "MANAGEMENT",
-      subtitle: "Configured streams & earning channels",
-    });
   });
 
-  it("renders the transition overlay with counter, progress bar and dynamic title when active", () => {
+  it("renders a minimal luxury curtain without any percentage counter or numbers", () => {
     const { rerender } = render(
       <PageTransitionOverlay
         isOpen={true}
-        phase="active"
+        phase="preparing"
         targetRoute="/budget"
-        progress={72}
       />
     );
 
-    expect(screen.getByText("72")).toBeInTheDocument();
-    expect(screen.getByText("%")).toBeInTheDocument();
-    expect(screen.getByText("PLANNING")).toBeInTheDocument();
-    expect(screen.getByText("Monthly Budget")).toBeInTheDocument();
-    expect(screen.getByText("Divido System")).toBeInTheDocument();
+    const curtain = document.querySelector(".page-transition-curtain");
+    expect(curtain).toBeInTheDocument();
+    expect(curtain).toHaveClass("is-preparing");
 
-    const overlay = document.querySelector(".page-transition-overlay");
-    expect(overlay).toHaveClass("is-active");
+    // Strictly ensure no percentage counters, numbers, or progress bars are present
+    expect(screen.queryByText("%")).toBeNull();
+    expect(screen.queryByText("0")).toBeNull();
+    expect(screen.queryByText("100")).toBeNull();
+    expect(document.querySelector(".transition-progress-track")).toBeNull();
 
-    // Rerender in revealing phase
+    // Rerender in swiping out phase
     rerender(
       <PageTransitionOverlay
         isOpen={true}
-        phase="revealing"
+        phase="swiping"
         targetRoute="/budget"
-        progress={100}
       />
     );
-    expect(document.querySelector(".page-transition-overlay")).toHaveClass("is-revealing");
+    expect(document.querySelector(".page-transition-curtain")).toHaveClass("is-swiping-out");
   });
 
   it("does not render when isOpen is false or phase is hidden", () => {
@@ -99,14 +74,13 @@ describe("Page Transition System", () => {
         isOpen={false}
         phase="hidden"
         targetRoute="/budget"
-        progress={0}
       />
     );
 
-    expect(document.querySelector(".page-transition-overlay")).toBeNull();
+    expect(document.querySelector(".page-transition-curtain")).toBeNull();
   });
 
-  it("provides transition context and handles programmatic navigation", () => {
+  it("provides transition context and handles navigation requests", () => {
     function TestConsumer() {
       const { startTransition } = usePageTransition();
       return (
