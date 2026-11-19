@@ -31,12 +31,14 @@ export function TransactionFormDialog({
   type,
   transaction,
   onClose,
+  onBack,
   onDelete,
   onSaved,
 }: {
   type: TransactionType;
   transaction?: Transaction;
   onClose: () => void;
+  onBack?: () => void;
   onDelete?: () => void;
   onSaved: (message: string) => void;
 }) {
@@ -118,7 +120,7 @@ export function TransactionFormDialog({
   const optionsLoading = options.status === "loading";
 
   return (
-    <Modal className="record-modal" title={title} onClose={onClose}>
+    <Modal className="record-modal" title={title} onClose={onClose} onBack={onBack}>
       <form onSubmit={submit} className="transaction-form" noValidate aria-busy={pending}>
         <FormError message={formError} />
         <MoneyField label="Amount" required variant="large" name="amount" autoFocus value={amount} onChange={setAmount} error={fieldErrors.amount} />

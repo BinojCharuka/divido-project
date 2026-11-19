@@ -44,6 +44,7 @@ export function TransactionDialogs({
           type={state.type}
           transaction={transaction}
           onClose={close}
+          onBack={!transaction ? () => onStateChange({ mode: "choose" }) : undefined}
           onDelete={transaction ? () => onStateChange({ mode: "delete", transaction }) : undefined}
           onSaved={finish}
         />

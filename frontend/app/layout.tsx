@@ -22,11 +22,25 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0f0d" },
+  ],
 };
 
 export const metadata: Metadata = {
-  title: "Divido",
+  title: "Divido – Personal Budgeting",
   description: "Personal budgeting with Divido.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Divido",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: "/webp/Logo-flavicon - 250px.webp", type: "image/webp" },
@@ -36,9 +50,14 @@ export const metadata: Metadata = {
         media: "(prefers-color-scheme: dark)",
       },
       { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     shortcut: "/webp/Logo-flavicon - 250px.webp",
-    apple: "/webp/Logo-flavicon - 250px.webp",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/webp/Logo-flavicon - 250px.webp" },
+    ],
   },
 };
 
