@@ -7,9 +7,9 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 /** The four headline figures for the month. Planned ones read "Not planned" without a plan. */
 export function SummaryCards({ dashboard: d }: { dashboard: Dashboard }) {
   const cards: { label: string; value: string | null; icon: LucideIcon; note?: string; className?: string }[] = [
-    { label: "Planned income", value: d.plannedIncome, icon: Wallet },
-    { label: "Recorded income", value: d.recordedIncome, icon: ArrowDownLeft, note: plural(d.incomeTransactionCount, "record", "records") },
-    { label: "Spent this month", value: d.totalSpent, icon: ArrowUpRight, note: plural(d.expenseTransactionCount, "expense", "expenses") },
+    { label: "Planned income", value: d.plannedIncome, icon: Wallet, className: "planned-stat" },
+    { label: "Recorded income", value: d.recordedIncome, icon: ArrowDownLeft, note: plural(d.incomeTransactionCount, "record", "records"), className: "income-stat" },
+    { label: "Spent this month", value: d.totalSpent, icon: ArrowUpRight, note: plural(d.expenseTransactionCount, "expense", "expenses"), className: "expense-stat" },
     { label: "Savings target", value: d.savingsTarget, icon: Target, className: "savings-stat" },
   ];
   return (

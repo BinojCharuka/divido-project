@@ -64,9 +64,9 @@ export function TransactionRows({
               </div>
               <span className="transaction-date">{formatDateDisplay(t.date)}</span>
               {full && (
-                <span className={`type-badge ${income ? "type-income" : ""}`}>{income ? "+ Income" : "− Expense"}</span>
+                <span className={`type-badge ${income ? "type-income" : "type-expense"}`}>{income ? "+ Income" : "− Expense"}</span>
               )}
-              <span className={`transaction-amount ${income ? "positive" : ""}`}>
+              <span className={`transaction-amount ${income ? "positive" : "expense"}`}>
                 {income ? "+" : "−"} LKR {amountDigits(t.amount)}
               </span>
               <ChevronRight className="row-chevron" size={15} aria-hidden="true" />

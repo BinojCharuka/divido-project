@@ -39,24 +39,29 @@
 html[data-theme='dark'],
 .dark {
   color-scheme: dark;
-  --page: #0b0f0d;
-  --white: #151a17;
+  --page: #0b0e0c;
+  --white: #111512;
+  --surface-secondary: #151b17;
+  --surface-elevated: #1a211c;
   --ink: #f2f5f3;
   --neutral-rgb: 242 245 243;
-  --muted: #abb2ac;
-  --faint: #6e7770;
-  --line: #ffffff1a;
-  --soft: #ffffff08;
-  --green-soft: #05966918;
-  --accent-foreground: #69da92;
-  --active-foreground: #69da92;
-  --positive: #69da92;
-  --nav-surface: #151a17f5;
-  --overlay: #00000099;
-  --shadow: #00000066;
+  --muted: #a5aea7;
+  --faint: #747f77;
+  --line: rgba(255, 255, 255, 0.09);
+  --soft: rgba(255, 255, 255, 0.035);
+  --green: #16a34a;
+  --green-accent: #4ade80;
+  --green-soft: rgba(22, 163, 74, 0.12);
+  --accent-foreground: #4ade80;
+  --active-foreground: #4ade80;
+  --positive: #4ade80;
+  --nav-surface: #111512f5;
+  --overlay: #000000b3;
+  --shadow: #00000080;
   --danger: #ef4444;
   --danger-hover: #dc2626;
-  --surface-subdued: #191e1a;
+  --warning: #f59e0b;
+  --surface-subdued: #151b17;
 }
 @layer base {
   html, body {
@@ -310,8 +315,12 @@ html[data-theme='dark'],
 .summary-value { font-weight: 600; font-size: 32px; letter-spacing: -1.1px; margin-top: 16px; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .summary-value > span { font-weight: 450; font-size: 15px; letter-spacing: -.3px; margin-right: 2px; }
 .summary-hint { font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 5px; margin-top: 12px; }
+.income-stat { border-color: rgba(22, 163, 74, 0.16); }
+.income-stat .summary-label svg { color: var(--green); }
+.expense-stat { border-color: rgba(239, 68, 68, 0.16); }
+.expense-stat .summary-label svg { color: var(--danger); }
 .savings-stat { background: #05966905; border-color: #05966924; }
-.savings-stat .summary-label svg { color: var(--green); }
+.savings-stat .summary-label svg { color: var(--accent-foreground); }
 .tiny-dot { width: 4px; height: 4px; background: var(--green); border-radius: 50%; }
 .budget-section { margin-top: 30px; }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 17px; }
@@ -331,7 +340,8 @@ html[data-theme='dark'],
 .budget-planned { font-size: 10px; color: var(--muted); margin-top: 5px; }
 .progress-track { height: 5px; background: rgb(var(--neutral-rgb) / 0.0314); border-radius: 10px; overflow: hidden; margin-top: 20px; }
 .progress-track > span { display: block; height: 100%; border-radius: 10px; background: var(--green); }
-.over-budget .progress-track > span { background: repeating-linear-gradient(120deg,var(--ink),var(--ink) 3px,rgb(var(--neutral-rgb) / 0.5020) 3px,rgb(var(--neutral-rgb) / 0.5020) 5px); }
+.over-budget .progress-track > span { background: repeating-linear-gradient(135deg, var(--danger) 0 6px, var(--danger-hover) 6px 12px); }
+.over-budget:hover { border-color: rgba(239, 68, 68, 0.5); }
 .budget-card-bottom { display: flex; justify-content: space-between; gap: 4px; font-size: 10px; margin-top: 9px; }
 .budget-card-bottom > span { display: flex; align-items: center; gap: 4px; color: var(--muted); }
 .budget-card-bottom > strong { font-weight: 500; font-size: 10px; }
@@ -352,6 +362,11 @@ html[data-theme='dark'],
 .transaction-description > span { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .transaction-date { width: 62px; font-size: 10px; color: var(--muted); flex-shrink: 0; }
 .transaction-amount { min-width: 102px; text-align: right; white-space: nowrap; font-size: 12px; font-weight: 550; letter-spacing: -.2px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.transaction-amount.positive { color: var(--positive); }
+.transaction-amount.expense { color: var(--danger); }
+.type-badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 9999px; font-size: 10px; font-weight: 500; white-space: nowrap; }
+.type-badge.type-income { color: var(--positive); background: var(--green-soft); border: 1px solid rgba(22, 163, 74, 0.2); }
+.type-badge.type-expense { color: var(--danger); background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.18); }
 .positive { color: var(--positive); }
 .row-chevron { display: none; }
 .recent-footer { padding: 14px 21px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 10px; }

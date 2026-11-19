@@ -39,12 +39,13 @@ export function Sidebar({
           {collapsed ? <ChevronRight size={15} aria-hidden="true" /> : <ChevronLeft size={15} aria-hidden="true" />}
         </button>
       </div>
-      <div className="workspace-label">Personal space</div>
       <nav className="desktop-nav" aria-label="Main navigation">
+        {!collapsed && <div className="workspace-label">MAIN</div>}
         {PRIMARY_NAV.map((item) => (
           <NavLink key={item.href} item={item} collapsed={collapsed} />
         ))}
         <div className="nav-divider" />
+        {!collapsed && <div className="workspace-label">PERSONAL</div>}
         {SECONDARY_NAV.map((item) => (
           <NavLink key={item.href} item={item} collapsed={collapsed} />
         ))}

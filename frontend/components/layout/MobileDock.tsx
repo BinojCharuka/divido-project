@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
 import { useIsClient } from "@/lib/useIsClient";
 import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
-import { BUDGET, DASHBOARD, isActive, SETTINGS, TRANSACTIONS, type NavItem } from "./navigation";
+import { BUDGET, DASHBOARD, INSIGHTS, isActive, TRANSACTIONS, type NavItem } from "./navigation";
 
 const LEFT: NavItem[] = [
   { ...DASHBOARD, label: "Overview" },
   { ...TRANSACTIONS, label: "History" },
 ];
-const RIGHT: NavItem[] = [BUDGET, SETTINGS];
+const RIGHT: NavItem[] = [BUDGET, INSIGHTS];
 
 /**
  * Floating bottom navigation for small screens. Rendered into <body> so transformed

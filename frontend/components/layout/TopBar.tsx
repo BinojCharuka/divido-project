@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CircleHelp, LayoutDashboard, LogOut, Moon, Settings, Sun } from "lucide-react";
+import { BookOpen, CircleHelp, LayoutDashboard, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { Brand } from "@/components/ui/Brand";
 import { IconButton } from "@/components/ui/IconButton";
 import { useDividoTheme } from "@/lib/theme";
@@ -87,9 +87,13 @@ export function TopBar({
               <div className="profile-dropdown">
                 <strong>{userName}</strong>
                 <span>{email}</span>
-                <Link href="/settings" className="profile-dropdown-link">
+                <Link href="/settings" className="profile-dropdown-link" onClick={() => setMenuOpen(false)}>
                   <Settings size={16} aria-hidden="true" />
                   Settings & preferences
+                </Link>
+                <Link href="/reflection" className="profile-dropdown-link" onClick={() => setMenuOpen(false)}>
+                  <BookOpen size={16} aria-hidden="true" />
+                  Monthly reflection
                 </Link>
                 <button type="button" onClick={menuAction(onHelp)}>
                   <CircleHelp size={16} aria-hidden="true" />

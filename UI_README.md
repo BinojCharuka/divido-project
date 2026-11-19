@@ -31,14 +31,20 @@ The design system supports both **Dark Mode (Default)** and **Light Mode**, driv
 
 | Token | Dark Theme (Default) | Light Theme | Usage |
 |---|---|---|---|
-| `--page` | `#0b0f0d` (Deep Obsidian) | `#ffffff` | Background of the application page |
-| `--white` | `#151a17` (Subtle Surface) | `#ffffff` | Card surfaces, modals, popovers |
+| `--page` | `#0b0e0c` (Deep Obsidian Void) | `#ffffff` | Background of the application page |
+| `--white` | `#111512` (Card Surface) | `#ffffff` | Primary card surfaces, modals, popovers |
+| `--surface-secondary` | `#151b17` (Subdued Surface) | `#f8faf9` | Tag pills, badge fills, secondary panels |
+| `--surface-elevated` | `#1a211c` (Elevated Surface) | `#f0f3f1` | Modals, elevated cards, dropdown flyouts |
 | `--ink` | `#f2f5f3` (Crisp Off-White) | `#0b0f0d` | Primary headings, body copy |
-| `--muted` | `#abb2ac` (Slate Grey) | `#0b0f0d99` | Secondary text, labels, timestamps |
-| `--line` | `#ffffff1a` (Subtle Border) | `#0b0f0d14` | Card borders, dividers, table rows |
-| `--green` | `#059669` (Emerald) | `#059669` | Primary actions, recorded income, savings targets |
+| `--muted` | `#a5aea7` (Slate Grey) | `#0b0f0d99` | Secondary text, labels, timestamps |
+| `--faint` | `#747f77` (Muted Faint) | `#8a958e` | Disabled indicators, subtle icons |
+| `--line` | `rgba(255, 255, 255, 0.09)` | `#0b0f0d14` | Card borders, dividers, table rows |
+| `--soft` | `rgba(255, 255, 255, 0.035)` | `#00000008` | Ghost button hover, subtle backgrounds |
+| `--green` | `#16a34a` (Emerald Green) | `#16a34a` | Inflow/Income indicators, primary actions |
+| `--green-accent` | `#4ade80` (Mint / Positive) | `#15803d` | High-contrast positive values, savings milestones |
 | `--danger` | `#ef4444` (Vibrant Red) | `#dc2626` | Add Expense button, recorded expenses, delete flows |
-| `--surface-subdued` | `#191e1a` | `#f8faf9` | Tag pills, badge backgrounds, input fills |
+| `--warning` | `#f59e0b` (Amber Warning) | `#d97706` | Budget over-allocation notices (DEC-012) |
+| `--surface-subdued` | `#151b17` | `#f8faf9` | Input backgrounds, subtle chips |
 
 ### Typography: Inter Font Family
 * **Scale:**
@@ -74,16 +80,21 @@ All authenticated pages are wrapped in a unified layout (`AppShell.tsx` & `AppSh
 
 ### 1. Persistent Sidebar (Desktop)
 * Displays the Divido brand logo (`<Brand variant="full" />`).
-* Direct links to all primary sections with active indicator pills and Lucide icons.
+* Structured section headers:
+  * **MAIN:** Primary financial workflow (`Dashboard`, `Transactions`, `Budget`, `Insights`).
+  * **PERSONAL:** User introspection & preferences (`Monthly reflection`, `Settings`).
 * Collapsible state with quick user card and sign-out dialog trigger at the footer.
 
 ### 2. Top Bar
 * Dynamic route breadcrumb (`/ Dashboard`, `/ Transactions`, etc.).
 * Light/Dark mode toggle button.
-* User avatar showing the initials of the signed-in user.
+* User avatar with dropdown menu containing direct one-tap links to **Settings & preferences** and **Monthly reflection**, plus help dialog and sign-out.
 
 ### 3. Floating Mobile Dock (`MobileDock.tsx`)
 * Fixed bottom navigation dock designed for one-handed mobile use.
+* Primary 4 destinations:
+  * Left: **Overview** (`/dashboard`) and **History** (`/transactions`).
+  * Right: **Budget** (`/budget`) and **Insights** (`/insights`).
 * Center prominent circular action button (`+`) that summons the quick-add transaction modal.
 * Fully centered layout preventing clipping on iOS Safari and mobile Chrome.
 
@@ -186,7 +197,10 @@ All authenticated pages are wrapped in a unified layout (`AppShell.tsx` & `AppSh
 
 ### 8. Settings & Account Lifecycle (`/settings`)
 * **Profile Form:** Update public Display Name with instantaneous update across the top bar.
-* **Password Management:** Change password with mandatory current password validation; triggers session invalidation across other devices.
+* **Security & Password Management:** Change password with mandatory current password validation; triggers session invalidation across other devices.
+* **Financial Management Shortcuts:** Quick links to manage Categories and Income Sources directly from Settings.
+* **Financial Preferences:** Displays active base currency (LKR) and standard 2-decimal formatting.
+* **Appearance & Theme:** In-page theme toggles for Dark, Light, and System preference.
 * **Danger Zone:**
   * Distinct red outlined panel for permanently deleting the user account and cascading all financial data.
 

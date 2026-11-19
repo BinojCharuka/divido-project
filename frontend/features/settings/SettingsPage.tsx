@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, BriefcaseBusiness, Check, CircleUserRound, Moon, ShoppingBasket, Sun } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, CircleUserRound, Lock, Moon, ShoppingBasket, Sliders, Sun } from "lucide-react";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -24,13 +24,13 @@ export function SettingsPage() {
     <>
       <PageHeading title="Settings" />
       <div className="settings-overview">
-        <section className="panel settings-block" aria-labelledby="account-heading">
+        <section className="panel settings-block" aria-labelledby="profile-heading">
           <div className="settings-block-heading">
             <span className="group-icon" aria-hidden="true">
               <CircleUserRound size={20} />
             </span>
             <div>
-              <h2 id="account-heading">Account</h2>
+              <h2 id="profile-heading">Profile</h2>
             </div>
           </div>
           <dl className="account-details account-email">
@@ -40,6 +40,20 @@ export function SettingsPage() {
             </div>
           </dl>
           <DisplayNameForm key={user?.displayName} />
+        </section>
+
+        <section className="panel settings-block" aria-labelledby="security-heading">
+          <div className="settings-block-heading">
+            <span className="group-icon" aria-hidden="true">
+              <Lock size={20} />
+            </span>
+            <div>
+              <h2 id="security-heading">Security</h2>
+            </div>
+          </div>
+          <p className="text-sm text-zinc-400 mb-4 leading-relaxed">
+            Changing your password updates your credentials and automatically invalidates any other active sessions.
+          </p>
           <details
             className="profile-details"
             open={passwordOpen}
@@ -50,10 +64,11 @@ export function SettingsPage() {
           </details>
         </section>
 
-        <section className="settings-block" aria-labelledby="money-heading">
+        <section className="settings-block" aria-labelledby="management-heading">
           <div className="section-heading">
             <div>
-              <h2 id="money-heading">Your money labels</h2>
+              <h2 id="management-heading">Management</h2>
+              <p>Labels for your expenses and income</p>
             </div>
           </div>
           <div className="management-links">
@@ -84,10 +99,13 @@ export function SettingsPage() {
           </div>
         </section>
 
-        <section className="panel settings-block" aria-labelledby="region-heading">
+        <section className="panel settings-block" aria-labelledby="preferences-heading">
           <div className="settings-block-heading">
+            <span className="group-icon" aria-hidden="true">
+              <Sliders size={20} />
+            </span>
             <div>
-              <h2 id="region-heading">Region</h2>
+              <h2 id="preferences-heading">Financial preferences</h2>
             </div>
           </div>
           <dl className="regional-tiles">
