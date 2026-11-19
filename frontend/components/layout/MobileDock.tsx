@@ -26,7 +26,7 @@ const RIGHT_ITEMS: DockItem[] = [
 ];
 
 /**
- * Floating Liquid Glass Mobile Bottom Navigation with Jelly Selection Interaction.
+ * Floating Liquid Glass Mobile Bottom Navigation with Perfectly Balanced Symmetric Wings.
  * Rendered into <body> via React Portal so transformed ancestors cannot offset its fixed position.
  */
 export function MobileDock({ onAdd }: { onAdd: () => void }) {
@@ -62,7 +62,9 @@ export function MobileDock({ onAdd }: { onAdd: () => void }) {
 
   return createPortal(
     <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
-      {LEFT_ITEMS.map(renderItem)}
+      <div className="mobile-dock-wing left">
+        {LEFT_ITEMS.map(renderItem)}
+      </div>
       <button
         type="button"
         className="mobile-add"
@@ -71,7 +73,9 @@ export function MobileDock({ onAdd }: { onAdd: () => void }) {
       >
         <Plus size={24} strokeWidth={2.6} className="mobile-add-icon" aria-hidden="true" />
       </button>
-      {RIGHT_ITEMS.map(renderItem)}
+      <div className="mobile-dock-wing right">
+        {RIGHT_ITEMS.map(renderItem)}
+      </div>
     </nav>,
     document.body,
   );

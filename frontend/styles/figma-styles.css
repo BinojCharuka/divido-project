@@ -1331,7 +1331,16 @@ html:not(.dark) .dashboard-savings-note,
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     box-shadow: 0 20px 48px -6px rgba(0, 0, 0, 0.75), 0 6px 16px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
   }
-  .mobile-bottom-nav > :is(a, button):not(.mobile-add) {
+  /* Symmetric wings ensuring central + button remains permanently in the exact dead center */
+  .mobile-dock-wing {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    height: 100% !important;
+  }
+  .mobile-dock-wing > .mobile-nav-link {
     flex: 1 1 0 !important;
     min-width: 0 !important;
     display: flex !important;
@@ -1345,14 +1354,10 @@ html:not(.dark) .dashboard-savings-note,
     cursor: pointer !important;
     box-sizing: border-box !important;
     padding: 0 2px !important;
-    transition: flex 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.2s ease !important;
     -webkit-tap-highlight-color: transparent !important;
   }
-  .mobile-bottom-nav > :is(a, button):not(.mobile-add):active {
+  .mobile-dock-wing > .mobile-nav-link:active {
     transform: scale(0.92) !important;
-  }
-  .mobile-bottom-nav > :is(a, button):not(.mobile-add).active {
-    flex: 1.35 1 0 !important;
   }
 
   /* Nav Pill container wrapping icon and label */
@@ -1363,7 +1368,7 @@ html:not(.dark) .dashboard-savings-note,
     justify-content: center !important;
     gap: 3px !important;
     width: 100% !important;
-    max-width: 86px !important;
+    max-width: 78px !important;
     height: 48px !important;
     border-radius: 9999px !important;
     box-sizing: border-box !important;
@@ -1371,7 +1376,7 @@ html:not(.dark) .dashboard-savings-note,
     background: transparent !important;
     border: 1px solid transparent !important;
     color: #64748b !important;
-    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.25s ease, box-shadow 0.25s ease !important;
   }
   :root[data-theme='dark'] .mobile-nav-pill,
   .dark .mobile-nav-pill {
@@ -1397,36 +1402,36 @@ html:not(.dark) .dashboard-savings-note,
   }
 
   /* Active Jelly Pill Effect */
-  .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-pill {
+  .mobile-nav-link.active .mobile-nav-pill {
     background: rgba(16, 185, 129, 0.13) !important;
     border: 1px solid rgba(16, 185, 129, 0.32) !important;
     color: #059669 !important;
     box-shadow: 0 3px 12px -1px rgba(16, 185, 129, 0.18) !important;
     animation: nav-jelly-squish 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
   }
-  .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-icon {
+  .mobile-nav-link.active .mobile-nav-icon {
     color: #059669 !important;
     animation: nav-icon-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
   }
-  .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-label {
+  .mobile-nav-link.active .mobile-nav-label {
     color: #047857 !important;
     font-weight: 600 !important;
   }
 
   /* Dark mode active jelly pill */
-  :root[data-theme='dark'] .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-pill,
-  .dark .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-pill {
+  :root[data-theme='dark'] .mobile-nav-link.active .mobile-nav-pill,
+  .dark .mobile-nav-link.active .mobile-nav-pill {
     background: rgba(16, 185, 129, 0.22) !important;
     border-color: rgba(52, 211, 153, 0.4) !important;
     color: #34d399 !important;
     box-shadow: 0 4px 16px -2px rgba(16, 185, 129, 0.32) !important;
   }
-  :root[data-theme='dark'] .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-icon,
-  .dark .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-icon {
+  :root[data-theme='dark'] .mobile-nav-link.active .mobile-nav-icon,
+  .dark .mobile-nav-link.active .mobile-nav-icon {
     color: #34d399 !important;
   }
-  :root[data-theme='dark'] .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-label,
-  .dark .mobile-bottom-nav > :is(a, button):not(.mobile-add).active .mobile-nav-label {
+  :root[data-theme='dark'] .mobile-nav-link.active .mobile-nav-label,
+  .dark .mobile-nav-link.active .mobile-nav-label {
     color: #34d399 !important;
   }
 
