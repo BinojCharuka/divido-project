@@ -1338,6 +1338,7 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
 .account-action p { font-size: 10px; color: var(--muted); margin-top: 7px; }
 .modal { position: fixed; inset: 0; margin: auto; border: 1px solid var(--line); border-radius: 17px; padding: 27px; width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow-y: auto; color: var(--ink); background: var(--white); box-shadow: 0 20px 80px var(--shadow); }
 .modal::backdrop { background: var(--overlay); backdrop-filter: blur(3px); }
+.sheet-drag-handle-area { display: none; }
 .modal-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 26px; }
 .modal-title-wrap { display: flex; align-items: center; gap: 12px; }
 .modal-back-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--soft); color: var(--ink); cursor: pointer; flex-shrink: 0; margin-right: 2px; -webkit-tap-highlight-color: transparent; transition: background 0.15s ease, transform 0.15s ease; }
@@ -1950,26 +1951,67 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
     margin: auto 0 0 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    max-height: 92dvh !important;
+    max-height: 86dvh !important;
     border-radius: 24px 24px 0 0 !important;
     border-bottom: none !important;
     border-left: none !important;
     border-right: none !important;
-    padding: 22px 20px max(26px, env(safe-area-inset-bottom, 16px)) 20px !important;
+    padding: 12px 20px max(26px, env(safe-area-inset-bottom, 16px)) 20px !important;
     box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.45) !important;
-    animation: sheet-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    animation: sheet-slide-up 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
     overflow-y: auto !important;
     overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
+    will-change: transform, height, max-height !important;
+    transition: height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                max-height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .modal.sheet-is-expanded {
+    height: 96dvh !important;
+    max-height: 96dvh !important;
+  }
+  .modal.sheet-is-closing {
+    transform: translate3d(0, 105%, 0) !important;
+    transition: transform 0.22s cubic-bezier(0.32, 0, 0.67, 0) !important;
   }
   .modal::before {
-    content: '' !important;
-    display: block !important;
-    width: 38px !important;
-    height: 4.5px !important;
+    display: none !important;
+  }
+  .sheet-drag-handle-area {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    padding: 8px 0 14px 0 !important;
+    margin: -4px 0 8px 0 !important;
+    cursor: grab !important;
+    touch-action: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+  }
+  .sheet-drag-handle-area:active {
+    cursor: grabbing !important;
+  }
+  .sheet-drag-handle-pill {
+    width: 40px !important;
+    height: 5px !important;
     border-radius: 9999px !important;
-    background: var(--line) !important;
-    opacity: 0.75 !important;
-    margin: -8px auto 16px auto !important;
+    background: rgba(255, 255, 255, 0.24) !important;
+    transition: width 0.22s ease, background 0.2s ease, transform 0.2s ease !important;
+  }
+  :root[data-theme='light'] .sheet-drag-handle-pill,
+  html:not(.dark) .sheet-drag-handle-pill {
+    background: rgba(0, 0, 0, 0.2) !important;
+  }
+  .sheet-drag-handle-area:hover .sheet-drag-handle-pill,
+  .sheet-drag-handle-area:active .sheet-drag-handle-pill {
+    background: #10b981 !important;
+    transform: scaleY(1.25) !important;
+  }
+  .sheet-drag-handle-pill.is-expanded {
+    width: 52px !important;
+    background: rgba(16, 185, 129, 0.85) !important;
   }
   @keyframes sheet-slide-up {
     from {
