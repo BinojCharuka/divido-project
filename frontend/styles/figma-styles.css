@@ -799,22 +799,21 @@ html:not(.dark) .dashboard-savings-note,
   }
 }
 
-/* Compact Group Breakdown Card in Dashboard Reference Frame */
-.dashboard-group-breakdown-card {
-  margin-top: 4px;
-  background: #0f1411;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 16px 18px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+/* Standalone Group Breakdown (Card-by-Card) in Dashboard Reference Frame */
+.dashboard-reference-frame .budget-section {
+  margin-top: 18px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
 }
-.dashboard-group-breakdown-card .section-heading {
+.dashboard-reference-frame .budget-section .section-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
-.dashboard-group-breakdown-card .section-heading h2 {
+.dashboard-reference-frame .budget-section .section-heading h2 {
   font-size: 14px;
   font-weight: 650;
   color: #ffffff;
@@ -823,7 +822,7 @@ html:not(.dark) .dashboard-savings-note,
   gap: 8px;
   margin: 0;
 }
-.dashboard-group-breakdown-card .section-heading .text-button {
+.dashboard-reference-frame .budget-section .section-heading .text-button {
   font-size: 12px;
   font-weight: 550;
   color: #10b981;
@@ -831,77 +830,94 @@ html:not(.dark) .dashboard-savings-note,
   align-items: center;
   gap: 4px;
 }
-.dashboard-group-breakdown-card .budget-grid {
+.dashboard-reference-frame .budget-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
-.dashboard-group-breakdown-card .budget-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
+.dashboard-reference-frame .budget-card {
+  background: #0f1411;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
   padding: 12px 14px;
   min-height: auto !important;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
-.dashboard-group-breakdown-card .budget-card:hover {
+.dashboard-reference-frame .budget-card:hover {
   border-color: rgba(16, 185, 129, 0.4);
   background: rgba(16, 185, 129, 0.04);
+  transform: translateY(-1px);
 }
-.dashboard-group-breakdown-card .budget-card-top {
+.dashboard-reference-frame .budget-card-top {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   margin-bottom: 8px;
 }
-.dashboard-group-breakdown-card .group-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+.dashboard-reference-frame .group-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  flex-shrink: 0;
 }
-.dashboard-group-breakdown-card .group-icon svg {
+.dashboard-reference-frame .group-icon svg {
   width: 14px;
   height: 14px;
 }
-.dashboard-group-breakdown-card .group-badge {
-  font-size: 12px;
+.dashboard-reference-frame .budget-name {
+  font-size: 13px;
   font-weight: 600;
+  line-height: 1;
   color: #ffffff;
 }
-.dashboard-group-breakdown-card .budget-arrow {
+.dashboard-reference-frame .budget-arrow {
   width: 13px;
   height: 13px;
   margin-left: auto;
   opacity: 0.45;
+  transition: opacity 0.15s ease, color 0.15s ease;
 }
-.dashboard-group-breakdown-card .budget-value {
+.dashboard-reference-frame .budget-card:hover .budget-arrow {
+  opacity: 0.9;
+  color: #10b981;
+}
+.dashboard-reference-frame .budget-value {
   font-size: 15px;
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.3px;
   line-height: 1.15;
 }
-.dashboard-group-breakdown-card .budget-value > span {
+.dashboard-reference-frame .budget-value > span {
   font-size: 10px;
   font-weight: 400;
   color: #a5aea7;
 }
-.dashboard-group-breakdown-card .budget-planned {
+.dashboard-reference-frame .budget-planned {
   font-size: 10px;
   color: #71717a;
   margin-top: 2px;
 }
-.dashboard-group-breakdown-card .progress-track {
+.dashboard-reference-frame .progress-track {
   height: 4px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   margin-top: 8px;
   overflow: hidden;
 }
-.dashboard-group-breakdown-card .budget-card-bottom {
+.dashboard-reference-frame .progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #10b981;
+}
+.dashboard-reference-frame .budget-card-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -909,81 +925,108 @@ html:not(.dark) .dashboard-savings-note,
   font-size: 10px;
   color: #a5aea7;
 }
-.dashboard-group-breakdown-card .budget-card-bottom > strong {
+.dashboard-reference-frame .budget-card-bottom > strong {
   font-size: 10px;
   font-weight: 650;
   color: #ffffff;
 }
 
-/* Light mode for Group Breakdown Card */
-html:not(.dark) .dashboard-group-breakdown-card,
-:root[data-theme='light'] .dashboard-group-breakdown-card {
+/* Light mode for Group Breakdown in Reference Frame */
+html:not(.dark) .dashboard-reference-frame .budget-section .section-heading h2,
+:root[data-theme='light'] .dashboard-reference-frame .budget-section .section-heading h2 {
+  color: #0b0f0d;
+}
+html:not(.dark) .dashboard-reference-frame .budget-card,
+:root[data-theme='light'] .dashboard-reference-frame .budget-card {
   background: #f8faf8;
   border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
-html:not(.dark) .dashboard-group-breakdown-card .section-heading h2,
-:root[data-theme='light'] .dashboard-group-breakdown-card .section-heading h2 {
-  color: #0b0f0d;
-}
-html:not(.dark) .dashboard-group-breakdown-card .budget-card,
-:root[data-theme='light'] .dashboard-group-breakdown-card .budget-card {
-  background: #ffffff;
+html:not(.dark) .dashboard-reference-frame .group-icon,
+:root[data-theme='light'] .dashboard-reference-frame .group-icon {
+  background: rgba(0, 0, 0, 0.035);
   border: 1px solid rgba(0, 0, 0, 0.06);
-}
-html:not(.dark) .dashboard-group-breakdown-card .group-badge,
-:root[data-theme='light'] .dashboard-group-breakdown-card .group-badge {
   color: #0b0f0d;
 }
-html:not(.dark) .dashboard-group-breakdown-card .budget-value,
-:root[data-theme='light'] .dashboard-group-breakdown-card .budget-value {
+html:not(.dark) .dashboard-reference-frame .budget-name,
+:root[data-theme='light'] .dashboard-reference-frame .budget-name {
   color: #0b0f0d;
 }
-html:not(.dark) .dashboard-group-breakdown-card .budget-value > span,
-:root[data-theme='light'] .dashboard-group-breakdown-card .budget-value > span {
+html:not(.dark) .dashboard-reference-frame .budget-value,
+:root[data-theme='light'] .dashboard-reference-frame .budget-value {
+  color: #0b0f0d;
+}
+html:not(.dark) .dashboard-reference-frame .budget-value > span,
+:root[data-theme='light'] .dashboard-reference-frame .budget-value > span {
   color: #64748b;
 }
-html:not(.dark) .dashboard-group-breakdown-card .budget-card-bottom > strong,
-:root[data-theme='light'] .dashboard-group-breakdown-card .budget-card-bottom > strong {
+html:not(.dark) .dashboard-reference-frame .budget-planned,
+:root[data-theme='light'] .dashboard-reference-frame .budget-planned {
+  color: #64748b;
+}
+html:not(.dark) .dashboard-reference-frame .progress-track,
+:root[data-theme='light'] .dashboard-reference-frame .progress-track {
+  background: rgba(0, 0, 0, 0.06);
+}
+html:not(.dark) .dashboard-reference-frame .budget-card-bottom,
+:root[data-theme='light'] .dashboard-reference-frame .budget-card-bottom {
+  color: #64748b;
+}
+html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
+:root[data-theme='light'] .dashboard-reference-frame .budget-card-bottom > strong {
   color: #0b0f0d;
 }
 
 @media (max-width: 640px) {
-  .dashboard-group-breakdown-card {
-    padding: 13px 14px;
-    border-radius: 14px;
-  }
-  .dashboard-group-breakdown-card .budget-grid {
+  .dashboard-reference-frame .budget-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
   }
-  .dashboard-group-breakdown-card .budget-card {
+  .dashboard-reference-frame .budget-card {
     padding: 10px 11px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
-  .dashboard-group-breakdown-card .budget-card-top {
+  .dashboard-reference-frame .budget-card-top {
     margin-bottom: 6px;
-    gap: 5px;
+    gap: 6px;
   }
-  .dashboard-group-breakdown-card .group-icon {
+  .dashboard-reference-frame .group-icon {
     width: 22px;
     height: 22px;
   }
-  .dashboard-group-breakdown-card .group-badge {
+  .dashboard-reference-frame .group-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+  .dashboard-reference-frame .budget-name {
     font-size: 11px;
   }
-  .dashboard-group-breakdown-card .budget-value {
+  .dashboard-reference-frame .budget-value {
     font-size: 13px;
   }
-  .dashboard-group-breakdown-card .budget-planned {
+  .dashboard-reference-frame .budget-planned {
     font-size: 9px;
   }
-  .dashboard-group-breakdown-card .budget-card-bottom {
+  .dashboard-reference-frame .budget-card-bottom {
     font-size: 9px;
   }
-  .dashboard-group-breakdown-card .budget-card-bottom > strong {
+  .dashboard-reference-frame .budget-card-bottom > strong {
     font-size: 9px;
   }
+}
+
+/* Dashboard Lower: Recent transactions only below group breakdown */
+.dashboard-lower {
+  display: block !important;
+  width: 100% !important;
+  margin-top: 22px !important;
+}
+
+.dashboard-side {
+  display: none !important;
+}
+
+.recent-section {
+  width: 100% !important;
 }
 .budget-section { margin-top: 30px; }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 17px; }

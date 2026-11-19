@@ -113,3 +113,4 @@ export function getRouteMetadata(pathname: string): RouteMetadata {
     subtitle: "Personal budgeting workspace",
   };
 }
+

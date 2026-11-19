@@ -72,7 +72,7 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
             </div>
             <SummaryCards dashboard={data.data.dashboard} />
 
-            <section className="budget-section dashboard-group-breakdown-card" aria-labelledby="breakdown-heading">
+            <section className="budget-section" aria-labelledby="breakdown-heading">
               <div className="section-heading">
                 <h2 id="breakdown-heading">
                   Group breakdown <span className="subtle-tag">{monthLabel}</span>

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowUpRight, TriangleAlert } from "lucide-react";
-import { GroupBadge } from "@/components/financial/GroupBadge";
 import { GROUP_META, pillarClass } from "@/components/financial/groups";
 import type { DashboardGroup } from "@/lib/api/dashboard";
 import { absAmount } from "@/lib/budget/plan";
@@ -21,9 +20,9 @@ export function GroupProgressCard({ group: g, href }: { group: DashboardGroup; h
     <Link href={href} className={`budget-card ${pillarClass(g.group)} ${over ? "over-budget" : ""}`}>
       <div className="budget-card-top">
         <span className="group-icon" aria-hidden="true">
-          <Icon size={19} strokeWidth={1.65} />
+          <Icon size={18} strokeWidth={1.75} />
         </span>
-        <GroupBadge group={g.group} />
+        <span className="budget-name">{label}</span>
         <ArrowUpRight size={16} className="budget-arrow" aria-hidden="true" />
       </div>
       <div className="budget-value">
