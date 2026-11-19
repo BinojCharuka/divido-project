@@ -230,7 +230,7 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **#22** | https://github.com/KasunHerath-dev/divido/pull/22 | `feature/div-037-backend-test-fix` | `main` | `0f2e7ad` | `MERGED` | Merged | DIV-037; squash commit `3a80c20`. |
 | **#23** | https://github.com/KasunHerath-dev/divido/pull/23 | `fix/div-039-production-route-safety` | `main` | `9fa0b5d` | `CLOSED` | Closed 2026-11-16 | DIV-039. Superseded by DIV-041 / PR #25 after DEC-029 was approved. Not merged. |
 | **#25** | https://github.com/KasunHerath-dev/divido/pull/25 | `feature/div-041-figma-ui-phase-03-completion` | `main` | `11ffcce` | `MERGED` | Merged 2026-11-16 | DIV-041 Figma UI as production UI; squash commit `2779a5e`. No CI configured; local checks recorded in Section B. |
-| — | — | `main` | `main` | `53ff227` | `COMMITTED` | Verified | Premium full-screen page transition system built from scratch (custom context, obsidian overlay, 0–100% percentage counter, glowing emerald progress bar, dynamic destination title reveal, and curtain lift exit). |
+| — | — | `main` | `main` | `3b1ea27` | `COMMITTED` | Verified | Compact Total Income and Total Expenses cards (side-by-side on mobile, min-height auto) and integrated compact Group Breakdown card in dashboard reference frame. |
 
 *Backup Branches:*
 - `backup/div-008-pre-cleanup` (SHA `fefe3b0`): Preserves full prototype including future-phase budget, dashboard, categories, and settings code.
