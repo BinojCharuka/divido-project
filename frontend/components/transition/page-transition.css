@@ -1,0 +1,284 @@
+/* ==========================================================================
+   Divido – Premium Full-Screen Page Transition System
+   Built from scratch with zero external dependencies.
+   ========================================================================== */
+
+/* Full-Screen Transition Overlay */
+.page-transition-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 999999;
+  background-color: #060807;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(20px, 4.5vw, 44px) clamp(18px, 5.5vw, 56px);
+  pointer-events: all;
+  user-select: none;
+  overflow: hidden;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  box-sizing: border-box;
+}
+
+/* Exit Curtain Lift: Smoothly wipes up off the screen to reveal destination */
+.page-transition-overlay.is-revealing {
+  transform: translate3d(0, -100%, 0);
+  transition: transform 0.38s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* Ambient Radial Emerald Glow in the background */
+.transition-ambient-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(16, 185, 129, 0.12) 0%,
+    rgba(5, 150, 105, 0.04) 45%,
+    transparent 72%
+  );
+  z-index: 1;
+}
+
+/* Top Header inside Overlay */
+.transition-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.transition-brand {
+  display: flex;
+  align-items: center;
+}
+
+.transition-brand-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
+
+.transition-system-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: #a7f3d0;
+  background: rgba(5, 150, 105, 0.14);
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+.transition-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: transition-pulse-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes transition-pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+}
+
+/* Center Content: Counter, Progress & Destination Reveal */
+.transition-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  margin: auto 0;
+  width: 100%;
+}
+
+.transition-counter-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Animated Percentage Counter */
+.transition-counter {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  font-family: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  font-size: clamp(64px, 13vw, 118px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -3.5px;
+  color: #ffffff;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.transition-counter-number {
+  display: inline-block;
+  min-width: 2.2ch;
+  text-align: right;
+}
+
+.transition-counter-percent {
+  font-size: clamp(28px, 5.5vw, 50px);
+  font-weight: 750;
+  color: #10b981;
+  margin-left: 6px;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.65);
+}
+
+/* Thin Glowing Progress Bar */
+.transition-progress-track {
+  width: clamp(210px, 42vw, 360px);
+  height: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 16px;
+  position: relative;
+}
+
+.transition-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #059669 0%, #10b981 70%, #34d399 100%);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.85);
+  border-radius: 999px;
+  will-change: width;
+}
+
+/* Dynamic Destination Title Reveal */
+.transition-destination {
+  margin-top: clamp(22px, 4vw, 34px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, opacity;
+}
+
+.transition-eyebrow-row {
+  margin-bottom: 8px;
+}
+
+.transition-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: #6ee7b7;
+  text-shadow: 0 0 10px rgba(110, 231, 183, 0.35);
+}
+
+.transition-title {
+  font-size: clamp(26px, 4.8vw, 44px);
+  font-weight: 750;
+  letter-spacing: -0.8px;
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0;
+}
+
+.transition-subtitle {
+  font-size: clamp(13px, 1.9vw, 15px);
+  font-weight: 450;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 8px;
+  margin-bottom: 0;
+  max-width: 440px;
+}
+
+/* Minimal Footer inside Overlay */
+.transition-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Outgoing Page Animation on <main> */
+.main-content.page-outgoing {
+  transform: scale(0.985);
+  opacity: 0.65;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+  pointer-events: none;
+}
+
+/* Incoming Page Settle Animation */
+.page-incoming-settle {
+  animation: page-settle 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes page-settle {
+  0% {
+    opacity: 0.75;
+    transform: translate3d(0, 10px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Accessibility: Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-overlay {
+    display: none !important;
+  }
+  .main-content.page-outgoing {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .page-incoming-settle {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Mobile Responsiveness (<= 480px) */
+@media (max-width: 480px) {
+  .page-transition-overlay {
+    padding: 24px 20px;
+  }
+  .transition-brand-logo {
+    height: 24px;
+  }
+  .transition-system-pill {
+    font-size: 10px;
+    padding: 4px 10px;
+    letter-spacing: 1px;
+  }
+  .transition-footer {
+    font-size: 10px;
+  }
+}

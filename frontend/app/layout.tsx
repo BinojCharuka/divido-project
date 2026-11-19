@@ -5,6 +5,7 @@ import "./globals.css";
 import "@/styles/figma-styles.css";
 import "@/styles/design-system.css";
 import "@/styles/app.css";
+import "@/components/transition/page-transition.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

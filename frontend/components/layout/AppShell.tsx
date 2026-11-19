@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { displayNameFor } from "@/lib/auth/displayName";
 import type { Transaction, TransactionType } from "@/types/transaction";
 import { AppShellContext, type AppShellActions } from "./AppShellContext";
+import { PageTransitionProvider, usePageTransition } from "@/components/transition/PageTransitionContext";
 import { HelpDialog } from "./HelpDialog";
 import { MobileDock } from "./MobileDock";
 import { Sidebar } from "./Sidebar";
@@ -29,8 +30,17 @@ function readCollapsed(): boolean {
  * open. Render it only inside <SessionBoundary>.
  */
 export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <PageTransitionProvider>
+      <AppShellInner>{children}</AppShellInner>
+    </PageTransitionProvider>
+  );
+}
+
+function AppShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { isTransitioning } = usePageTransition();
   // Safe to read storage up front: the shell renders only after the client-side session check.
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [dialog, setDialog] = useState<"help" | "signout" | null>(null);
@@ -85,8 +95,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             onHelp={() => setDialog("help")}
             onSignOut={() => setDialog("signout")}
           />
-          <main className="main-content">
-            <div key={pathname} className="page-transition-slide-down page-transition-water-droplet">
+          <main className={`main-content ${isTransitioning ? "page-outgoing" : ""}`}>
+            <div key={pathname} className="page-transition-slide-down page-incoming-settle">
               {children}
             </div>
           </main>
