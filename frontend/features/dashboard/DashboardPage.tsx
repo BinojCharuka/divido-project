@@ -44,17 +44,6 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
 
   return (
     <>
-      <div className="dashboard-action-bar">
-        <Button variant="destructive" onClick={() => openAdd("EXPENSE")}>
-          <Plus size={17} aria-hidden="true" />
-          Add expense
-        </Button>
-        <Button variant="primary" onClick={() => openAdd("INCOME")}>
-          <Plus size={17} aria-hidden="true" />
-          Add income
-        </Button>
-      </div>
-
       {data.status === "loading" && <LoadingPanel label="Loading dashboard…" />}
       {data.status === "error" && <InlineError message={data.message} onRetry={data.retry} />}
       {data.status === "ready" && (
@@ -65,8 +54,20 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
               <h1 className="dashboard-reference-greeting">
                 {name ? `Welcome back, ${name}` : "Welcome back"}
               </h1>
-              <div className="dashboard-reference-month-control">
-                <MonthSelector month={month} onChange={onMonthChange} />
+              <div className="dashboard-reference-controls">
+                <div className="dashboard-reference-month-control">
+                  <MonthSelector month={month} onChange={onMonthChange} />
+                </div>
+                <div className="dashboard-header-buttons desktop-only">
+                  <Button variant="destructive" onClick={() => openAdd("EXPENSE")}>
+                    <Plus size={15} aria-hidden="true" />
+                    Add expense
+                  </Button>
+                  <Button variant="primary" onClick={() => openAdd("INCOME")}>
+                    <Plus size={15} aria-hidden="true" />
+                    Add income
+                  </Button>
+                </div>
               </div>
             </div>
             <SummaryCards dashboard={data.data.dashboard} />
