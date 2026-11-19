@@ -1,7 +1,7 @@
 # Divido Master Progress Tracker
 
 **Status:** ACTIVE — Canonical Project Execution Tracker  
-**Last Verified Date:** 2026-11-18  
+**Last Verified Date:** 2026-11-20  
 **Single Source of Truth:** `docs/00-governance/progress-tracker.md`
 
 ---
@@ -230,6 +230,7 @@ All decisions cite canonical IDs from `docs/00-governance/decision-log.md`:
 | **#22** | https://github.com/KasunHerath-dev/divido/pull/22 | `feature/div-037-backend-test-fix` | `main` | `0f2e7ad` | `MERGED` | Merged | DIV-037; squash commit `3a80c20`. |
 | **#23** | https://github.com/KasunHerath-dev/divido/pull/23 | `fix/div-039-production-route-safety` | `main` | `9fa0b5d` | `CLOSED` | Closed 2026-11-16 | DIV-039. Superseded by DIV-041 / PR #25 after DEC-029 was approved. Not merged. |
 | **#25** | https://github.com/KasunHerath-dev/divido/pull/25 | `feature/div-041-figma-ui-phase-03-completion` | `main` | `11ffcce` | `MERGED` | Merged 2026-11-16 | DIV-041 Figma UI as production UI; squash commit `2779a5e`. No CI configured; local checks recorded in Section B. |
+| — | — | `main` | `main` | `604fcf8` | `COMMITTED` | Verified | Mobile UI polish: floating bottom nav with jelly tab selection, compact balanced mobile header, clean page-slide-down transitions, footer removal, and dark mode vibrant emerald available balance card matching light mode contrast. |
 
 *Backup Branches:*
 - `backup/div-008-pre-cleanup` (SHA `fefe3b0`): Preserves full prototype including future-phase budget, dashboard, categories, and settings code.
