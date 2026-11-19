@@ -377,23 +377,73 @@ html[data-theme='dark'],
   flex-direction: column;
   gap: 14px;
 }
-/* Standout Hero Card: Available Balance */
+/* Standout Hero Card: Available Balance (Rich Vibrant Emerald in both Light and Dark mode) */
 .available-balance-card {
-  background: radial-gradient(130% 120% at 95% 5%, rgba(52, 211, 153, 0.28) 0%, transparent 60%),
+  background: radial-gradient(130% 120% at 95% 5%, rgba(255, 255, 255, 0.22) 0%, transparent 60%),
               radial-gradient(100% 100% at 5% 95%, rgba(16, 185, 129, 0.2) 0%, transparent 50%),
-              linear-gradient(135deg, #065f46 0%, #044e39 45%, #022c20 100%);
-  border: 1px solid rgba(74, 222, 128, 0.4);
+              linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+  border: 1px solid rgba(52, 211, 153, 0.45);
   border-radius: 16px;
   padding: 24px 26px;
   color: #ffffff;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 14px 34px -6px rgba(5, 150, 105, 0.45), 0 4px 14px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  box-shadow: 0 14px 34px -6px rgba(5, 150, 105, 0.48), 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.28);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .available-balance-card:hover {
-  border-color: rgba(74, 222, 128, 0.6);
-  box-shadow: 0 18px 40px -6px rgba(5, 150, 105, 0.55), 0 6px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border-color: rgba(52, 211, 153, 0.65);
+  box-shadow: 0 18px 40px -6px rgba(5, 150, 105, 0.58), 0 6px 16px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.dark .available-balance-card,
+:root[data-theme='dark'] .available-balance-card {
+  background: radial-gradient(130% 120% at 95% 5%, rgba(255, 255, 255, 0.24) 0%, transparent 60%),
+              radial-gradient(100% 100% at 5% 95%, rgba(52, 211, 153, 0.22) 0%, transparent 50%),
+              linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  box-shadow: 0 16px 38px -6px rgba(5, 150, 105, 0.55), 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+}
+.dark .available-balance-card:hover,
+:root[data-theme='dark'] .available-balance-card:hover {
+  border-color: rgba(74, 222, 128, 0.75);
+  box-shadow: 0 20px 44px -6px rgba(5, 150, 105, 0.65), 0 8px 20px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.dark .available-balance-card .available-card-eyebrow,
+:root[data-theme='dark'] .available-balance-card .available-card-eyebrow {
+  color: #d1fae5;
+}
+.dark .available-balance-card .available-card-icon,
+:root[data-theme='dark'] .available-balance-card .available-card-icon {
+  color: #ffffff;
+  filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.35));
+}
+.dark .available-balance-card .available-card-value,
+:root[data-theme='dark'] .available-balance-card .available-card-value {
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.dark .available-balance-card .available-card-value > span,
+:root[data-theme='dark'] .available-balance-card .available-card-value > span {
+  color: rgba(255, 255, 255, 0.9);
+}
+.dark .available-balance-card .available-card-sub,
+:root[data-theme='dark'] .available-balance-card .available-card-sub {
+  color: #d1fae5;
+  opacity: 0.95;
+}
+.dark .available-balance-card .available-card-divider,
+:root[data-theme='dark'] .available-balance-card .available-card-divider {
+  background: rgba(255, 255, 255, 0.25);
+}
+.dark .available-balance-card .available-card-footer,
+:root[data-theme='dark'] .available-balance-card .available-card-footer {
+  color: #d1fae5;
+  opacity: 0.95;
+}
+.dark .available-balance-card .available-card-footer > strong,
+:root[data-theme='dark'] .available-balance-card .available-card-footer > strong {
+  color: #ffffff;
 }
 .available-card-header {
   display: flex;
@@ -404,12 +454,12 @@ html[data-theme='dark'],
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.2px;
-  color: #a7f3d0;
+  color: #d1fae5;
   text-transform: uppercase;
 }
 .available-card-icon {
-  color: #6ee7b7;
-  filter: drop-shadow(0 2px 6px rgba(110, 231, 183, 0.4));
+  color: #ffffff;
+  filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.35));
 }
 .available-card-value {
   font-size: 38px;
@@ -419,14 +469,14 @@ html[data-theme='dark'],
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
   color: #ffffff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 .available-card-value > span {
   font-weight: 550;
   font-size: 20px;
   letter-spacing: -0.4px;
   margin-right: 4px;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.9);
 }
 .available-card-sub {
   font-size: 13px;
@@ -438,7 +488,7 @@ html[data-theme='dark'],
 }
 .available-card-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.25);
   margin: 18px 0 14px 0;
 }
 .available-card-footer {
