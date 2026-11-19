@@ -6,7 +6,6 @@ import { InlineError } from "@/components/feedback/InlineError";
 import { LoadingPanel } from "@/components/feedback/LoadingPanel";
 import { MonthSelector } from "@/components/financial/MonthSelector";
 import { useAppShell } from "@/components/layout/AppShellContext";
-import { PageHeading } from "@/components/layout/PageHeading";
 import { Button } from "@/components/ui/Button";
 import { TransactionRows } from "@/features/transactions/TransactionRows";
 import { getDashboard } from "@/lib/api/dashboard";
@@ -45,23 +44,16 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
 
   return (
     <>
-      <PageHeading
-        dashboard
-        title={name ? `Welcome back, ${name}` : "Dashboard"}
-        actions={
-          <>
-            <MonthSelector month={month} onChange={onMonthChange} />
-            <Button variant="destructive" onClick={() => openAdd("EXPENSE")}>
-              <Plus size={17} aria-hidden="true" />
-              Add expense
-            </Button>
-            <Button variant="primary" onClick={() => openAdd("INCOME")}>
-              <Plus size={17} aria-hidden="true" />
-              Add income
-            </Button>
-          </>
-        }
-      />
+      <div className="dashboard-action-bar">
+        <Button variant="destructive" onClick={() => openAdd("EXPENSE")}>
+          <Plus size={17} aria-hidden="true" />
+          Add expense
+        </Button>
+        <Button variant="primary" onClick={() => openAdd("INCOME")}>
+          <Plus size={17} aria-hidden="true" />
+          Add income
+        </Button>
+      </div>
 
       {data.status === "loading" && <LoadingPanel label="Loading dashboard…" />}
       {data.status === "error" && <InlineError message={data.message} onRetry={data.retry} />}
@@ -70,10 +62,12 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
           <FreshMonthNotice dashboard={data.data.dashboard} monthLabel={monthLabel} budgetHref={budgetHref} onAddIncome={() => openAdd("INCOME")} />
           <div className="dashboard-reference-frame">
             <div className="dashboard-reference-header">
-              <h2 className="dashboard-reference-greeting">
+              <h1 className="dashboard-reference-greeting">
                 {name ? `Welcome back, ${name}` : "Welcome back"}
-              </h2>
-              <span className="dashboard-reference-month">{monthLabel}</span>
+              </h1>
+              <div className="dashboard-reference-month-control">
+                <MonthSelector month={month} onChange={onMonthChange} />
+              </div>
             </div>
             <SummaryCards dashboard={data.data.dashboard} />
           </div>
