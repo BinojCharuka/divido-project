@@ -4,8 +4,18 @@
  * See docs/05-api/authentication-api.md, "Frontend integration".
  */
 
+function normalizeBaseUrl(url?: string): string {
+  if (!url) return "";
+  let trimmed = url.trim().replace(/\/+$/, "");
+  if (!trimmed) return "";
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://") && !trimmed.startsWith("/")) {
+    trimmed = `https://${trimmed}`;
+  }
+  return trimmed;
+}
+
 /** Empty means the API is served from the same origin as the frontend. */
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/+$/, "");
+const API_BASE_URL = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
 
 const CSRF_HEADER = "X-XSRF-TOKEN";
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
