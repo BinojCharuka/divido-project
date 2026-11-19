@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
-import { Brand } from "@/components/ui/Brand";
 import { TransactionDialogs, type TransactionDialogState } from "@/features/transactions/TransactionDialogs";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { displayNameFor } from "@/lib/auth/displayName";
@@ -87,15 +86,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             onSignOut={() => setDialog("signout")}
           />
           <main className="main-content">
-            <div key={pathname} className="page-transition-water-droplet">
+            <div key={pathname} className="page-transition-slide-down page-transition-water-droplet">
               {children}
-              <footer className="page-footer">
-                <span className="footer-brand-wrap">
-                  <Brand variant="text" className="footer-text-brand" />
-                  <span className="footer-tagline">Personal budgeting</span>
-                </span>
-                <span>Personal workspace</span>
-              </footer>
             </div>
           </main>
         </div>
