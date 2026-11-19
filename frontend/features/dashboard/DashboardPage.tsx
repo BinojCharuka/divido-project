@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, BookOpen, ChartNoAxesCombined, Plus } from "lucide-react";
 import { InlineError } from "@/components/feedback/InlineError";
 import { LoadingPanel } from "@/components/feedback/LoadingPanel";
 import { MonthSelector } from "@/components/financial/MonthSelector";
@@ -111,6 +111,28 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
             </section>
             <div className="dashboard-side">
               <PlanSummary dashboard={data.data.dashboard} budgetHref={budgetHref} />
+              <div className="dashboard-shortcuts panel" aria-label="Explore insights and monthly reflection">
+                <Link className="dashboard-shortcut-item" href={`/insights?month=${month}`}>
+                  <span className="group-icon" aria-hidden="true">
+                    <ChartNoAxesCombined size={18} />
+                  </span>
+                  <div>
+                    <strong>Spending insights</strong>
+                    <span>Explore observations and patterns</span>
+                  </div>
+                  <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+                <Link className="dashboard-shortcut-item" href={`/reflection?month=${month}`}>
+                  <span className="group-icon" aria-hidden="true">
+                    <BookOpen size={18} />
+                  </span>
+                  <div>
+                    <strong>Monthly reflection</strong>
+                    <span>Review habits and write answers</span>
+                  </div>
+                  <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+              </div>
             </div>
           </div>
         </>

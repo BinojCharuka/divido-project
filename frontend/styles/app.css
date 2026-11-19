@@ -67,6 +67,14 @@
 .money-calculation dd { font-weight: 450; font-variant-numeric: tabular-nums; }
 .progress-track.striped > span { background: repeating-linear-gradient(135deg, var(--danger) 0 6px, var(--danger-hover) 6px 12px); }
 .recent-section { min-width: 0; }
+.dashboard-shortcuts { margin-top: 18px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.dashboard-shortcut-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 9px; text-decoration: none; color: inherit; transition: background .15s ease; }
+.dashboard-shortcut-item:hover { background: var(--soft); }
+.dashboard-shortcut-item > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dashboard-shortcut-item strong { font-size: 13px; font-weight: 550; color: var(--ink); }
+.dashboard-shortcut-item span { font-size: 11px; color: var(--muted); }
+.dashboard-shortcut-item svg:last-child { color: var(--muted); transition: transform .15s ease, color .15s ease; flex-shrink: 0; }
+.dashboard-shortcut-item:hover svg:last-child { transform: translateX(3px); color: var(--green); }
 
 /* Budget */
 .editable-budget-stats dt { font-size: 10px; color: var(--muted); }

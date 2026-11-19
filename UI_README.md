@@ -249,3 +249,4 @@ Divido adheres to strict responsive guidelines ensuring zero horizontal overflow
   * Maintains `dataVersion` timestamp counter. Mutating operations (e.g. adding an expense or updating a budget) increment `dataVersion`, triggering an automatic silent refresh across all active page queries.
 * **Modal Orchestration:**
   * Global dialogs (`QuickAddDialog`, `TransactionFormDialog`, `DeleteTransactionDialog`) are mounted at the layout level in `AppShell`, preventing nested re-renders and modal stacking issues.
+
