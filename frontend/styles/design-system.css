@@ -442,8 +442,18 @@ html[data-theme='dark'],
     width: auto !important;
     max-width: 140px !important;
     object-fit: contain !important;
-    display: block !important;
     transition: opacity 0.15s ease !important;
+  }
+  .header-brand .brand-logo-img.dark-only {
+    display: none !important;
+  }
+  :root[data-theme='dark'] .header-brand .brand-logo-img.dark-only,
+  .dark .header-brand .brand-logo-img.dark-only {
+    display: block !important;
+  }
+  :root[data-theme='dark'] .header-brand .brand-logo-img.light-only,
+  .dark .header-brand .brand-logo-img.light-only {
+    display: none !important;
   }
   .header-brand:active .brand-logo-img {
     opacity: 0.8 !important;

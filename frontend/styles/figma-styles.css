@@ -138,12 +138,16 @@ html[data-theme='dark'],
 .auth-brand .brand-logo-img { height: 52px; margin: 0 auto; }
 .footer-brand-wrap { display: inline-flex; align-items: center; gap: 8px; }
 .footer-tagline { font-size: 8px; opacity: 0.85; }
-.light-only { display: block; }
-.dark-only { display: none !important; }
+.light-only, .brand-logo-img.light-only { display: block; }
+.dark-only, .brand-logo-img.dark-only { display: none !important; }
 .dark .light-only,
-[data-theme='dark'] .light-only { display: none !important; }
+.dark .brand-logo-img.light-only,
+[data-theme='dark'] .light-only,
+[data-theme='dark'] .brand-logo-img.light-only { display: none !important; }
 .dark .dark-only,
-[data-theme='dark'] .dark-only { display: block !important; }
+.dark .brand-logo-img.dark-only,
+[data-theme='dark'] .dark-only,
+[data-theme='dark'] .brand-logo-img.dark-only { display: block !important; }
 .brand-dot { color: var(--green); }
 .brand-symbol { width: 29px; height: 30px; position: relative; display: flex; align-items: center; gap: 3px; transform: rotate(-12deg); }
 .brand-symbol span:first-child { width: 10px; height: 28px; border-radius: 3px 3px 1px 3px; background: var(--green); }
