@@ -1075,7 +1075,7 @@ html:not(.dark) .dashboard-savings-note,
 .forgot { display: block; margin: -8px 0 22px auto; }
 .auth-switch { text-align: center; padding: 24px 0; }
 .auth-switch button { color: var(--accent-foreground); }
-.theme-toggle { width: 40px; height: 40px; color: var(--muted); border: 1px solid var(--line); background: var(--white); }
+.theme-toggle { width: 40px; height: 40px; border-radius: 50%; color: var(--muted); border: 1px solid var(--line); background: var(--white); display: inline-flex; align-items: center; justify-content: center; }
 .theme-toggle:hover { color: var(--ink); }
 .auth-theme-toggle { position: absolute; top: 28px; right: 28px; }
 .appearance-field { border: 0; padding: 0 0 26px; margin: 0 0 26px; border-bottom: 1px solid var(--line); }
