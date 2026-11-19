@@ -117,14 +117,14 @@ describe("Dashboard (DASH-001)", () => {
     expect(within(groupCard("Culture")).getByRole("progressbar")).toHaveAttribute("aria-valuetext", "Nothing planned");
   });
 
-  it("warns about a plan above income and never shows an available-money figure (BR-008)", async () => {
+  it("warns about a plan above income and shows available balance", async () => {
     backend.on("GET", "/api/v1/dashboard", () => json(200, POPULATED));
     renderWithShellStub(<Harness />);
     await screen.findByText("Recorded income");
     const plan = screen.getByRole("region", { name: "Spent against group plans" });
     expect(within(plan).getByText("Planned above income").nextElementSibling).toHaveTextContent("LKR 10,000.00");
     expect(within(plan).getByText(/above planned income/)).toBeInTheDocument();
-    expect(screen.queryByText(/available/i)).not.toBeInTheDocument();
+    expect(screen.getByText("AVAILABLE BALANCE")).toBeInTheDocument();
   });
 
   it("renders an empty month without inventing figures", async () => {

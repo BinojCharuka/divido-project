@@ -68,7 +68,15 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
       {data.status === "ready" && (
         <>
           <FreshMonthNotice dashboard={data.data.dashboard} monthLabel={monthLabel} budgetHref={budgetHref} onAddIncome={() => openAdd("INCOME")} />
-          <SummaryCards dashboard={data.data.dashboard} />
+          <div className="dashboard-reference-frame">
+            <div className="dashboard-reference-header">
+              <h2 className="dashboard-reference-greeting">
+                {name ? `Welcome back, ${name}` : "Welcome back"}
+              </h2>
+              <span className="dashboard-reference-month">{monthLabel}</span>
+            </div>
+            <SummaryCards dashboard={data.data.dashboard} />
+          </div>
 
           <section className="budget-section" aria-labelledby="breakdown-heading">
             <div className="section-heading">

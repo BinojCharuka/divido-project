@@ -107,11 +107,22 @@ All authenticated pages are wrapped in a unified layout (`AppShell.tsx` & `AppSh
   * Month Selector: Step backward/forward or jump to any month in `YYYY-MM`.
   * **`+ Add expense` Button:** Styled in **Vibrant Red** (`button-destructive`), instantly opening the expense modal.
   * **`+ Add income` Button:** Styled in **Emerald Green** (`button-primary`), opening the income modal.
-* **Summary Cards (4-Column Grid on Desktop, 2-Column on Mobile):**
-  1. *Planned Income:* Target income from the monthly budget plan.
-  2. *Recorded Income:* Actual income recorded via income transactions.
-  3. *Spent This Month:* Total recorded outflow with live delta against group budgets.
-  4. *Savings Target:* Planned savings amount with visual achievement indicator.
+* **Unified Reference Hero Frame (`.dashboard-reference-frame`):**
+  * **Greeting Header:** "Welcome back, {Name}" with month pill badge ("November 2026") in emerald green.
+  * **Card 1: Available Balance (Primary Focus):**
+    * Deep radial forest emerald gradient surface with subtle glowing green border.
+    * Uppercase eyebrow with Wallet icon.
+    * Prominent typography: `LKR {availableBalance}` computed in real-time (`Recorded Income − Total Expenses`).
+    * "Your remaining money this month" subtitle with internal divider.
+    * Transparent equation row: `Income − Expenses` with exact integer totals (e.g. `60,000 − 15,000`).
+  * **Card Row 2: Total Income & Total Expenses:**
+    * Equal-width two-column grid.
+    * *Total Income:* Upward trending emerald arrow with bold white total.
+    * *Total Expenses:* Downward trending coral/red arrow with bold white total.
+  * **Card 3: Savings Target:**
+    * Bullseye Target icon in green.
+    * Monthly savings goal figure.
+    * Sleek progress bar tracking percentage of savings goal achieved (`{availableBalance / savingsTarget * 100}%`).
 * **Fresh Month Notice (`FreshMonthNotice.tsx`):**
   * Displays an encouraging prompt (`Sparkles` icon) when entering a new calendar month with no recorded activity.
 * **Group Breakdown Section:**
