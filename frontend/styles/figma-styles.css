@@ -67,6 +67,8 @@ html[data-theme='dark'],
   html, body {
     overflow-x: hidden;
     max-width: 100vw;
+    touch-action: pan-x pan-y;
+    -webkit-text-size-adjust: 100%;
   }
   body {
     min-width: 320px;
