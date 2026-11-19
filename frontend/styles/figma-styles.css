@@ -801,7 +801,7 @@ html:not(.dark) .dashboard-savings-note,
 
 /* Standalone Group Breakdown (Card-by-Card) in Dashboard Reference Frame */
 .dashboard-reference-frame .budget-section {
-  margin-top: 18px;
+  margin-top: 22px;
   background: transparent;
   border: none;
   padding: 0;
@@ -811,10 +811,10 @@ html:not(.dark) .dashboard-savings-note,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .dashboard-reference-frame .budget-section .section-heading h2 {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 650;
   color: #ffffff;
   display: flex;
@@ -823,7 +823,7 @@ html:not(.dark) .dashboard-savings-note,
   margin: 0;
 }
 .dashboard-reference-frame .budget-section .section-heading .text-button {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 550;
   color: #10b981;
   display: inline-flex;
@@ -832,53 +832,56 @@ html:not(.dark) .dashboard-savings-note,
 }
 .dashboard-reference-frame .budget-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 .dashboard-reference-frame .budget-card {
   background: #0f1411;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 12px 14px;
-  min-height: auto !important;
+  border-radius: 16px;
+  padding: 20px 22px;
+  min-height: 135px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 .dashboard-reference-frame .budget-card:hover {
-  border-color: rgba(16, 185, 129, 0.4);
+  border-color: rgba(16, 185, 129, 0.45);
   background: rgba(16, 185, 129, 0.04);
   transform: translateY(-1px);
 }
 .dashboard-reference-frame .budget-card-top {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 .dashboard-reference-frame .group-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   color: #ffffff;
   flex-shrink: 0;
 }
 .dashboard-reference-frame .group-icon svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 .dashboard-reference-frame .budget-name {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 650;
   line-height: 1;
   color: #ffffff;
 }
 .dashboard-reference-frame .budget-arrow {
-  width: 13px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
   margin-left: auto;
   opacity: 0.45;
   transition: opacity 0.15s ease, color 0.15s ease;
@@ -888,27 +891,27 @@ html:not(.dark) .dashboard-savings-note,
   color: #10b981;
 }
 .dashboard-reference-frame .budget-value {
-  font-size: 15px;
+  font-size: 22px;
   font-weight: 700;
   color: #ffffff;
-  letter-spacing: -0.3px;
-  line-height: 1.15;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
 }
 .dashboard-reference-frame .budget-value > span {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: #a5aea7;
 }
 .dashboard-reference-frame .budget-planned {
-  font-size: 10px;
-  color: #71717a;
-  margin-top: 2px;
+  font-size: 12px;
+  color: #8f9e93;
+  margin-top: 4px;
 }
 .dashboard-reference-frame .progress-track {
-  height: 4px;
+  height: 6px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
-  margin-top: 8px;
+  margin-top: 14px;
   overflow: hidden;
 }
 .dashboard-reference-frame .progress-track > span {
@@ -921,12 +924,12 @@ html:not(.dark) .dashboard-savings-note,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 6px;
-  font-size: 10px;
+  margin-top: 10px;
+  font-size: 12px;
   color: #a5aea7;
 }
 .dashboard-reference-frame .budget-card-bottom > strong {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 650;
   color: #ffffff;
 }
@@ -938,13 +941,14 @@ html:not(.dark) .dashboard-reference-frame .budget-section .section-heading h2,
 }
 html:not(.dark) .dashboard-reference-frame .budget-card,
 :root[data-theme='light'] .dashboard-reference-frame .budget-card {
-  background: #f8faf8;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 html:not(.dark) .dashboard-reference-frame .group-icon,
 :root[data-theme='light'] .dashboard-reference-frame .group-icon {
-  background: rgba(0, 0, 0, 0.035);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.07);
   color: #0b0f0d;
 }
 html:not(.dark) .dashboard-reference-frame .budget-name,
@@ -978,39 +982,55 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom > strong,
 
 @media (max-width: 640px) {
   .dashboard-reference-frame .budget-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
   .dashboard-reference-frame .budget-card {
-    padding: 10px 11px;
-    border-radius: 12px;
+    padding: 18px 20px !important;
+    border-radius: 16px !important;
+    min-height: auto !important;
   }
   .dashboard-reference-frame .budget-card-top {
-    margin-bottom: 6px;
-    gap: 6px;
+    margin-bottom: 12px !important;
+    gap: 10px !important;
   }
   .dashboard-reference-frame .group-icon {
-    width: 22px;
-    height: 22px;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
   }
   .dashboard-reference-frame .group-icon svg {
-    width: 12px;
-    height: 12px;
+    width: 17px !important;
+    height: 17px !important;
   }
   .dashboard-reference-frame .budget-name {
-    font-size: 11px;
+    font-size: 15px !important;
+  }
+  .dashboard-reference-frame .budget-arrow {
+    width: 16px !important;
+    height: 16px !important;
   }
   .dashboard-reference-frame .budget-value {
-    font-size: 13px;
+    font-size: 22px !important;
+    letter-spacing: -0.4px !important;
+  }
+  .dashboard-reference-frame .budget-value > span {
+    font-size: 12px !important;
   }
   .dashboard-reference-frame .budget-planned {
-    font-size: 9px;
+    font-size: 12px !important;
+    margin-top: 3px !important;
+  }
+  .dashboard-reference-frame .progress-track {
+    height: 6px !important;
+    margin-top: 13px !important;
   }
   .dashboard-reference-frame .budget-card-bottom {
-    font-size: 9px;
+    font-size: 12px !important;
+    margin-top: 10px !important;
   }
   .dashboard-reference-frame .budget-card-bottom > strong {
-    font-size: 9px;
+    font-size: 12px !important;
   }
 }
 

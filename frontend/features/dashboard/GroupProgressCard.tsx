@@ -20,10 +20,10 @@ export function GroupProgressCard({ group: g, href }: { group: DashboardGroup; h
     <Link href={href} className={`budget-card ${pillarClass(g.group)} ${over ? "over-budget" : ""}`}>
       <div className="budget-card-top">
         <span className="group-icon" aria-hidden="true">
-          <Icon size={18} strokeWidth={1.75} />
+          <Icon size={19} strokeWidth={1.8} />
         </span>
         <span className="budget-name">{label}</span>
-        <ArrowUpRight size={16} className="budget-arrow" aria-hidden="true" />
+        <ArrowUpRight size={17} className="budget-arrow" aria-hidden="true" />
       </div>
       <div className="budget-value">
         LKR {amountDigits(g.spent)}
