@@ -71,23 +71,23 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
               </div>
             </div>
             <SummaryCards dashboard={data.data.dashboard} />
-          </div>
 
-          <section className="budget-section" aria-labelledby="breakdown-heading">
-            <div className="section-heading">
-              <h2 id="breakdown-heading">
-                Group breakdown <span className="subtle-tag">{monthLabel}</span>
-              </h2>
-              <Link className="text-button" href={budgetHref}>
-                {data.data.dashboard.hasBudget ? "Manage plan" : "Plan this month"} <ArrowRight size={15} aria-hidden="true" />
-              </Link>
-            </div>
-            <div className="budget-grid">
-              {data.data.dashboard.groups.map((g) => (
-                <GroupProgressCard key={g.group} group={g} href={budgetHref} />
-              ))}
-            </div>
-          </section>
+            <section className="budget-section dashboard-group-breakdown-card" aria-labelledby="breakdown-heading">
+              <div className="section-heading">
+                <h2 id="breakdown-heading">
+                  Group breakdown <span className="subtle-tag">{monthLabel}</span>
+                </h2>
+                <Link className="text-button" href={budgetHref}>
+                  {data.data.dashboard.hasBudget ? "Manage plan" : "Plan this month"} <ArrowRight size={15} aria-hidden="true" />
+                </Link>
+              </div>
+              <div className="budget-grid">
+                {data.data.dashboard.groups.map((g) => (
+                  <GroupProgressCard key={g.group} group={g} href={budgetHref} />
+                ))}
+              </div>
+            </section>
+          </div>
 
           <div className="dashboard-lower">
             <section className="recent-section panel" aria-labelledby="recent-heading">

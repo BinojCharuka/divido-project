@@ -509,25 +509,31 @@ html[data-theme='dark'],
 .dashboard-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 .dashboard-stat-card {
   background: #0f1411;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  padding: 18px 20px;
-  transition: border-color 0.15s ease;
+  padding: 13px 16px;
+  min-height: auto !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
 .dashboard-stat-card:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 .dashboard-stat-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 550;
   color: #a5aea7;
+}
+.dashboard-stat-label {
+  font-size: 12px;
+  font-weight: 550;
 }
 .stat-trend-icon.income {
   color: #22c55e;
@@ -536,26 +542,27 @@ html[data-theme='dark'],
   color: #ef4444;
 }
 .dashboard-stat-value {
-  font-size: 26px;
+  font-size: 21px;
   font-weight: 700;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.5px;
   color: #ffffff;
-  margin-top: 12px;
-  line-height: 1.2;
+  margin-top: 5px;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
 }
 .dashboard-stat-value > span {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.2px;
-  margin-right: 4px;
+  margin-right: 3px;
   color: rgba(255, 255, 255, 0.7);
 }
 .dashboard-savings-card {
   background: #0f1411;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  padding: 20px 22px;
+  padding: 14px 18px;
+  min-height: auto !important;
   transition: border-color 0.15s ease;
 }
 .dashboard-savings-card:hover {
@@ -768,10 +775,215 @@ html:not(.dark) .dashboard-savings-note,
 }
 
 @media (max-width: 640px) {
-  .dashboard-reference-frame { padding: 16px; border-radius: 16px; }
+  .dashboard-reference-frame { padding: 14px; border-radius: 16px; }
   .available-card-value { font-size: 28px; }
   .available-balance-card { padding: 18px 20px; }
-  .dashboard-stats-grid { grid-template-columns: 1fr; }
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  .dashboard-stat-card {
+    padding: 11px 13px !important;
+    min-height: auto !important;
+  }
+  .dashboard-stat-header {
+    font-size: 11px !important;
+    gap: 5px !important;
+  }
+  .dashboard-stat-value {
+    font-size: 18px !important;
+    margin-top: 4px !important;
+  }
+  .dashboard-stat-value > span {
+    font-size: 12px !important;
+  }
+}
+
+/* Compact Group Breakdown Card in Dashboard Reference Frame */
+.dashboard-group-breakdown-card {
+  margin-top: 4px;
+  background: #0f1411;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+.dashboard-group-breakdown-card .section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.dashboard-group-breakdown-card .section-heading h2 {
+  font-size: 14px;
+  font-weight: 650;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.dashboard-group-breakdown-card .section-heading .text-button {
+  font-size: 12px;
+  font-weight: 550;
+  color: #10b981;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.dashboard-group-breakdown-card .budget-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.dashboard-group-breakdown-card .budget-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-height: auto !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.dashboard-group-breakdown-card .budget-card:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.04);
+}
+.dashboard-group-breakdown-card .budget-card-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.dashboard-group-breakdown-card .group-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dashboard-group-breakdown-card .group-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.dashboard-group-breakdown-card .group-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+.dashboard-group-breakdown-card .budget-arrow {
+  width: 13px;
+  height: 13px;
+  margin-left: auto;
+  opacity: 0.45;
+}
+.dashboard-group-breakdown-card .budget-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+}
+.dashboard-group-breakdown-card .budget-value > span {
+  font-size: 10px;
+  font-weight: 400;
+  color: #a5aea7;
+}
+.dashboard-group-breakdown-card .budget-planned {
+  font-size: 10px;
+  color: #71717a;
+  margin-top: 2px;
+}
+.dashboard-group-breakdown-card .progress-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.dashboard-group-breakdown-card .budget-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  font-size: 10px;
+  color: #a5aea7;
+}
+.dashboard-group-breakdown-card .budget-card-bottom > strong {
+  font-size: 10px;
+  font-weight: 650;
+  color: #ffffff;
+}
+
+/* Light mode for Group Breakdown Card */
+html:not(.dark) .dashboard-group-breakdown-card,
+:root[data-theme='light'] .dashboard-group-breakdown-card {
+  background: #f8faf8;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+html:not(.dark) .dashboard-group-breakdown-card .section-heading h2,
+:root[data-theme='light'] .dashboard-group-breakdown-card .section-heading h2 {
+  color: #0b0f0d;
+}
+html:not(.dark) .dashboard-group-breakdown-card .budget-card,
+:root[data-theme='light'] .dashboard-group-breakdown-card .budget-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+html:not(.dark) .dashboard-group-breakdown-card .group-badge,
+:root[data-theme='light'] .dashboard-group-breakdown-card .group-badge {
+  color: #0b0f0d;
+}
+html:not(.dark) .dashboard-group-breakdown-card .budget-value,
+:root[data-theme='light'] .dashboard-group-breakdown-card .budget-value {
+  color: #0b0f0d;
+}
+html:not(.dark) .dashboard-group-breakdown-card .budget-value > span,
+:root[data-theme='light'] .dashboard-group-breakdown-card .budget-value > span {
+  color: #64748b;
+}
+html:not(.dark) .dashboard-group-breakdown-card .budget-card-bottom > strong,
+:root[data-theme='light'] .dashboard-group-breakdown-card .budget-card-bottom > strong {
+  color: #0b0f0d;
+}
+
+@media (max-width: 640px) {
+  .dashboard-group-breakdown-card {
+    padding: 13px 14px;
+    border-radius: 14px;
+  }
+  .dashboard-group-breakdown-card .budget-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  .dashboard-group-breakdown-card .budget-card {
+    padding: 10px 11px;
+    border-radius: 10px;
+  }
+  .dashboard-group-breakdown-card .budget-card-top {
+    margin-bottom: 6px;
+    gap: 5px;
+  }
+  .dashboard-group-breakdown-card .group-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .dashboard-group-breakdown-card .group-badge {
+    font-size: 11px;
+  }
+  .dashboard-group-breakdown-card .budget-value {
+    font-size: 13px;
+  }
+  .dashboard-group-breakdown-card .budget-planned {
+    font-size: 9px;
+  }
+  .dashboard-group-breakdown-card .budget-card-bottom {
+    font-size: 9px;
+  }
+  .dashboard-group-breakdown-card .budget-card-bottom > strong {
+    font-size: 9px;
+  }
 }
 .budget-section { margin-top: 30px; }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 17px; }
