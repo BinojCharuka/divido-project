@@ -51,11 +51,11 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
         actions={
           <>
             <MonthSelector month={month} onChange={onMonthChange} />
-            <Button variant="primary" onClick={() => openAdd("EXPENSE")}>
+            <Button variant="destructive" onClick={() => openAdd("EXPENSE")}>
               <Plus size={17} aria-hidden="true" />
               Add expense
             </Button>
-            <Button variant="ghost" className="dashboard-income-action" onClick={() => openAdd("INCOME")}>
+            <Button variant="primary" onClick={() => openAdd("INCOME")}>
               <Plus size={17} aria-hidden="true" />
               Add income
             </Button>
