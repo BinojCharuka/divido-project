@@ -65,8 +65,8 @@ export function SignUpForm() {
     <div className="w-full flex flex-col">
       {/* Top Gold User Badge */}
       <div className="flex flex-col items-center text-center mb-6">
-        <div className="w-14 h-14 rounded-2xl bg-[#fcd34d] flex items-center justify-center shadow-lg shadow-amber-500/10">
-          <User size={24} className="text-zinc-950" strokeWidth={2.2} />
+        <div className="w-14 h-14 rounded-2xl bg-[#e2d274] flex items-center justify-center shadow-lg shadow-amber-500/10">
+          <User size={24} className="text-[#1c1a0e]" strokeWidth={2.4} />
         </div>
         <span className="text-[11px] font-semibold tracking-[0.2em] text-zinc-400 uppercase mt-5">
           START YOUR JOURNEY
@@ -80,14 +80,14 @@ export function SignUpForm() {
       </div>
 
       {/* Segmented Switcher Pill */}
-      <div className="w-full bg-[#111914] border border-white/[0.08] p-1 rounded-xl flex gap-1 mb-5">
+      <div className="w-full bg-[#121c16] border border-white/[0.07] p-1 rounded-2xl flex gap-1 mb-5">
         <Link
           href="/sign-in"
-          className="flex-1 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-colors text-center"
+          className="flex-1 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white transition-colors text-center"
         >
           Log in
         </Link>
-        <div className="flex-1 py-2 rounded-lg text-xs font-semibold text-white bg-[#1d2a22] shadow-sm text-center select-none">
+        <div className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#203429] shadow-xs text-center select-none">
           Sign up
         </div>
       </div>

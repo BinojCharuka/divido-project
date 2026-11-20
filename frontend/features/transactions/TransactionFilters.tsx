@@ -43,9 +43,9 @@ export function TransactionFilters({
 }) {
   const { type, categoryId, incomeSourceId, search = "" } = values;
   return (
-    <div className="transaction-filters-container flex flex-col gap-3 mb-4">
-      {/* Search Input matching screenshot 4 */}
-      <div className="relative w-full">
+    <div className="transaction-filters-container flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+      {/* Search Input matching desktop screenshot 2 and mobile */}
+      <div className="relative w-full md:max-w-md">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
         <input
           type="text"
@@ -53,13 +53,13 @@ export function TransactionFilters({
           aria-label="Search transactions"
           value={search}
           onChange={(e) => onChange({ ...values, search: e.target.value })}
-          className="w-full bg-[#0d1611] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-hidden focus:border-emerald-500/50"
+          className="w-full bg-[#0d1611] border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-hidden focus:border-emerald-500/50"
         />
         {search && (
           <button
             type="button"
             onClick={() => onChange({ ...values, search: "" })}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1 cursor-pointer"
             aria-label="Clear search"
           >
             <X size={14} />

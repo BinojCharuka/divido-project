@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, BookOpen, CircleHelp, LayoutDashboard, LogOut, Moon, Settings, Sun } from "lucide-react";
+import { Bell, BookOpen, CalendarDays, CircleHelp, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { Brand } from "@/components/ui/Brand";
 import { IconButton } from "@/components/ui/IconButton";
+import { getCurrentMonth } from "@/lib/formatting/dates";
 import { useDividoTheme } from "@/lib/theme";
 import { locationLabel } from "./navigation";
 
-/** Top bar: breadcrumb, theme switch and the profile menu. */
+/** Top bar matching desktop and mobile Divido layouts. */
 export function TopBar({
   userName,
   email,
@@ -25,6 +26,7 @@ export function TopBar({
 }) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useDividoTheme();
+  const currentMonth = getCurrentMonth();
   // Remember the page the menu was opened on, so navigating closes it.
   const [openOn, setOpenOn] = useState<string | null>(null);
   const menuOpen = openOn === pathname;
@@ -51,19 +53,58 @@ export function TopBar({
     action();
   };
 
+  const getDesktopHeaders = () => {
+    if (pathname.startsWith("/dashboard")) return { eyebrow: "OVERVIEW", title: "Good morning, ready to plan?" };
+    if (pathname.startsWith("/transactions")) return { eyebrow: "DIVIDO", title: "History" };
+    if (pathname.startsWith("/budget")) return { eyebrow: "DIVIDO", title: "Budget" };
+    if (pathname.startsWith("/insights")) return { eyebrow: "DIVIDO", title: "Insights" };
+    if (pathname.startsWith("/settings")) return { eyebrow: "DIVIDO", title: "Settings" };
+    return { eyebrow: "DIVIDO", title: locationLabel(pathname) };
+  };
+
+  const { eyebrow, title } = getDesktopHeaders();
+
   return (
     <header className="topbar">
-      <div className="header-content">
-        <Link href="/dashboard" className="header-brand" aria-label="Divido dashboard">
-          <Brand />
-        </Link>
-        <div className="header-location">
-          <LayoutDashboard size={15} aria-hidden="true" />
-          <span aria-hidden="true">/</span>
-          <span>{locationLabel(pathname)}</span>
+      <div className="header-content flex items-center justify-between w-full">
+        {/* Mobile Logo / Heading */}
+        <div className="md:hidden">
+          {pathname.startsWith("/dashboard") ? (
+            <div className="flex flex-col text-left">
+              <span className="text-[10px] font-bold tracking-[0.2em] text-[#34d399] uppercase block leading-tight">
+                OVERVIEW
+              </span>
+              <h1 className="text-xl font-bold text-white tracking-tight leading-tight mt-0.5">
+                Good morning, ready to plan?
+              </h1>
+            </div>
+          ) : (
+            <Link href="/dashboard" className="header-brand" aria-label="Divido dashboard">
+              <Brand />
+            </Link>
+          )}
         </div>
-        <div className="header-actions">
-          <div className="relative flex items-center">
+
+        {/* Desktop Eyebrow and Page Heading */}
+        <div className="hidden md:flex flex-col text-left">
+          <span className="text-[10px] font-bold tracking-[0.2em] text-[#34d399] uppercase block leading-tight">
+            {eyebrow}
+          </span>
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight mt-0.5">
+            {title}
+          </h2>
+        </div>
+
+        {/* Right Actions */}
+        <div className="header-actions flex items-center gap-3">
+          {/* Desktop Month Pill */}
+          <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#0d1611] border border-white/10 text-xs text-zinc-300 font-medium shadow-xs">
+            <CalendarDays size={14} className="text-[#34d399]" />
+            <span>{currentMonth}</span>
+          </div>
+
+          {/* Mobile Bell Button */}
+          <div className="md:hidden relative flex items-center">
             <button
               type="button"
               className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer relative"
@@ -74,23 +115,17 @@ export function TopBar({
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-[#07100b]" />
             </button>
           </div>
-          <span className="topbar-divider" />
-          <IconButton
-            icon={theme === "light" ? Moon : Sun}
-            label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-            className="icon-button theme-toggle"
-            onClick={toggleTheme}
-          />
-          <div className="profile-wrap header-profile" ref={menuRef}>
+
+          <div className="profile-wrap header-profile relative" ref={menuRef}>
             <button
               type="button"
-              className="profile-button"
+              className="profile-button focus:outline-hidden"
               aria-label="Open profile menu"
               aria-haspopup="true"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(!menuOpen)}
             >
-              <span className="avatar avatar-small" aria-hidden="true">
+              <span className="avatar w-9 h-9 rounded-full bg-[#7bc8a4] text-[#07100b] font-bold flex items-center justify-center text-xs shrink-0 cursor-pointer shadow-xs hover:opacity-90 transition-opacity" aria-hidden="true">
                 {initials}
               </span>
             </button>

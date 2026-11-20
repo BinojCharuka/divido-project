@@ -73,9 +73,22 @@ export function DisplayNameForm() {
         error={error}
         hint="Shown in the app. Your email address stays the same."
       />
-      <div className="account-form-actions">
-        <Button type="submit" variant="primary" loading={pending} disabled={unchanged}>
-          {pending ? "Saving…" : "Save name"}
+      <div className="field">
+        <label htmlFor="base-currency">Base currency</label>
+        <select id="base-currency" disabled defaultValue="LKR" className="w-full bg-[#0f1c15] border border-white/10 rounded-xl px-3 py-2 text-sm text-zinc-300">
+          <option value="LKR">LKR — Sri Lankan Rupee</option>
+        </select>
+      </div>
+      <div className="account-form-actions mt-4">
+        <Button
+          type="submit"
+          variant="primary"
+          loading={pending}
+          disabled={unchanged}
+          aria-label={pending ? "Saving…" : "Save name"}
+          className="bg-[#10b981] hover:bg-[#059669] text-white"
+        >
+          {pending ? "Saving…" : "Save preferences"}
         </Button>
       </div>
     </form>

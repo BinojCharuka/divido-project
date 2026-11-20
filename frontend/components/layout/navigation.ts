@@ -1,8 +1,8 @@
 import {
-  ArrowLeftRight,
+  BarChart3,
   BookOpen,
-  ChartNoAxesCombined,
-  LayoutDashboard,
+  History,
+  LayoutGrid,
   Settings,
   Wallet,
   type LucideIcon,
@@ -10,10 +10,10 @@ import {
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; prefixes: string[] };
 
-export const DASHBOARD: NavItem = { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, prefixes: ["/dashboard"] };
-export const TRANSACTIONS: NavItem = { href: "/transactions", label: "Transactions", icon: ArrowLeftRight, prefixes: ["/transactions"] };
+export const DASHBOARD: NavItem = { href: "/dashboard", label: "Overview", icon: LayoutGrid, prefixes: ["/dashboard"] };
+export const TRANSACTIONS: NavItem = { href: "/transactions", label: "History", icon: History, prefixes: ["/transactions"] };
 export const BUDGET: NavItem = { href: "/budget", label: "Budget", icon: Wallet, prefixes: ["/budget"] };
-export const INSIGHTS: NavItem = { href: "/insights", label: "Insights", icon: ChartNoAxesCombined, prefixes: ["/insights"] };
+export const INSIGHTS: NavItem = { href: "/insights", label: "Insights", icon: BarChart3, prefixes: ["/insights"] };
 export const REFLECTION: NavItem = { href: "/reflection", label: "Monthly reflection", icon: BookOpen, prefixes: ["/reflection"] };
 export const SETTINGS: NavItem = {
   href: "/settings",
@@ -23,7 +23,7 @@ export const SETTINGS: NavItem = {
 };
 
 export const PRIMARY_NAV = [DASHBOARD, TRANSACTIONS, BUDGET, INSIGHTS];
-export const SECONDARY_NAV = [REFLECTION, SETTINGS];
+export const SECONDARY_NAV = [SETTINGS];
 
 export function isActive(item: NavItem, pathname: string): boolean {
   return item.prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

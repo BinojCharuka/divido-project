@@ -70,14 +70,17 @@ export function TransactionsPage({ month, onMonthChange }: { month: string; onMo
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">Search, review, and manage every recorded transaction.</p>
         </div>
         <div className="flex items-center gap-3">
-          <MonthSelector month={month} onChange={onMonthChange} />
+          <div className="md:hidden">
+            <MonthSelector month={month} onChange={onMonthChange} />
+          </div>
           <button
             type="button"
             onClick={() => openAdd()}
             aria-label="Add transaction"
-            className="w-11 h-11 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 cursor-pointer"
+            className="w-11 h-11 md:w-auto md:px-5 md:py-2.5 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-white flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 cursor-pointer"
           >
-            <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
+            <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+            <span className="hidden md:inline text-sm font-semibold">Add transaction</span>
           </button>
         </div>
       </div>

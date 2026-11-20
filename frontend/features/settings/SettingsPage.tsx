@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, BriefcaseBusiness, Check, CircleUserRound, Lock, Moon, ShoppingBasket, Sliders, Sun } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, Lock, Moon, Settings as SettingsIcon, ShoppingBasket, Sliders, Sun, Wallet } from "lucide-react";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -22,24 +22,87 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeading title="Settings" />
-      <div className="settings-overview">
-        <section className="panel settings-block" aria-labelledby="profile-heading">
-          <div className="settings-block-heading">
-            <span className="group-icon" aria-hidden="true">
-              <CircleUserRound size={20} />
-            </span>
+      <div className="settings-page-header mb-6">
+        <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
+          YOUR PREFERENCES
+        </span>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Profile & settings</h1>
+        <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          Personalize Divido and manage your local financial records.
+        </p>
+      </div>
+
+      <div className="sr-only">
+        <PageHeading title="Settings" />
+      </div>
+
+      <div className="settings-overview flex flex-col gap-6 max-w-4xl">
+        {/* Card 1: Profile details */}
+        <section className="panel settings-block bg-[#0d1611] border border-white/[0.07] rounded-3xl p-6 sm:p-7 shadow-lg" aria-labelledby="profile-heading">
+          <div className="flex items-start gap-3.5 mb-5">
+            <div className="w-10 h-10 rounded-2xl bg-[#13271c] border border-emerald-500/20 text-[#34d399] flex items-center justify-center shrink-0">
+              <SettingsIcon size={20} strokeWidth={2.2} />
+            </div>
             <div>
-              <h2 id="profile-heading">Profile</h2>
+              <h2 id="profile-heading" className="text-base font-semibold text-white">Profile details</h2>
+              <p className="text-xs text-zinc-400 mt-0.5">How you appear in your workspace.</p>
             </div>
           </div>
-          <dl className="account-details account-email">
+          <dl className="account-details account-email sr-only">
             <div>
               <dt>Email address</dt>
               <dd>{user?.email}</dd>
             </div>
           </dl>
           <DisplayNameForm key={user?.displayName} />
+        </section>
+
+        {/* Card 2: Your data */}
+        <section className="panel settings-block bg-[#0d1611] border border-white/[0.07] rounded-3xl p-6 sm:p-7 shadow-lg" aria-labelledby="your-data-heading">
+          <div className="flex items-start gap-3.5 mb-6">
+            <div className="w-10 h-10 rounded-2xl bg-[#13271c] border border-emerald-500/20 text-[#34d399] flex items-center justify-center shrink-0">
+              <Wallet size={20} strokeWidth={2.2} />
+            </div>
+            <div>
+              <h2 id="your-data-heading" className="text-base font-semibold text-white">Your data</h2>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Download a portable copy of the records stored in this browser.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pt-4 border-t border-white/[0.06]">
+            <div className="grid grid-cols-3 gap-6 sm:gap-14">
+              <div>
+                <div className="text-2xl font-bold text-white tracking-tight">0</div>
+                <div className="text-xs text-zinc-400 mt-0.5">Transactions</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-white tracking-tight">0</div>
+                <div className="text-xs text-zinc-400 mt-0.5">Budgets</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-white tracking-tight">0</div>
+                <div className="text-xs text-zinc-400 mt-0.5">Savings goal</div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString() }, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `divido-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="px-5 py-2.5 rounded-xl bg-[#141f17] hover:bg-[#1b2b20] text-zinc-200 border border-white/10 text-xs font-semibold self-start sm:self-auto cursor-pointer transition-colors shadow-xs"
+            >
+              Export JSON
+            </button>
+          </div>
         </section>
 
         <section className="panel settings-block" aria-labelledby="security-heading">

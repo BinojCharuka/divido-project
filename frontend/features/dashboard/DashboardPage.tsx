@@ -50,7 +50,7 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
         <>
           <FreshMonthNotice dashboard={data.data.dashboard} monthLabel={monthLabel} budgetHref={budgetHref} onAddIncome={() => openAdd("INCOME")} />
           <div className="dashboard-reference-frame">
-            <div className="dashboard-reference-header">
+            <div className="dashboard-reference-header sr-only">
               <div>
                 <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
                   OVERVIEW

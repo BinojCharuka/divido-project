@@ -62,31 +62,38 @@ export function AuthLayout({ title, subtitle, children, customHeader = false }: 
           </p>
 
           {/* Floating Card Widget */}
-          <div className="w-full max-w-[340px] rounded-2xl bg-[#0a1811]/90 border border-emerald-900/40 p-5 shadow-2xl backdrop-blur-md relative overflow-hidden">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
+          <div className="w-full max-w-[360px] rounded-3xl bg-[#0c1a13] border border-emerald-900/40 p-6 shadow-2xl backdrop-blur-md relative overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
                 Available balance
               </span>
-              <div className="w-7 h-7 rounded-lg bg-[#fcd34d] flex items-center justify-center shadow-xs">
-                <Wallet size={14} className="text-zinc-950" strokeWidth={2.2} />
+              <div className="w-8 h-8 rounded-xl bg-[#e2d274] flex items-center justify-center shadow-xs">
+                <Wallet size={15} className="text-[#1c1a0e]" strokeWidth={2.4} />
               </div>
             </div>
-            <div className="text-2xl font-bold text-white tracking-tight mb-4 flex items-center gap-2">
-              Rs. • • • • • •
+            <div className="text-3xl font-bold text-white tracking-tight mb-5 flex items-center gap-2">
+              <span>Rs.</span>
+              <span className="tracking-widest text-2xl font-black">••••••</span>
             </div>
-            <div className="w-full h-1.5 bg-[#14261d] rounded-full overflow-hidden mb-3">
-              <div className="h-full w-[60%] bg-[#5fa88f] rounded-full" />
+            <div className="w-full h-1.5 bg-[#14261d] rounded-full overflow-hidden mb-4">
+              <div className="h-full w-[55%] bg-[#5fa88f] rounded-full" />
             </div>
-            <div className="flex items-center gap-4 text-xs text-zinc-400">
-              <span>Income</span>
-              <span>Expenses</span>
+            <div className="flex items-center gap-5 text-xs text-zinc-400">
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+                Income
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#f87171]" />
+                Expenses
+              </span>
             </div>
           </div>
         </div>
 
         {/* Bottom Trust Badge */}
         <div className="relative z-10 flex items-center gap-2 text-xs text-zinc-400">
-          <Check size={14} className="text-[#52b788]" strokeWidth={2.5} />
+          <Check size={14} className="text-[#5fa88f]" strokeWidth={2.5} />
           <span>Private by design. Simple by choice.</span>
         </div>
       </div>

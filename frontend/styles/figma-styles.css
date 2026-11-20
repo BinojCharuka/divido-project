@@ -5791,3 +5791,68 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
   outline: none !important;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
 }
+
+/* Desktop Sidebar, Topbar, and Active Navigation Styling */
+:root[data-theme='dark'] .sidebar,
+.dark .sidebar {
+  background: #07100b !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+:root[data-theme='dark'] .topbar,
+.dark .topbar {
+  background: #07100b !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+:root[data-theme='dark'] .sidebar .nav-item,
+.dark .sidebar .nav-item {
+  color: #9ca3af !important;
+  border-radius: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+:root[data-theme='dark'] .sidebar .nav-item:hover,
+.dark .sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme='dark'] .sidebar .nav-item.active,
+.dark .sidebar .nav-item.active {
+  background: #13271c !important;
+  color: #34d399 !important;
+  font-weight: 600 !important;
+}
+
+:root[data-theme='dark'] .sidebar .nav-item.active svg,
+.dark .sidebar .nav-item.active svg {
+  color: #34d399 !important;
+}
+
+/* Auth Screen Submit Button (Soft mint background with dark green/black text and glow) */
+.auth-submit-btn,
+button.auth-submit-btn {
+  background: #5fa88f !important;
+  color: #07150e !important;
+  border: none !important;
+  border-radius: 16px !important;
+  font-weight: 600 !important;
+  padding: 14px 20px !important;
+  box-shadow: 0 4px 20px rgba(95, 168, 143, 0.28) !important;
+  transition: all 0.2s ease !important;
+}
+
+.auth-submit-btn:hover,
+button.auth-submit-btn:hover {
+  background: #6cb69d !important;
+  box-shadow: 0 6px 24px rgba(95, 168, 143, 0.38) !important;
+}
+
+.auth-submit-btn:active,
+button.auth-submit-btn:active {
+  transform: scale(0.98) !important;
+}
+
+
