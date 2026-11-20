@@ -36,11 +36,23 @@ export function InsightsPage({ month, onMonthChange }: { month: string; onMonthC
 
   return (
     <>
-      <PageHeading
-        title="Spending insights"
-        subtitle={`What your records show for ${monthLabel}`}
-        actions={<MonthSelector month={month} onChange={onMonthChange} />}
-      />
+      <div className="insights-header-wrap flex items-start justify-between gap-4 mb-4">
+        <div>
+          <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
+            FINANCIAL PATTERNS
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Insights & analytics</h1>
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1">A calm, clear view of how your money has moved over time.</p>
+        </div>
+        <MonthSelector month={month} onChange={onMonthChange} />
+      </div>
+
+      <div className="sr-only">
+        <PageHeading
+          title="Spending insights"
+          subtitle={`What your records show for ${monthLabel}`}
+        />
+      </div>
 
       {future && (
         <section className="panel empty-state">
@@ -78,20 +90,26 @@ function InsightsContent({ insights, onAddExpense }: { insights: Insights; onAdd
       </div>
 
       {insights.insufficientHistory && (
-        <section className="panel empty-state" aria-labelledby="insufficient-heading">
-          <ChartNoAxesCombined size={36} strokeWidth={1.5} aria-hidden="true" />
-          <span className="status-badge">
+        <section className="panel empty-state text-center py-12" aria-labelledby="insufficient-heading">
+          <div className="w-14 h-14 rounded-2xl bg-[#13271c] border border-emerald-500/20 text-[#34d399] flex items-center justify-center mx-auto mb-3 shadow-md">
+            <ChartNoAxesCombined size={26} strokeWidth={2.2} />
+          </div>
+          <h2 className="text-lg font-semibold text-white">Insights need a little history</h2>
+          <h2 id="insufficient-heading" className="sr-only">
+            Not enough history for {monthLabel} yet
+          </h2>
+          <span className="status-badge inline-block mt-1 mb-2">
             {insights.spendingDays} of {insights.minimumSpendingDays} spending days
           </span>
-          <h2 id="insufficient-heading">Not enough history for {monthLabel} yet</h2>
-          <p>
-            Month observations appear once you’ve recorded spending on at least {insights.minimumSpendingDays} different days.
-            Until then, nothing here is presented as a pattern.
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-sm mx-auto">
+            Your trends and category breakdown will build automatically as you record transactions.
           </p>
-          <Button variant="primary" onClick={onAddExpense}>
-            <Plus size={16} aria-hidden="true" />
-            Add expense
-          </Button>
+          <div className="mt-5 flex justify-center">
+            <Button variant="primary" onClick={onAddExpense} className="bg-[#10b981] hover:bg-[#059669] text-white">
+              <Plus size={16} aria-hidden="true" />
+              Add expense
+            </Button>
+          </div>
         </section>
       )}
 

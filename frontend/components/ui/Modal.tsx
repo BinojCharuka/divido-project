@@ -14,6 +14,7 @@ import { IconButton } from "./IconButton";
 export function Modal({
   title,
   subtitle,
+  eyebrow,
   children,
   onClose,
   onBack,
@@ -21,6 +22,7 @@ export function Modal({
 }: {
   title: string;
   subtitle?: string;
+  eyebrow?: string;
   children: ReactNode;
   onClose: () => void;
   onBack?: () => void;
@@ -214,6 +216,11 @@ export function Modal({
             </button>
           )}
           <div>
+            {eyebrow && (
+              <span className="text-[10px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-0.5">
+                {eyebrow}
+              </span>
+            )}
             <h2 id={titleId}>{title}</h2>
             {subtitle && <p>{subtitle}</p>}
           </div>

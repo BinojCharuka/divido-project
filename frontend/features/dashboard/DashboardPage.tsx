@@ -51,9 +51,14 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
           <FreshMonthNotice dashboard={data.data.dashboard} monthLabel={monthLabel} budgetHref={budgetHref} onAddIncome={() => openAdd("INCOME")} />
           <div className="dashboard-reference-frame">
             <div className="dashboard-reference-header">
-              <h1 className="dashboard-reference-greeting">
-                {name ? `Welcome back, ${name}` : "Welcome back"}
-              </h1>
+              <div>
+                <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
+                  OVERVIEW
+                </span>
+                <h1 className="dashboard-reference-greeting text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                  {name ? `Good morning, ${name}` : "Good morning, ready to plan?"}
+                </h1>
+              </div>
               <div className="dashboard-reference-controls">
                 <div className="dashboard-reference-month-control">
                   <MonthSelector month={month} onChange={onMonthChange} />
@@ -70,7 +75,13 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
                 </div>
               </div>
             </div>
-            <SummaryCards dashboard={data.data.dashboard} />
+            <SummaryCards
+              dashboard={data.data.dashboard}
+              monthLabel={monthLabel}
+              month={month}
+              onAddExpense={() => openAdd("EXPENSE")}
+              onAddRecord={() => openAdd()}
+            />
 
             <section className="budget-section" aria-labelledby="breakdown-heading">
               <div className="section-heading">
@@ -92,22 +103,36 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
           <div className="dashboard-lower">
             <section className="recent-section panel" aria-labelledby="recent-heading">
               <div className="section-heading panel-heading">
-                <h2 id="recent-heading">Recent transactions</h2>
-                <Link className="text-button" href={`/transactions?month=${month}`}>
-                  View all <ArrowRight size={15} aria-hidden="true" />
+                <div>
+                  <span className="text-[10px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-0.5">
+                    ACTIVITY
+                  </span>
+                  <h2 id="recent-heading">Recent transactions</h2>
+                </div>
+                <Link className="text-button flex items-center gap-1 text-sm text-[#34d399] hover:underline" href={`/transactions?month=${month}`}>
+                  <span>View all</span>
+                  <ArrowRight size={14} aria-hidden="true" />
                 </Link>
               </div>
               <TransactionRows
                 transactions={data.data.recent}
                 onOpen={openTransaction}
                 empty={
-                  <div className="empty-state">
-                    <h3>No transactions in {monthLabel}</h3>
-                    <p>Expenses and income you record for this month appear here.</p>
-                    <Button variant="primary" onClick={() => openAdd()}>
-                      <Plus size={16} aria-hidden="true" />
-                      Add transaction
-                    </Button>
+                  <div className="empty-state text-center py-8">
+                    <div className="w-12 h-12 rounded-2xl bg-[#14261d] border border-emerald-500/20 text-[#34d399] flex items-center justify-center mx-auto mb-3 shadow-sm">
+                      <Plus size={22} strokeWidth={2.2} />
+                    </div>
+                    <h3 className="text-base font-semibold text-white">No transactions this month</h3>
+                    <span className="sr-only">No transactions in {monthLabel}</span>
+                    <p className="text-xs text-zinc-400 mt-1 max-w-xs mx-auto">
+                      Record your first income or expense to see your balance come alive.
+                    </p>
+                    <div className="mt-4 flex justify-center">
+                      <Button variant="primary" onClick={() => openAdd()} className="bg-[#10b981] hover:bg-[#059669] text-white">
+                        <Plus size={16} aria-hidden="true" />
+                        Add transaction
+                      </Button>
+                    </div>
                   </div>
                 }
               />

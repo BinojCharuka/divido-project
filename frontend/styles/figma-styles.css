@@ -40,29 +40,29 @@
 html[data-theme='dark'],
 .dark {
   color-scheme: dark;
-  --page: #0b0e0c;
-  --white: #111512;
-  --surface-secondary: #151b17;
-  --surface-elevated: #1a211c;
+  --page: #07100b;
+  --white: #0c1611;
+  --surface-secondary: #0f1c15;
+  --surface-elevated: #14241b;
   --ink: #f2f5f3;
   --neutral-rgb: 242 245 243;
   --muted: #a5aea7;
   --faint: #747f77;
-  --line: rgba(255, 255, 255, 0.09);
+  --line: rgba(255, 255, 255, 0.08);
   --soft: rgba(255, 255, 255, 0.035);
-  --green: #16a34a;
-  --green-accent: #4ade80;
-  --green-soft: rgba(22, 163, 74, 0.12);
-  --accent-foreground: #4ade80;
-  --active-foreground: #4ade80;
-  --positive: #4ade80;
-  --nav-surface: #111512f5;
+  --green: #10b981;
+  --green-accent: #34d399;
+  --green-soft: rgba(16, 185, 129, 0.12);
+  --accent-foreground: #34d399;
+  --active-foreground: #34d399;
+  --positive: #34d399;
+  --nav-surface: #0c1611f5;
   --overlay: #000000b3;
   --shadow: #00000080;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --warning: #f59e0b;
-  --surface-subdued: #151b17;
+  --surface-subdued: #0f1c15;
 }
 
 @layer base {
@@ -72,6 +72,7 @@ html[data-theme='dark'],
     overflow-x: hidden;
     max-width: 100vw;
     touch-action: pan-x pan-y;
+    text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -4982,7 +4983,7 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     font-size: 8px;
   }
 
-  /* Premium Raised Floating Mobile Navigation Bar */
+  /* Premium Diamond Floating Mobile Navigation Bar */
   .mobile-bottom-nav,
   .floating-dock-bar {
     display: flex !important;
@@ -4994,18 +4995,18 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     margin-left: auto !important;
     margin-right: auto !important;
     bottom: max(16px, calc(10px + env(safe-area-inset-bottom, 0px))) !important;
-    width: calc(100% - 28px) !important;
-    max-width: 400px !important;
+    width: calc(100% - 32px) !important;
+    max-width: 420px !important;
     height: 64px !important;
     min-height: 64px !important;
-    padding: 0 6px !important;
+    padding: 0 8px !important;
     box-sizing: border-box !important;
-    background: rgba(255, 255, 255, 0.92) !important;
+    background: rgba(12, 22, 17, 0.95) !important;
     backdrop-filter: blur(24px) saturate(190%) !important;
     -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    border-radius: 9999px !important;
-    box-shadow: 0 16px 40px -6px rgba(15, 23, 42, 0.14), 0 4px 12px -2px rgba(15, 23, 42, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.4) !important;
     z-index: 9999 !important;
     pointer-events: auto !important;
     -webkit-user-select: none !important;
@@ -5017,9 +5018,9 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
   .dark .mobile-bottom-nav,
   :root[data-theme='dark'] .floating-dock-bar,
   .dark .floating-dock-bar {
-    background: rgba(18, 24, 21, 0.92) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    box-shadow: 0 20px 48px -6px rgba(0, 0, 0, 0.75), 0 6px 16px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+    background: rgba(12, 22, 17, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 20px 48px -6px rgba(0, 0, 0, 0.75), 0 6px 16px rgba(0, 0, 0, 0.5) !important;
   }
 
   /* Symmetric Wings */
@@ -5043,7 +5044,7 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     background: transparent !important;
     border: none !important;
     cursor: pointer !important;
-    padding: 0 2px !important;
+    padding: 0 4px !important;
     -webkit-tap-highlight-color: transparent !important;
   }
 
@@ -5054,69 +5055,45 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     justify-content: center !important;
     gap: 3px !important;
     width: 100% !important;
-    max-width: 76px !important;
-    height: 100% !important;
+    max-width: 72px !important;
+    height: 48px !important;
+    border-radius: 14px !important;
     position: relative !important;
+    transition: background 0.2s ease, color 0.2s ease !important;
   }
 
-  /* Raised Icon Bubble Effect */
+  .floating-dock-link.active .floating-dock-item {
+    background: #13271c !important;
+  }
+
   .floating-dock-icon-wrap {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 50% !important;
+    width: 22px !important;
+    height: 22px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     background: transparent !important;
-    border: 2.5px solid transparent !important;
-    color: #64748b !important;
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.2s ease !important;
+    color: #6b7280 !important;
+    transition: color 0.2s ease !important;
   }
 
-  :root[data-theme='dark'] .floating-dock-icon-wrap,
-  .dark .floating-dock-icon-wrap {
-    color: #8b988f !important;
+  .floating-dock-link.active .floating-dock-icon-wrap {
+    color: #34d399 !important;
   }
 
   .floating-dock-icon {
     width: 20px !important;
     height: 20px !important;
     flex-shrink: 0 !important;
-    transition: color 0.2s ease !important;
   }
 
-  /* When Active: Elevated Glowing Circular Bubble */
-  .floating-dock-icon-wrap.is-raised {
-    transform: translateY(-13px) !important;
-    width: 46px !important;
-    height: 46px !important;
-    border-radius: 50% !important;
-    background: radial-gradient(circle at 35% 30%, #a7f3d0 0%, #6ee7b7 60%, #34d399 100%) !important;
-    color: #064e3b !important;
-    border: 2.5px solid #ffffff !important;
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.45), 0 6px 14px rgba(15, 23, 42, 0.12) !important;
-  }
-
-  .floating-dock-icon-wrap.is-raised .floating-dock-icon {
-    color: #064e3b !important;
-  }
-
-  :root[data-theme='dark'] .floating-dock-icon-wrap.is-raised,
-  .dark .floating-dock-icon-wrap.is-raised {
-    background: radial-gradient(circle at 35% 30%, #bbf7d0 0%, #86efac 55%, #4ade80 100%) !important;
-    color: #064e3b !important;
-    border: 2.5px solid #141c18 !important;
-    box-shadow: 0 0 22px rgba(74, 222, 128, 0.65), 0 6px 16px rgba(0, 0, 0, 0.5) !important;
-  }
-
-  :root[data-theme='dark'] .floating-dock-icon-wrap.is-raised .floating-dock-icon,
-  .dark .floating-dock-icon-wrap.is-raised .floating-dock-icon {
-    color: #064e3b !important;
+  .floating-dock-link.active .floating-dock-icon {
+    color: #34d399 !important;
   }
 
   /* Dock Label */
   .floating-dock-label {
-    font-size: 10px !important;
+    font-size: 11px !important;
     font-weight: 500 !important;
     letter-spacing: -0.15px !important;
     white-space: nowrap !important;
@@ -5124,29 +5101,18 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     text-overflow: ellipsis !important;
     line-height: 1 !important;
     display: block !important;
-    color: #64748b !important;
+    color: #6b7280 !important;
     transition: color 0.2s ease, font-weight 0.2s ease !important;
   }
 
-  :root[data-theme='dark'] .floating-dock-label,
-  .dark .floating-dock-label {
-    color: #8b988f !important;
-  }
-
   .floating-dock-link.active .floating-dock-label {
-    color: #047857 !important;
-    font-weight: 600 !important;
-  }
-
-  :root[data-theme='dark'] .floating-dock-link.active .floating-dock-label,
-  .dark .floating-dock-link.active .floating-dock-label {
     color: #34d399 !important;
     font-weight: 600 !important;
   }
 
-  /* Central Elevated Add (+) Button */
+  /* Central Elevated Rotated 45-deg Diamond Add (+) Button */
   .floating-dock-center {
-    width: 54px !important;
+    width: 58px !important;
     height: 100% !important;
     display: flex !important;
     align-items: center !important;
@@ -5158,43 +5124,43 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
   .mobile-bottom-nav .floating-dock-add,
   .mobile-bottom-nav>.mobile-add {
     position: relative !important;
-    top: -12px !important;
-    width: 50px !important;
-    height: 50px !important;
-    min-height: 50px !important;
+    top: -14px !important;
+    width: 52px !important;
+    height: 52px !important;
+    min-height: 52px !important;
     flex-shrink: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 50% !important;
-    background: linear-gradient(135deg, #10b981 0%, #059669 55%, #047857 100%) !important;
+    border-radius: 18px !important;
+    transform: rotate(45deg) !important;
+    background: #10b981 !important;
     color: #ffffff !important;
-    border: 3.5px solid #ffffff !important;
-    box-shadow: 0 10px 24px -2px rgba(16, 185, 129, 0.55), 0 4px 10px rgba(0, 0, 0, 0.12), inset 0 2px 3px rgba(255, 255, 255, 0.5) !important;
+    border: 3.5px solid #07100b !important;
+    box-shadow: 0 0 24px rgba(16, 185, 129, 0.5), 0 8px 18px rgba(0, 0, 0, 0.4) !important;
     cursor: pointer !important;
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background 0.2s ease !important;
     z-index: 20 !important;
     -webkit-tap-highlight-color: transparent !important;
   }
 
+  .mobile-bottom-nav .floating-dock-add .floating-dock-add-icon,
+  .mobile-bottom-nav>.mobile-add svg {
+    transform: rotate(-45deg) !important;
+    color: #ffffff !important;
+  }
+
   .mobile-bottom-nav .floating-dock-add:hover,
   .mobile-bottom-nav>.mobile-add:hover {
-    transform: translateY(-14px) scale(1.05) !important;
-    box-shadow: 0 14px 28px -2px rgba(16, 185, 129, 0.65), inset 0 2px 3px rgba(255, 255, 255, 0.65) !important;
+    background: #059669 !important;
+    transform: rotate(45deg) scale(1.06) !important;
+    box-shadow: 0 0 28px rgba(16, 185, 129, 0.65) !important;
   }
 
   .mobile-bottom-nav .floating-dock-add:active,
   .mobile-bottom-nav>.mobile-add:active {
-    transform: translateY(-9px) scale(0.92) !important;
-    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.45) !important;
-  }
-
-  :root[data-theme='dark'] .mobile-bottom-nav .floating-dock-add,
-  .dark .mobile-bottom-nav .floating-dock-add,
-  :root[data-theme='dark'] .mobile-bottom-nav>.mobile-add,
-  .dark .mobile-bottom-nav>.mobile-add {
-    border-color: #121814 !important;
-    box-shadow: 0 12px 28px -2px rgba(16, 185, 129, 0.65), 0 4px 10px rgba(0, 0, 0, 0.6), inset 0 2px 3px rgba(255, 255, 255, 0.4) !important;
+    transform: rotate(45deg) scale(0.93) !important;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.4) !important;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -5762,4 +5728,66 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     animation: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Deep Emerald & Obsidian Dark Mode Modal & Form Controls */
+:root[data-theme='dark'] .record-modal .money-input,
+.dark .record-modal .money-input {
+  border: 1.5px solid #856c28 !important;
+  background: rgba(26, 28, 20, 0.95) !important;
+  border-radius: 16px !important;
+  padding: 16px 20px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+:root[data-theme='dark'] .record-modal .money-input:focus-within,
+.dark .record-modal .money-input:focus-within {
+  border-color: #ca8a04 !important;
+  box-shadow: 0 0 0 2px rgba(202, 138, 4, 0.25) !important;
+  outline: none !important;
+}
+
+:root[data-theme='dark'] .record-modal .money-input > span,
+.dark .record-modal .money-input > span {
+  color: #ca8a04 !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  letter-spacing: 0.05em !important;
+}
+
+:root[data-theme='dark'] .record-modal .money-input > input,
+.dark .record-modal .money-input > input {
+  font-size: 36px !important;
+  font-weight: 600 !important;
+  color: #fef08a !important;
+}
+
+:root[data-theme='dark'] .modal,
+.dark .modal {
+  background: #0d1611 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f2f5f3 !important;
+}
+
+:root[data-theme='dark'] .field > input,
+:root[data-theme='dark'] .field > select,
+:root[data-theme='dark'] .field > textarea,
+.dark .field > input,
+.dark .field > select,
+.dark .field > textarea {
+  background: #0f1c15 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #f2f5f3 !important;
+  border-radius: 12px !important;
+}
+
+:root[data-theme='dark'] .field > input:focus,
+:root[data-theme='dark'] .field > select:focus,
+:root[data-theme='dark'] .field > textarea:focus,
+.dark .field > input:focus,
+.dark .field > select:focus,
+.dark .field > textarea:focus {
+  border-color: #10b981 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
 }

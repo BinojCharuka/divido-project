@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Check, KeyRound, Moon, Sun, Wallet } from "lucide-react";
-import { IconButton } from "@/components/ui/IconButton";
-import { useDividoTheme } from "@/lib/theme";
+import { Check, KeyRound, Wallet } from "lucide-react";
 
 export function PoweredByDivido({ className = "" }: { className?: string }) {
   return (
@@ -32,22 +30,10 @@ export interface AuthLayoutProps {
   customHeader?: boolean;
 }
 
-/** The modern split-screen auth layout matching Divido's dark green & charcoal financial identity. */
+/** The modern split-screen auth layout matching Divido's dark green & charcoal financial identity (primary dark mode). */
 export function AuthLayout({ title, subtitle, children, customHeader = false }: AuthLayoutProps) {
-  const { theme, toggleTheme } = useDividoTheme();
-
   return (
-    <div className="min-h-screen w-full flex bg-[#070b09] text-zinc-100 antialiased relative selection:bg-[#5fa88f]/30 overflow-x-hidden font-sans">
-      {/* Top right floating theme toggle */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-40">
-        <IconButton
-          icon={theme === "light" ? Moon : Sun}
-          label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-          className="icon-button text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md rounded-xl transition-all"
-          onClick={toggleTheme}
-        />
-      </div>
-
+    <div className="dark min-h-screen w-full flex bg-[#070b09] text-zinc-100 antialiased relative selection:bg-[#5fa88f]/30 overflow-x-hidden font-sans">
       {/* LEFT PANEL: Hero & Branding (Desktop >= 1024px) */}
       <div className="hidden lg:flex lg:w-1/2 min-h-screen flex-col justify-between p-12 xl:p-16 relative overflow-hidden bg-[#06170f] border-r border-white/[0.06]">
         {/* Ambient background glows */}

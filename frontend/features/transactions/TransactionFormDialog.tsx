@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Check, ShieldCheck, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ShieldCheck, Trash2 } from "lucide-react";
 import { FormError } from "@/components/feedback/FieldError";
 import { GroupBadge } from "@/components/financial/GroupBadge";
 import { GROUP_META } from "@/components/financial/groups";
@@ -42,7 +42,8 @@ export function TransactionFormDialog({
   onDelete?: () => void;
   onSaved: (message: string) => void;
 }) {
-  const isIncome = type === "INCOME";
+  const [activeType, setActiveType] = useState<TransactionType>(type);
+  const isIncome = activeType === "INCOME";
   const editing = !!transaction;
 
   const [amount, setAmount] = useState(transaction ? normalizeMoneyInput(transaction.amount) : "");
@@ -98,7 +99,7 @@ export function TransactionFormDialog({
         await updateTransaction(transaction.id, patch);
         onSaved("Transaction updated");
       } else {
-        await createTransaction({ ...input, type, amount: normalizeMoneyInput(amount) });
+        await createTransaction({ ...input, type: activeType, amount: normalizeMoneyInput(amount) });
         onSaved(isIncome ? "Income added" : "Expense saved");
       }
     } catch (err) {
@@ -120,9 +121,45 @@ export function TransactionFormDialog({
   const optionsLoading = options.status === "loading";
 
   return (
-    <Modal className="record-modal" title={title} onClose={onClose} onBack={onBack}>
+    <Modal
+      className="record-modal"
+      title={title}
+      eyebrow={editing ? "RECORD DETAILS" : "NEW RECORD"}
+      onClose={onClose}
+      onBack={onBack}
+    >
       <form onSubmit={submit} className="transaction-form" noValidate aria-busy={pending}>
         <FormError message={formError} />
+
+        {!editing && (
+          <div className="w-full bg-[#111914] border border-white/[0.08] p-1 rounded-xl flex gap-1 mb-4" role="group" aria-label="Transaction type">
+            <button
+              type="button"
+              className={`flex-1 py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                !isIncome
+                  ? "bg-[#1f2821] text-[#f87171] border border-red-500/20 shadow-xs"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+              onClick={() => setActiveType("EXPENSE")}
+            >
+              <ArrowUp size={14} className={!isIncome ? "text-[#f87171]" : "text-zinc-400"} />
+              <span>Expense</span>
+            </button>
+            <button
+              type="button"
+              className={`flex-1 py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                isIncome
+                  ? "bg-[#1f2821] text-[#34d399] border border-emerald-500/20 shadow-xs"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+              onClick={() => setActiveType("INCOME")}
+            >
+              <ArrowDown size={14} className={isIncome ? "text-[#34d399]" : "text-zinc-400"} />
+              <span>Income</span>
+            </button>
+          </div>
+        )}
+
         <MoneyField label="Amount" required variant="large" name="amount" autoFocus value={amount} onChange={setAmount} error={fieldErrors.amount} />
 
         {isIncome ? (
@@ -206,12 +243,18 @@ export function TransactionFormDialog({
               Delete
             </Button>
           )}
-          <Button onClick={onClose} disabled={pending}>
+          <Button onClick={onClose} disabled={pending} className="bg-[#141f18] hover:bg-[#1a2b21] text-zinc-300 border border-white/10">
             Cancel
           </Button>
-          <Button type="submit" variant="primary" loading={pending}>
+          <Button
+            type="submit"
+            variant="primary"
+            loading={pending}
+            aria-label={pending ? "Saving…" : editing ? "Save changes" : isIncome ? "Save income" : "Save expense"}
+            className="bg-[#10b981] hover:bg-[#059669] text-white font-medium shadow-md shadow-emerald-500/20"
+          >
             <Check size={16} aria-hidden="true" />
-            {pending ? "Saving…" : editing ? "Save changes" : isIncome ? "Save income" : "Save expense"}
+            <span>{pending ? "Saving…" : editing ? "Save changes" : isIncome ? "Save income" : "Save expense"}</span>
           </Button>
         </div>
       </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { GROUP_META } from "@/components/financial/groups";
 import { Button } from "@/components/ui/Button";
 import type { Category } from "@/types/category";
@@ -11,16 +11,17 @@ export interface TransactionFilterValues {
   type?: TransactionType;
   categoryId?: string;
   incomeSourceId?: string;
+  search?: string;
 }
 
 export function isFiltered(f: TransactionFilterValues): boolean {
-  return !!(f.type || f.categoryId || f.incomeSourceId);
+  return !!(f.type || f.categoryId || f.incomeSourceId || f.search);
 }
 
 const TYPES = [
   ["All", undefined],
-  ["Expenses", "EXPENSE"],
   ["Income", "INCOME"],
+  ["Expenses", "EXPENSE"],
 ] as const;
 
 /**
@@ -40,10 +41,33 @@ export function TransactionFilters({
   sources: IncomeSource[];
   optionsUnavailable: boolean;
 }) {
-  const { type, categoryId, incomeSourceId } = values;
+  const { type, categoryId, incomeSourceId, search = "" } = values;
   return (
-    <>
-      <div className="filter-row">
+    <div className="transaction-filters-container flex flex-col gap-3 mb-4">
+      {/* Search Input matching screenshot 4 */}
+      <div className="relative w-full">
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+        <input
+          type="text"
+          placeholder="Search transactions"
+          aria-label="Search transactions"
+          value={search}
+          onChange={(e) => onChange({ ...values, search: e.target.value })}
+          className="w-full bg-[#0d1611] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-hidden focus:border-emerald-500/50"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => onChange({ ...values, search: "" })}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1"
+            aria-label="Clear search"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      <div className="filter-row flex flex-wrap items-center gap-2.5">
         <div className="segmented-tabs" role="group" aria-label="Transaction type">
           {TYPES.map(([label, value]) => (
             <button
@@ -53,6 +77,7 @@ export function TransactionFilters({
               className={type === value ? "selected" : ""}
               onClick={() =>
                 onChange({
+                  ...values,
                   type: value,
                   categoryId: value === "INCOME" ? undefined : categoryId,
                   incomeSourceId: value === "EXPENSE" ? undefined : incomeSourceId,
@@ -70,7 +95,7 @@ export function TransactionFilters({
             disabled={optionsUnavailable}
             onChange={(e) => {
               const id = e.target.value || undefined;
-              onChange({ type: id ? "EXPENSE" : type, categoryId: id });
+              onChange({ ...values, type: id ? "EXPENSE" : type, categoryId: id });
             }}
           >
             <option value="">All categories</option>
@@ -89,7 +114,7 @@ export function TransactionFilters({
             disabled={optionsUnavailable}
             onChange={(e) => {
               const id = e.target.value || undefined;
-              onChange({ type: id ? "INCOME" : type, incomeSourceId: id });
+              onChange({ ...values, type: id ? "INCOME" : type, incomeSourceId: id });
             }}
           >
             <option value="">All income sources</option>
@@ -108,6 +133,6 @@ export function TransactionFilters({
         )}
       </div>
       {optionsUnavailable && <p className="filter-note">Category and income source filters are unavailable right now.</p>}
-    </>
+    </div>
   );
 }

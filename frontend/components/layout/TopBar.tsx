@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BookOpen, CircleHelp, LayoutDashboard, LogOut, Moon, Settings, Sun } from "lucide-react";
+import { Bell, BookOpen, CircleHelp, LayoutDashboard, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { Brand } from "@/components/ui/Brand";
 import { IconButton } from "@/components/ui/IconButton";
 import { useDividoTheme } from "@/lib/theme";
@@ -63,6 +63,17 @@ export function TopBar({
           <span>{locationLabel(pathname)}</span>
         </div>
         <div className="header-actions">
+          <div className="relative flex items-center">
+            <button
+              type="button"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer relative"
+              aria-label="Notifications"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <Bell size={18} strokeWidth={2} />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-[#07100b]" />
+            </button>
+          </div>
           <span className="topbar-divider" />
           <IconButton
             icon={theme === "light" ? Moon : Sun}

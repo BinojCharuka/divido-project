@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  ArrowLeftRight,
-  ChartNoAxesCombined,
+  BarChart3,
+  History,
   LayoutGrid,
   Plus,
   Wallet,
@@ -23,12 +23,12 @@ interface NavItem {
 
 const LEFT_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutGrid, prefixes: ["/dashboard"] },
-  { href: "/transactions", label: "History", icon: ArrowLeftRight, prefixes: ["/transactions"] },
+  { href: "/transactions", label: "History", icon: History, prefixes: ["/transactions"] },
 ];
 
 const RIGHT_ITEMS: NavItem[] = [
   { href: "/budget", label: "Budget", icon: Wallet, prefixes: ["/budget"] },
-  { href: "/insights", label: "Insights", icon: ChartNoAxesCombined, prefixes: ["/insights"] },
+  { href: "/insights", label: "Insights", icon: BarChart3, prefixes: ["/insights"] },
 ];
 
 function isItemActive(item: NavItem, pathname: string, tappedHref: string | null): boolean {

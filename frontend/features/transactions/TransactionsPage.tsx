@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { History, Plus } from "lucide-react";
 import { InlineError } from "@/components/feedback/InlineError";
 import { LoadingPanel } from "@/components/feedback/LoadingPanel";
 import { Money } from "@/components/financial/Money";
@@ -61,18 +61,37 @@ export function TransactionsPage({ month, onMonthChange }: { month: string; onMo
 
   return (
     <>
-      <PageHeading
-        title="Transactions"
-        actions={
-          <>
-            <MonthSelector month={month} onChange={onMonthChange} />
+      <div className="transactions-header-wrap flex items-start justify-between gap-4 mb-4">
+        <div>
+          <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
+            MONEY MOVEMENT
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Transaction history</h1>
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1">Search, review, and manage every recorded transaction.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <MonthSelector month={month} onChange={onMonthChange} />
+          <button
+            type="button"
+            onClick={() => openAdd()}
+            aria-label="Add transaction"
+            className="w-11 h-11 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 cursor-pointer"
+          >
+            <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+      <div className="sr-only">
+        <PageHeading
+          title="Transactions"
+          actions={
             <Button variant="primary" onClick={() => openAdd()}>
               <Plus size={17} aria-hidden="true" />
               Add transaction
             </Button>
-          </>
-        }
-      />
+          }
+        />
+      </div>
 
       <div className="transaction-summary-strip">
         <span>
@@ -115,13 +134,21 @@ export function TransactionsPage({ month, onMonthChange }: { month: string; onMo
                     <Button onClick={() => changeFilters({})}>Clear filters</Button>
                   </div>
                 ) : (
-                  <div className="empty-state">
-                    <h3>No transactions in {monthLabel}</h3>
-                    <p>Record an expense or income to start this month.</p>
-                    <Button variant="primary" onClick={() => openAdd()}>
-                      <Plus size={16} aria-hidden="true" />
-                      Add transaction
-                    </Button>
+                  <div className="empty-state text-center py-10">
+                    <div className="w-14 h-14 rounded-2xl bg-[#13271c] border border-emerald-500/20 text-[#34d399] flex items-center justify-center mx-auto mb-3 shadow-md">
+                      <History size={26} strokeWidth={2.2} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Your history is ready</h3>
+                    <span className="sr-only">No transactions in {monthLabel}</span>
+                    <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-sm mx-auto">
+                      New income and expenses will appear here, grouped by date.
+                    </p>
+                    <div className="mt-5 flex justify-center">
+                      <Button variant="primary" onClick={() => openAdd()} className="bg-[#10b981] hover:bg-[#059669] text-white">
+                        <Plus size={16} aria-hidden="true" />
+                        Add transaction
+                      </Button>
+                    </div>
                   </div>
                 )
               }
