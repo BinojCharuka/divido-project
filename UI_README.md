@@ -1,277 +1,475 @@
-# Divido — UI Architecture, Design System & Implementation Guide
+# Divido — Complete UI Architecture, Tabs, Sections & Design Specification
 
-**Status:** ACTIVE — Canonical Frontend & UI Reference  
+**Status:** ACTIVE — Canonical Frontend & User Interface Reference  
+**Application:** Divido Personal Budgeting System  
 **Framework:** Next.js (App Router, Turbopack) & React 19  
-**Styling Architecture:** Pure Modular CSS (`figma-styles.css`, `design-system.css`, `app.css`)  
-**Design System Origin:** Custom Figma Dark/Light Design Prototype  
+**Styling Architecture:** Pure Modular CSS (`figma-styles.css`, `design-system.css`, `app.css`, `page-transition.css`)  
+**Design Foundations:** Custom Figma Dark/Light Design System & Kakeibo 4-Pillar Budgeting Architecture  
 
 ---
 
-## 🎨 1. Design Vision & Principles
+## 📑 Table of Contents
 
-Divido's UI is designed to make personal finance calm, deliberate, and visually engaging. It transitions traditional budgeting from rigid spreadsheets into an intuitive, tactile experience.
-
-### Core Principles
-1. **Honest & Direct Feedback:** No hidden math. All formulas, totals, and group allocations reflect live server state.
-2. **Warn, Never Block (DEC-012):** When a user allocates more than their planned income, the UI warns with clear visual cues rather than forbidding them from saving.
-3. **Visual Hierarchy through Contrast & Color:**
-   * **Inflow / Income:** Emerald Green (`--green: #059669`) represents incoming money and positive milestones.
-   * **Outflow / Expense:** Vibrant Red / Crimson (`--danger: #ef4444` / `#dc2626`) clearly demarcates spending and destructive actions.
-   * **Budget Groups:** Semantic, soft accent colors for four core groups: **Needs**, **Wants**, **Culture**, and **Unexpected**.
-4. **Clean Modern Terminology:** Completely purged legacy jargon (e.g. "Kakeibo Method") in favor of universal personal finance terms ("Personal Budgeting", "Budget Groups", "Spending Insights").
-5. **Real-API Driven:** No mock data or `localStorage` fallbacks. Every screen communicates directly with the Spring Boot REST backend with robust loading, error, and retry states.
+1. [Executive Summary & Design Vision](#1-executive-summary--design-vision)
+2. [Design System & Visual Tokens](#2-design-system--visual-tokens)
+3. [Global Navigation & Application Shell](#3-global-navigation--application-shell)
+   - [3.1 Desktop Collapsible Sidebar](#31-desktop-collapsible-sidebar)
+   - [3.2 Top Bar Navigation & Quick Menu](#32-top-bar-navigation--quick-menu)
+   - [3.3 Raised Floating Mobile Navigation Bar](#33-raised-floating-mobile-navigation-bar)
+   - [3.4 Native Vertical Upward-Swipe Page Transition](#34-native-vertical-upward-swipe-page-transition)
+4. [Authentication & Public Onboarding Suite](#4-authentication--public-onboarding-suite)
+   - [4.1 Sign In (`/sign-in`)](#41-sign-in-sign-in)
+   - [4.2 Sign Up / Registration (`/sign-up`)](#42-sign-up--registration-sign-up)
+   - [4.3 Forgot Password (`/forgot-password`)](#43-forgot-password-forgot-password)
+   - [4.4 Reset Password (`/reset-password`)](#44-reset-password-reset-password)
+   - [4.5 Guided Onboarding Wizard (`/onboarding`)](#45-guided-onboarding-wizard-onboarding)
+5. [Authenticated App Pages & Tab Sections](#5-authenticated-app-pages--tab-sections)
+   - [5.1 Overview / Dashboard (`/dashboard`)](#51-overview--dashboard-dashboard)
+   - [5.2 History / Transactions Management (`/transactions`)](#52-history--transactions-management-transactions)
+   - [5.3 Budget Planning (`/budget`)](#53-budget-planning-budget)
+   - [5.4 Spending Insights (`/insights`)](#54-spending-insights-insights)
+   - [5.5 Monthly Reflection (`/reflection`)](#55-monthly-reflection-reflection)
+   - [5.6 Categories Management (`/categories`)](#56-categories-management-categories)
+   - [5.7 Income Sources Management (`/income-sources`)](#57-income-sources-management-income-sources)
+   - [5.8 Profile & Settings (`/settings`)](#58-profile--settings-settings)
+6. [Bottom-Sheet Transaction Flow & Mobile Touch Gestures](#6-bottom-sheet-transaction-flow--mobile-touch-gestures)
+   - [6.1 Quick Add & Multi-step Workflow](#61-quick-add--multi-step-workflow)
+   - [6.2 Touch Gesture Minimization & Expansion](#62-touch-gesture-minimization--expansion)
+7. [Mobile Viewport Standards, Anti-Zoom & Accessibility](#7-mobile-viewport-standards-anti-zoom--accessibility)
+8. [Technical Component Inventory & State Architecture](#8-technical-component-inventory--state-architecture)
 
 ---
 
-## 📐 2. Color Palette & Typography Tokens
+## 🎨 1. Executive Summary & Design Vision
 
-The design system supports both **Dark Mode (Default)** and **Light Mode**, driven by CSS custom properties attached to `:root` and `[data-theme='dark']`.
+Divido is engineered to make personal finance calm, deliberate, tactile, and mathematically honest. It eliminates spreadsheet fatigue by organizing all cash flow into intuitive monthly periods and four universal financial categories: **Needs**, **Wants**, **Culture**, and **Unexpected**.
 
-### Color Tokens
+### Core Product Tenets
+1. **Mathematical Honesty:** No synthetic math or hidden numbers. Every balance and total reflects real server-side state.
+2. **Warn, Never Block (DEC-012):** When planned spending exceeds planned income, the user receives an alert with amber indicators, but the application never blocks them from saving their plan.
+3. **High-Contrast Semantic Color Language:**
+   * **Inflow / Positive:** Divido Emerald Green (`#10b981` / `#16a34a`) denotes income, savings progress, and primary actions.
+   * **Outflow / Negative:** Crimson Red (`#ef4444` / `#dc2626`) denotes recorded expenses and destructive actions.
+   * **Budget Groups:** Distinct semantic badges and icons for Needs, Wants, Culture, and Unexpected.
+4. **Zero Layout Shifts & Native Fluidity:** Built with hardware-accelerated transforms (`translate3d`), responsive font clamping, and native CSS transitions without heavy third-party animation libraries.
 
-| Token | Dark Theme (Default) | Light Theme | Usage |
+---
+
+## 📐 2. Design System & Visual Tokens
+
+Divido features a dual-theme token architecture powered by CSS custom properties on `:root` and `[data-theme='dark']`. **Dark Mode is the default experience.**
+
+### Color Palette Tokens
+
+| Token Name | Dark Theme (Default) | Light Theme | Visual Role / Purpose |
 |---|---|---|---|
-| `--page` | `#0b0e0c` (Deep Obsidian Void) | `#ffffff` | Background of the application page |
-| `--white` | `#111512` (Card Surface) | `#ffffff` | Primary card surfaces, modals, popovers |
-| `--surface-secondary` | `#151b17` (Subdued Surface) | `#f8faf9` | Tag pills, badge fills, secondary panels |
-| `--surface-elevated` | `#1a211c` (Elevated Surface) | `#f0f3f1` | Modals, elevated cards, dropdown flyouts |
-| `--ink` | `#f2f5f3` (Crisp Off-White) | `#0b0f0d` | Primary headings, body copy |
-| `--muted` | `#a5aea7` (Slate Grey) | `#0b0f0d99` | Secondary text, labels, timestamps |
-| `--faint` | `#747f77` (Muted Faint) | `#8a958e` | Disabled indicators, subtle icons |
-| `--line` | `rgba(255, 255, 255, 0.09)` | `#0b0f0d14` | Card borders, dividers, table rows |
-| `--soft` | `rgba(255, 255, 255, 0.035)` | `#00000008` | Ghost button hover, subtle backgrounds |
-| `--green` | `#16a34a` (Emerald Green) | `#16a34a` | Inflow/Income indicators, primary actions |
-| `--green-accent` | `#4ade80` (Mint / Positive) | `#15803d` | High-contrast positive values, savings milestones |
-| `--danger` | `#ef4444` (Vibrant Red) | `#dc2626` | Add Expense button, recorded expenses, delete flows |
-| `--warning` | `#f59e0b` (Amber Warning) | `#d97706` | Budget over-allocation notices (DEC-012) |
-| `--surface-subdued` | `#151b17` | `#f8faf9` | Input backgrounds, subtle chips |
+| `--page` | `#0b0e0c` (Obsidian Void) | `#ffffff` (Pure White) | Global canvas and root viewport background |
+| `--white` | `#111512` (Card Surface) | `#ffffff` | Primary container cards, modals, and dropdowns |
+| `--surface-secondary` | `#151b17` (Subdued Surface) | `#f8faf9` | Tag badges, secondary buttons, input backgrounds |
+| `--surface-elevated` | `#1a211c` (Elevated Surface) | `#f0f3f1` | Floating bottom navigation dock, popovers |
+| `--ink` | `#f2f5f3` (Crisp Off-White) | `#0b0f0d` (Deep Charcoal) | Primary headlines, body text, strong numbers |
+| `--muted` | `#a5aea7` (Slate Grey) | `#64748b` (Muted Slate) | Secondary labels, descriptions, timestamps |
+| `--faint` | `#747f77` (Muted Faint) | `#94a3b8` | Disabled indicators, placeholder copy |
+| `--line` | `rgba(255, 255, 255, 0.08)` | `rgba(0, 0, 0, 0.08)` | Hairline borders, dividers, table row lines |
+| `--soft` | `rgba(255, 255, 255, 0.035)` | `rgba(0, 0, 0, 0.035)` | Ghost button hover states, row highlight |
+| `--green` | `#10b981` / `#16a34a` (Divido Green) | `#16a34a` | Primary actions, income amounts, positive progress |
+| `--green-accent`| `#4ade80` (Mint Glow) | `#15803d` | Halo aura on active navigation tabs, balance cards |
+| `--danger` | `#ef4444` (Vibrant Red) | `#dc2626` | Add expense buttons, expense values, delete alerts |
+| `--warning` | `#f59e0b` (Amber Alert) | `#d97706` | Budget over-allocation warnings (DEC-012) |
 
-### Typography: Inter Font Family
-* **Scale:**
-  * Page Title (`h1`): `29px` – `32px` (`font-weight: 600`, `letter-spacing: -1.1px`)
-  * Section Title (`h2`): `17px` (`font-weight: 600`, `letter-spacing: -0.45px`)
-  * Card Header / Eyebrow: `8px` – `10px` (`letter-spacing: 1.7px`, uppercase, `font-weight: 600`)
-  * Body Text: `13px` – `14px` (`font-weight: 450` / `500`)
-  * Tabular Numbers: `font-variant-numeric: tabular-nums` for all financial figures.
+### Typography Tokens (Geist & Inter Scale)
+* **Page Headline (`h1`):** `clamp(24px, 5vw, 32px)`, `font-weight: 600`, `letter-spacing: -1px`
+* **Section Headline (`h2`):** `clamp(16px, 3.5vw, 20px)`, `font-weight: 650`, `letter-spacing: -0.4px`
+* **Eyebrow / Category Tag:** `9px` – `11px`, `letter-spacing: 1.5px`, uppercase, `font-weight: 650`
+* **Body Text:** `13px` – `14px`, `font-weight: 450` / `500`, `line-height: 1.6`
+* **Tabular Financial Numbers:** Rendered with `font-variant-numeric: tabular-nums` to guarantee aligned columns and decimal precision.
 
 ---
 
-## 🏗️ 3. Navigation & App Shell Structure
+## 🏗️ 3. Global Navigation & Application Shell
 
-All authenticated pages are wrapped in a unified layout (`AppShell.tsx` & `AppShellContext.tsx`) that provides consistent navigation and global modal management.
+All authenticated user experiences are wrapped inside `AppShell.tsx`, which unifies top bar controls, navigation drawers, floating mobile docks, and global dialog orchestration.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ AppShell                                                               │
+│ AppShell Layout                                                        │
 │ ┌───────────────┬────────────────────────────────────────────────────┐ │
-│ │ Sidebar       │ TopBar (Breadcrumbs, Month Stepper, User, Theme)   │ │
-│ │ (Desktop)     ├────────────────────────────────────────────────────┤ │
-│ │               │ PageHeading (Title, Period Tag, Action Buttons)    │ │
-│ │ • Dashboard   ├────────────────────────────────────────────────────┤ │
-│ │ • Transactions│ Main Page Content                                 │ │
-│ │ • Budget      │ (DashboardCards, BudgetPlanner, InsightCharts, etc)│ │
+│ │ Desktop       │ TopBar (Breadcrumbs, Month Stepper, Theme, Avatar) │ │
+│ │ Sidebar       ├────────────────────────────────────────────────────┤ │
+│ │ (Collapsible) │ PageHeading (Title, Period Tag, Action Buttons)    │ │
+│ │               ├────────────────────────────────────────────────────┤ │
+│ │ • Overview    │ Main Scrollable Content                            │ │
+│ │ • History     │ (Dashboard, Transactions, Budget, Insights, etc.)  │ │
+│ │ • Budget      │                                                    │ │
 │ │ • Insights    │                                                    │ │
-│ │ • Reflection  │                                                    │ │
-│ │ • Settings    ├────────────────────────────────────────────────────┤ │
-│ │               │ MobileDock (Bottom Floating Nav on screens < 768px)│ │
+│ │ • Reflection  ├────────────────────────────────────────────────────┤ │
+│ │ • Settings    │ Raised Floating Mobile Dock (Screens < 768px)      │ │
 │ └───────────────┴────────────────────────────────────────────────────┘ │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1. Persistent Sidebar (Desktop)
-* Displays the Divido brand logo (`<Brand variant="full" />`).
-* Structured section headers:
-  * **MAIN:** Primary financial workflow (`Dashboard`, `Transactions`, `Budget`, `Insights`).
-  * **PERSONAL:** User introspection & preferences (`Monthly reflection`, `Settings`).
-* Collapsible state with quick user card and sign-out dialog trigger at the footer.
+### 3.1 Desktop Collapsible Sidebar
+* **Brand Area:** Divido dual-leaf logo with responsive light/dark asset swapping (`Brand.tsx`).
+* **Navigation Links:**
+  * **MAIN SECTION:**
+    * **Overview** (`/dashboard`): Dashboard icon, links to monthly cash flow overview.
+    * **History** (`/transactions`): ArrowLeftRight icon, links to full transaction ledger.
+    * **Budget** (`/budget`): Wallet icon, links to monthly planning sheet.
+    * **Insights** (`/insights`): Chart icon, links to spending trend analytics.
+  * **PERSONAL SECTION:**
+    * **Monthly reflection** (`/reflection`): Leaf icon, links to end-of-month review.
+    * **Settings** (`/settings`): Cog icon, links to account and preferences.
+* **Collapsible State:** A persistent toggle button allows collapsing the sidebar from `226px` to a slim `72px` icon bar. The preference is remembered in `localStorage` (`divido-sidebar-collapsed`).
+* **Footer Profile Card:** Displays the user's name, initials avatar, and a sign-out button that opens the confirmation dialog.
 
-### 2. Top Bar
-* Dynamic route breadcrumb (`/ Dashboard`, `/ Transactions`, etc.).
-* Light/Dark mode toggle button.
-* User avatar with dropdown menu containing direct one-tap links to **Settings & preferences** and **Monthly reflection**, plus help dialog and sign-out.
+### 3.2 Top Bar Navigation & Quick Menu
+* **Route Breadcrumbs:** Clean path rendering (e.g., `Divido / Dashboard`).
+* **Theme Switcher:** Single-click toggle between Dark and Light visual themes.
+* **User Profile Avatar & Menu:** Circular 34px avatar displaying user initials. Clicking reveals a dropdown menu:
+  * User display name and registered email address.
+  * Quick link to **Settings & preferences**.
+  * Quick link to **Monthly reflection**.
+  * Quick link to **Help & instructions**.
+  * **Sign out** button triggering the session invalidation dialog.
 
-### 3. Floating Mobile Dock (`MobileDock.tsx`)
-* Fixed bottom navigation dock designed for one-handed mobile use.
-* Primary 4 destinations:
-  * Left: **Overview** (`/dashboard`) and **History** (`/transactions`).
-  * Right: **Budget** (`/budget`) and **Insights** (`/insights`).
-* Center prominent circular action button (`+`) that summons the quick-add transaction modal.
-* Fully centered layout preventing clipping on iOS Safari and mobile Chrome.
+### 3.3 Raised Floating Mobile Navigation Bar (`MobileDock.tsx`)
+Designed exclusively for phone screens (`< 768px`) with ergonomic one-handed operation:
+* **Container:** Symmetrical floating pill container with liquid glass blur (`backdrop-filter: blur(24px)`), hairline border, and 12px outer screen margins.
+* **Four Destination Tabs:**
+  1. **Overview** (`/dashboard`)
+  2. **History** (`/transactions`)
+  3. **Budget** (`/budget`)
+  4. **Insights** (`/insights`)
+* **Elevated Halo Bubble (Active Indicator):** The currently active tab physically rises **13px above the navigation bar** inside a glowing circular bubble featuring a radial mint/emerald gradient, white border, and luminous green shadow.
+* **Central Raised Plus (+) Action:** Centered elevated round button (`50px × 50px`) with emerald gradient and white plus icon. Tapping opens the Transaction Modal directly on the current screen without navigating away.
 
----
-
-## 📱 4. Page-by-Page Detailed UI Breakdown
-
-### 1. Dashboard (`/dashboard`)
-* **Header Actions:**
-  * Month Selector: Step backward/forward or jump to any month in `YYYY-MM`.
-  * **`+ Add expense` Button:** Styled in **Vibrant Red** (`button-destructive`), instantly opening the expense modal.
-  * **`+ Add income` Button:** Styled in **Emerald Green** (`button-primary`), opening the income modal.
-* **Unified Reference Hero Frame (`.dashboard-reference-frame`):**
-  * **Greeting Header:** "Welcome back, {Name}" with month pill badge ("November 2026") in emerald green.
-  * **Card 1: Available Balance (Primary Focus):**
-    * Deep radial forest emerald gradient surface with subtle glowing green border.
-    * Uppercase eyebrow with Wallet icon.
-    * Prominent typography: `LKR {availableBalance}` computed in real-time (`Recorded Income − Total Expenses`).
-    * "Your remaining money this month" subtitle with internal divider.
-    * Transparent equation row: `Income − Expenses` with exact integer totals (e.g. `60,000 − 15,000`).
-  * **Card Row 2: Total Income & Total Expenses:**
-    * Equal-width two-column grid.
-    * *Total Income:* Upward trending emerald arrow with bold white total.
-    * *Total Expenses:* Downward trending coral/red arrow with bold white total.
-  * **Card 3: Savings Target:**
-    * Bullseye Target icon in green.
-    * Monthly savings goal figure.
-    * Sleek progress bar tracking percentage of savings goal achieved (`{availableBalance / savingsTarget * 100}%`).
-* **Fresh Month Notice (`FreshMonthNotice.tsx`):**
-  * Displays an encouraging prompt (`Sparkles` icon) when entering a new calendar month with no recorded activity.
-* **Group Breakdown Section:**
-  * Visual progress bars for Needs, Wants, Culture, and Unexpected.
-  * Shows percentage consumed, amount remaining, and overspent badges when expenses exceed group budgets.
-* **Recent Transactions List:**
-  * Quick-look list of the latest 5 transactions with date, category icon, and formatted amounts.
+### 3.4 Native Vertical Upward-Swipe Page Transition
+* **Zero Fake Loaders:** Completely removed simulated percentage counters, fake progress bars, and arbitrary delays.
+* **Veil Curtain Layer (`PageTransitionOverlay.tsx`):** Displays a deep obsidian curtain (`#060807`) with ambient emerald glow and a gently pulsing Divido brand logo while destination page data loads behind the curtain.
+* **Readiness Coordination:** Uses `MutationObserver` on the target DOM container to detect when real data and components have finished mounting.
+* **Cinematic Upward Swipe:** As soon as the destination page is ready, it slides into view from the bottom (`translate3d(0, 100%, 0) -> translate3d(0, 0, 0)`) over 380ms using a smooth cubic-bezier easing curve (`0.16, 1, 0.3, 1`).
 
 ---
 
-### 2. Budget Management (`/budget`)
-* **Monthly Planning Sheet:**
-  * Inputs for *Planned Income* and *Savings Target*.
-* **Group Budget Cards:**
-  * Individual allocation controls for the 4 core groups:
-    * **Needs:** Essential living expenses (Rent, Groceries, Utilities).
-    * **Wants:** Discretionary lifestyle spending (Dining out, Shopping).
-    * **Culture:** Books, education, events, experiences.
-    * **Unexpected:** Emergency expenses, repairs, unbudgeted needs.
-* **Live Calculation Bar (`BudgetTotals` & `BudgetSaveBar`):**
-  * Floating summary computing `Allocated = Needs + Wants + Culture + Unexpected + Savings Target`.
-  * **Over-allocation Warning:** If allocations exceed Planned Income, turns amber with descriptive warning text without disabling the "Save budget" button.
+## 🔐 4. Authentication & Public Onboarding Suite
+
+The authentication system is backed by secure HTTP-only cookies, automated CSRF header injection, and server-side rate limiting.
+
+### 4.1 Sign In (`/sign-in`)
+* **Visual Composition:** Centered card with Divido branding and clean vertical inputs.
+* **Inputs:** Email address, password field with visibility toggle.
+* **Actions:**
+  * Primary "Sign in" button with loading spinner state.
+  * Link to `/forgot-password` ("Forgot your password?").
+  * Link to `/sign-up` ("Don't have an account? Create one").
+* **Security & Error Handling:** Generic credentials error messaging preventing user enumeration.
+
+### 4.2 Sign Up / Registration (`/sign-up`)
+* **Inputs:** Full Name, Email Address, Password, Password Confirmation.
+* **Client-Side Validation:** Enforces 8-character minimum, 72-byte maximum (Bcrypt safe boundary), and match verification before dispatching network requests.
+* **Success Journey (DEC-025):** Successfully registered users receive an encouraging confirmation and are routed to `/sign-in` to authenticate cleanly.
+
+### 4.3 Forgot Password (`/forgot-password`)
+* **Inputs:** Registered email address.
+* **Behavior:** Dispatches a single-use token to the user via background mailer.
+* **Privacy Baseline:** Displays a neutral success confirmation ("If an account exists, a reset link was sent") to prevent email probing.
+
+### 4.4 Reset Password (`/reset-password`)
+* **Token Verification:** Reads reset token from URL parameters (`?token=...`).
+* **Inputs:** New password, confirm new password.
+* **Outcome:** Single-use token invalidation, password update in database, and immediate redirection to sign-in.
+
+### 4.5 Guided Onboarding Wizard (`/onboarding`)
+* **Progress Bar:** Top progress line indicating the current step (1 of 3).
+* **Step 1 — Welcome:** Introduces Divido's 4-group budgeting framework (Needs, Wants, Culture, Unexpected).
+* **Step 2 — First Budget:** Quick setup inputs to configure the current month's **Planned Income** and **Savings Target**.
+* **Step 3 — Ready to Go:** Final confirmation summarizing the initial setup with an instant jump to the Dashboard.
+* **Skip Action:** Every step includes a "Skip for now" link for instant access to the application.
 
 ---
 
-### 3. Transactions Management (`/transactions`)
-* **Summary Strip:** Displays total transaction count for the current month.
-* **Filter Bar (`TransactionFilters.tsx`):**
-  * Type filter toggle pills: `All`, `Expenses`, `Income`.
-  * Group dropdown filter: Filter by Need, Want, Culture, Unexpected.
-  * Dynamic Category & Income Source selectors.
-  * "Clear filters" button with instant reset.
-* **Transaction Table / Cards (`TransactionRows.tsx`):**
-  * Date headers grouping entries chronologically.
-  * Category badge with group color coding.
-  * Expense amounts formatted in red with a minus (`- LKR 200.00`).
-  * Income amounts formatted in green with a plus (`+ LKR 5,000.00`).
-  * Click any row to open the full edit/view detail dialog.
+## 📊 5. Authenticated App Pages & Tab Sections
+
+### 5.1 Overview / Dashboard (`/dashboard`)
+The central command center for personal cash flow during the selected month.
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Welcome back, {Name}                  < November 2026 >    │
+├─────────────────────────────────────────────────────────────┤
+│ AVAILABLE BALANCE                              [Wallet Icon]│
+│ LKR 45,000.00                                               │
+│ Your remaining money this month                             │
+│ ─────────────────────────────────────────────────────────── │
+│ Income – Expenses                               60,000 – 15,000│
+├──────────────────────────────┬──────────────────────────────┤
+│ ↗ Total Income              │ ↘ Total Expenses             │
+│ LKR 60,000.00                │ LKR 15,000.00                │
+├──────────────────────────────┴──────────────────────────────┤
+│ Group breakdown (November 2026)             Manage plan ↗   │
+│ ┌───────────────────────────┬─────────────────────────────┐ │
+│ │ ⌂ Needs        LKR 10,000 │ ♡ Wants           LKR 3,000 │ │
+│ │ [████████░░░] 60% spent   │ [████░░░░░░] 30% spent      │ │
+│ ├───────────────────────────┼─────────────────────────────┤ │
+│ │ 🕮 Culture       LKR 1,000 │ 🔧 Unexpected     LKR 1,000 │ │
+│ │ [██░░░░░░░░] 10% spent   │ [██░░░░░░░░] 10% spent      │ │
+│ └───────────────────────────┴─────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│ Recent transactions                                         │
+│ • Groceries (Keells)            Need            - LKR 4,200 │
+│ • Monthly Salary                Salary         + LKR 60,000 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+1. **Header Area:**
+   - Greeting headline ("Welcome back, {Name}") with responsive text clamping.
+   - Month Stepper Control (`< November 2026 >`) allowing rapid month switching.
+   - Desktop Quick Action Buttons: Red `+ Add expense` and Green `+ Add income`.
+2. **Hero Card — Available Balance (`.available-balance-card`):**
+   - Deep emerald forest gradient surface with subtle border aura.
+   - Eyebrow with wallet icon and `AVAILABLE BALANCE`.
+   - Massive tabular balance display (`LKR {amount}`) styled with `font-size: clamp(24px, 7.5vw, 34px)`.
+   - Formula row: `Income − Expenses` displaying exact real numbers.
+3. **Stats Grid — Total Income & Total Expenses:**
+   - Symmetrical 2-column card grid on both mobile and desktop.
+   - **Total Income:** Upward green arrow, label, and bold total.
+   - **Total Expenses:** Downward coral arrow, label, and bold total.
+4. **Group Breakdown (Card-by-Card):**
+   - Header with period tag and a direct link to `Manage plan ↗` (`/budget`).
+   - 4 independent cards for **Needs**, **Wants**, **Culture**, and **Unexpected**.
+   - Each card displays: icon with subtle container, group title with link arrow, spent amount in bold (`LKR X spent`), planned budget (`of LKR Y planned`), custom progress track, remaining balance (`LKR Z left`), and percentage used.
+   - 2-column grid on desktop, 1-column stacked on mobile.
+5. **Recent Transactions:**
+   - Full-width container card displaying the 5 most recent records.
+   - Row elements: Icon, category/source, description, date, and tabular amount.
+   - Footer link: "View all transactions ↗" routing directly to `/transactions`.
+6. **Fresh Month Notice:**
+   - Displayed when viewing a month with zero recorded transactions to encourage the user to log their first entry.
 
 ---
 
-### 4. Spending Insights (`/insights`)
-* **Eligibility Banner:** Requires a minimum of 3 days of recorded spending in the month to show statistical patterns.
-* **Visual Charts:**
-  * **Spending Trend Chart (`SpendingTrendChart.tsx`):** Interactive SVG area chart charting cumulative spending trajectory over the last 6 months.
-  * **Group Share Chart (`GroupShareChart.tsx`):** Circular doughnut visualization comparing proportional group spending against targets.
-* **Observation Cards (`ObservationCard.tsx`):**
-  * Highlight cards highlighting factual observations:
-    * *Top Category:* Highlights the largest single expense category.
-    * *Spending Velocity:* Pacing of daily spending compared to the prior month.
-    * *Savings Trajectory:* Probability of meeting the monthly savings target.
+### 5.2 History / Transactions Management (`/transactions`)
+The complete ledger and audit trail of all financial movements.
+
+1. **Transaction Summary Strip:** Displays total transaction count for the active month.
+2. **Segmented Type Switcher:** Quick filter pills: `All`, `Expenses`, `Income`.
+3. **Filter & Search Bar (`TransactionFilters.tsx`):**
+   - Live search input: Filter by merchant name or description.
+   - Group selector: Filter specifically by Needs, Wants, Culture, or Unexpected.
+   - Category selector: Filter by assigned expense category.
+   - Income Source selector: Filter by income source.
+   - "Clear filters" button for instant reset.
+4. **Chronological Transaction Ledger (`TransactionRows.tsx`):**
+   - Grouped under clean date dividers (`Today`, `Yesterday`, or formatted date).
+   - Each entry shows: Icon, description, category badge, group tag, and tabular currency.
+   - Inflow formatted in green with plus (`+ LKR 50,000.00`).
+   - Outflow formatted in red with minus (`- LKR 1,500.00`).
+5. **Transaction Detail Dialog (`TransactionDetailDialog.tsx`):**
+   - Clicking any transaction row opens its inspection sheet.
+   - Shows creation date, payment method, category, group, and optional notes.
+   - Provides **Edit** button (opens form sheet) and **Delete** button (opens confirmation).
+6. **Pagination Controls:** Next/Previous buttons for browsing transaction history.
 
 ---
 
-### 5. Monthly Reflection (`/reflection`)
-* **Reflection Prompt Deck:**
-  * 3 thoughtful, reflective prompts for reviewing the past financial month:
-    1. *What went well with your spending this month?*
-    2. *Where did unexpected expenses occur?*
-    3. *What changes do you plan for next month?*
-* **Interactive Features:**
-  * Live character counters with visual limit indicator.
-  * Optimistic locking and conflict banner: If modified concurrently, informs user before overwriting.
-  * Reflection History: Drawer displaying past saved reflection answers.
+### 5.3 Budget Planning (`/budget`)
+The planning center where users allocate money at the beginning of each month.
+
+1. **Top Summary Sheet:**
+   - Inputs for **Planned Income** and **Monthly Savings Target**.
+2. **Four Group Allocation Cards:**
+   - Individual budget allocation boxes for **Needs**, **Wants**, **Culture**, and **Unexpected**.
+   - Lists all active categories currently mapped to each group.
+   - Sliders and numeric money inputs for adjusting allocations.
+3. **Sticky Calculation & Save Bar (`BudgetSaveBar.tsx`):**
+   - Computes total allocated money: `Allocated = Needs + Wants + Culture + Unexpected + Savings Target`.
+   - Computes unallocated money remaining from planned income.
+   - **Over-allocation Warning (DEC-012):** If allocated money exceeds planned income, turns amber with a helpful explanatory warning, but keeps the "Save budget" button enabled.
+   - "Save budget" action button with live server persistence and feedback toast.
 
 ---
 
-### 6. Categories Management (`/categories`)
-* **Group Filter Tabs:** Filter custom categories by Needs, Wants, Culture, or Unexpected.
-* **Global Default Categories:**
-  * Pre-seeded defaults (Groceries, Transport, Entertainment) visually tagged with a "Default" badge and locked against accidental deletion.
-* **Custom Category Management:**
-  * Modal dialog to create or rename categories, change assigned groups, or deactivate categories.
+### 5.4 Spending Insights (`/insights`)
+Automated data visualization and behavioral observations.
+
+1. **Eligibility Threshold:** Requires at least 3 days of recorded spending in the active month; otherwise shows an informative banner explaining that more data is needed.
+2. **Spending Trend Area Chart (`SpendingTrendChart.tsx`):**
+   - Interactive SVG line/area chart showing cumulative expenditure trajectory across the last 6 months.
+   - Dashed reference line showing target budget trajectory.
+3. **Group Share Doughnut Chart (`GroupShareChart.tsx`):**
+   - Circular proportional breakdown showing percentage share of spending across Needs, Wants, Culture, and Unexpected.
+4. **Behavioral Observation Cards (`ObservationCard.tsx`):**
+   - **Top Category:** Highlights the single largest spending category of the month.
+   - **Daily Pacing:** Compares spending speed (LKR/day) to the previous month.
+   - **Savings Trajectory:** Projects likelihood of reaching the monthly savings target.
 
 ---
 
-### 7. Income Sources Management (`/income-sources`)
-* **Source Cards:** Shows source name, creation date, and active/inactive status.
-* **"Show Inactive" Switch:** Toggle visibility of deactivated income sources.
-* **Inline Modals:** Create new income sources or safely deactivate existing sources with confirmation.
+### 5.5 Monthly Reflection (`/reflection`)
+A mindful end-of-month review tool inspired by traditional budgeting practices.
+
+1. **Three Reflective Questions:**
+   - *1. What went well with your spending this month?*
+   - *2. Where did unexpected expenses occur?*
+   - *3. What changes do you plan to make next month?*
+2. **Interactive Form:**
+   - Multi-line textareas with live character counters.
+   - Save button with server-side validation.
+3. **Conflict Detection:**
+   - If edited concurrently from another tab or device, displays an optimistic locking alert to prevent accidental data overwrites.
+4. **Reflection History Drawer:**
+   - Browse past saved answers to review financial habits over time.
 
 ---
 
-### 8. Settings & Account Lifecycle (`/settings`)
-* **Profile Form:** Update public Display Name with instantaneous update across the top bar.
-* **Security & Password Management:** Change password with mandatory current password validation; triggers session invalidation across other devices.
-* **Financial Management Shortcuts:** Quick links to manage Categories and Income Sources directly from Settings.
-* **Financial Preferences:** Displays active base currency (LKR) and standard 2-decimal formatting.
-* **Appearance & Theme:** In-page theme toggles for Dark, Light, and System preference.
-* **Danger Zone:**
-  * Distinct red outlined panel for permanently deleting the user account and cascading all financial data.
+### 5.6 Categories Management (`/categories`)
+Configures expense categories and their group mappings.
+
+1. **Group Filter Tabs:** Filter category list by All, Needs, Wants, Culture, or Unexpected.
+2. **System Default Categories:**
+   - Pre-seeded global defaults (e.g., Groceries, Transport, Entertainment).
+   - Displayed with a "Default" badge and locked against accidental deletion to preserve core functionality.
+3. **Custom Category Management:**
+   - Create new categories with custom names and assigned groups.
+   - Rename or reassign existing categories.
+   - Deactivate obsolete categories with safe referential integrity checks.
 
 ---
 
-### 9. Guided Onboarding (`/onboarding`)
-* **3-Step Wizard for New Accounts:**
-  1. *Welcome Step:* Introduces the 4-group budgeting framework.
-  2. *First Budget Step:* Quick inputs to set this month's planned income and savings goal.
-  3. *All Set Step:* Direct route to Dashboard with confetti guidance.
-* Every step is skippable, ensuring immediate access to the app without forced roadblocks.
+### 5.7 Income Sources Management (`/income-sources`)
+Manages recurring and one-time income streams (Salary, Freelance, Dividends, etc.).
+
+1. **Source Cards:** Displays source name, creation date, and active/inactive status.
+2. **"Show Inactive" Switch:** Toggle visibility of deactivated income sources.
+3. **Modal Dialogs:** Create new income sources, rename, or deactivate with confirmation.
 
 ---
 
-### 10. Authentication Suite (`/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`)
-* Clean centered authentication card layout.
-* Floating label input fields with instant validation error text.
-* Automatic CSRF token synchronization with backend security filters.
-* Single-use password reset link flow with instant status feedback.
+### 5.8 Profile & Settings (`/settings`)
+User preferences, security, and account lifecycle management.
+
+1. **Profile Details:**
+   - Edit user display name with instant header update upon saving.
+2. **Security & Password:**
+   - Change password form requiring verification of current password.
+   - Invalidates all other active device sessions upon password change.
+3. **Financial Preferences:**
+   - Displays base currency (`LKR`) and standard 2-decimal formatting rules.
+4. **Management Shortcuts:**
+   - One-tap buttons to jump straight to `/categories` or `/income-sources`.
+5. **Appearance:**
+   - Radio buttons to toggle Dark Mode, Light Mode, or System Preference.
+6. **Danger Zone:**
+   - Red outlined container with an explicit confirmation dialog to permanently delete the user account and cascade-delete all associated transactions and budgets.
 
 ---
 
-## 🧩 5. Reusable Component Inventory
+## 📱 6. Bottom-Sheet Transaction Flow & Mobile Touch Gestures
 
-| Component | File Path | Key Features & Props |
+When a user taps the central Plus (`+`) button in the floating dock or clicks any "Add" action, Divido opens a mobile-optimized bottom sheet without navigating away from the current page.
+
+```text
+┌────────────────────────────────────────────────────────┐
+│ [════════════════ Drag Handle Pill ════════════════]   │
+│                                                        │
+│ ← Record an expense                                 ✕  │
+│                                                        │
+│ Amount *                                               │
+│ ┌────────────────────────────────────────────────────┐ │
+│ │ LKR 0.00                                           │ │
+│ └────────────────────────────────────────────────────┘ │
+│ Category *                                             │
+│ ┌────────────────────────────────────────────────────┐ │
+│ │ Choose a category                                ▼ │ │
+│ └────────────────────────────────────────────────────┘ │
+│ Date *                                                 │
+│ ┌────────────────────────────────────────────────────┐ │
+│ │ 11 / 20 / 2026                                   📅 │ │
+│ └────────────────────────────────────────────────────┘ │
+│ Description (Optional)                                 │
+│ ┌────────────────────────────────────────────────────┐ │
+│ │ What was this expense for?                         │ │
+│ └────────────────────────────────────────────────────┘ │
+│                                                        │
+│ [ Cancel ]                       [ ✓ Save expense ]    │
+└────────────────────────────────────────────────────────┘
+```
+
+### 6.1 Quick Add & Multi-step Workflow
+1. **Step 1 — Choose Transaction Type (`QuickAddDialog.tsx`):**
+   - Slides up from the bottom showing two touch targets:
+     - **Add expense:** Coral/Red arrow row.
+     - **Add income:** Emerald/Green arrow row.
+2. **Step 2 — Transaction Form (`TransactionFormDialog.tsx`):**
+   - Smoothly transitions on the same page.
+   - Header contains a `< Back` button to return to Step 1 without closing the sheet.
+   - Input fields: Amount (with tabular auto-formatting), Category dropdown, Date picker, Description, Payment Method.
+   - Save button with loading spinner and automatic cache refresh.
+
+### 6.2 Touch Gesture Minimization & Expansion
+The bottom sheet (`Modal.tsx`) includes native touch gesture mechanics:
+1. **Interactive Drag Handle (`.sheet-drag-handle-pill`):**
+   - Positioned at the very top of the sheet with a generous touch area.
+   - Glows emerald on touch and widens when expanded.
+2. **Drag Down (Minimize / Dismiss):**
+   - Directly tracks the user's finger downward in real-time (`translate3d(0, deltaY, 0)`) at 60/120fps.
+   - If the sheet is expanded, dragging down collapses it back to compact height.
+   - If in compact mode, dragging down past the threshold smoothly glides the sheet offscreen and dismisses it.
+3. **Swipe Up (Expand to Full Screen):**
+   - Swiping upward on the handle or header smoothly expands the sheet to **96dvh full-screen height**, maximizing visible form fields on mobile.
+4. **Single-Tap Toggle:**
+   - A single tap on the top handle pill instantly toggles between compact height and 96dvh full-screen mode.
+
+---
+
+## 📱 7. Mobile Viewport Standards, Anti-Zoom & Accessibility
+
+### Viewport Containment & Zero Horizontal Overflow
+* `html` and `body` enforce `max-width: 100vw` and `overflow-x: hidden`, eliminating horizontal scrollbars.
+* Containers (`.app-shell`, `.main-shell`, `.main-content`) maintain natural unblocked vertical scrolling while constraining width to `100%`.
+* Floating bottom dock offset: The main content container enforces `padding-bottom: max(140px, calc(110px + env(safe-area-inset-bottom, 16px)))` so bottom cards and buttons are never obscured by the floating navigation bar.
+
+### Strict Mobile Zoom Prevention
+* **iOS Safari Focus Auto-Zoom Elimination:** iOS Safari automatically forces viewport zoom on inputs with font-size `< 16px`. Divido strictly enforces `font-size: 16px !important` on all mobile inputs, selects, textareas, search bars, and amount inputs (`@media (max-width: 768px)`), completely preventing accidental zooming.
+* **Double-Tap Zoom Elimination:** Interactive buttons and links utilize `touch-action: manipulation` to prevent double-tap zoom delays.
+* **Text Clamping:** Typography on large figures uses `font-size: clamp(...)` and `word-break: break-word`, guaranteeing that large figures (e.g., `LKR 1,500,000.00`) never clip or push containers outside the screen.
+
+### Accessibility Standards
+* **WCAG Contrast Baseline:** Minimum 4.5:1 contrast ratio across all text and interactive elements.
+* **Focus States:** High-visibility outline rings (`outline: 3px solid #10b98166`) on keyboard navigation.
+* **Motion Preferences:** Full support for `@media (prefers-reduced-motion: reduce)`, disabling sliding animations and transitions for users with motion sensitivity.
+
+---
+
+## 🧩 8. Technical Component Inventory & State Architecture
+
+### Component Catalog
+
+| Component Name | File Path | Functional Role |
 |---|---|---|
-| **Button** | `frontend/components/ui/Button.tsx` | Variants: `primary` (Green), `destructive` (Red), `secondary`, `ghost`, `dark`. Supports `loading` spinner. |
-| **PageHeading** | `frontend/components/layout/PageHeading.tsx` | Standardizes page titles, subtitle text, eyebrow tags, and desktop action button slots. |
-| **Money** | `frontend/components/financial/Money.tsx` | Tabular numeric rendering, currency prefix (`LKR`), decimal alignment. |
-| **MoneyField** | `frontend/components/forms/MoneyField.tsx` | Specialized input for currency amounts with input mask and prefix symbol. |
-| **GroupBadge** | `frontend/components/financial/GroupBadge.tsx` | Semantic tag badges for `NEEDS`, `WANTS`, `CULTURE`, and `UNEXPECTED`. |
-| **MonthSelector** | `frontend/components/financial/MonthSelector.tsx` | Accessible dropdown and arrow buttons for navigating months in `YYYY-MM`. |
-| **Modal** | `frontend/components/ui/Modal.tsx` | Accessible dialog with overlay backdrop blur, Esc key listeners, and focus traps. |
-| **ConfirmDialog** | `frontend/components/feedback/ConfirmDialog.tsx` | Reusable modal for destructive confirmations (delete transaction, deactivate source). |
-| **InlineError** | `frontend/components/feedback/InlineError.tsx` | Accessible alert box with retry button for server failure states. |
-| **LoadingPanel** | `frontend/components/feedback/LoadingPanel.tsx` | Skeleton loading panel with animated pulsing bars. |
-| **Toast** | `frontend/components/layout/Toast.tsx` | Global animated notification toasts for success, info, and error notifications. |
+| **AppShell** | `components/layout/AppShell.tsx` | Root shell providing navigation, dialog orchestration, and dataVersion |
+| **MobileDock** | `components/layout/MobileDock.tsx` | Raised floating mobile navigation bar with active halo bubble & Add button |
+| **TopBar** | `components/layout/TopBar.tsx` | Desktop top bar with breadcrumbs, theme switcher, and profile avatar |
+| **Sidebar** | `components/layout/Sidebar.tsx` | Collapsible desktop sidebar with brand logo and main/personal nav links |
+| **PageTransitionOverlay** | `components/transition/PageTransitionOverlay.tsx` | Curtain veil overlay for seamless upward-swipe page reveals |
+| **Modal** | `components/ui/Modal.tsx` | Accessible dialog & mobile bottom sheet with touch gesture minimize/expand |
+| **QuickAddDialog** | `features/transactions/QuickAddDialog.tsx` | Initial bottom sheet choice between Add Expense and Add Income |
+| **TransactionFormDialog**| `features/transactions/TransactionFormDialog.tsx` | Multi-field transaction form with client validation and patch updates |
+| **TransactionDetailDialog**| `features/transactions/TransactionDetailDialog.tsx`| Full inspection sheet for viewing, editing, or deleting a record |
+| **MonthSelector** | `components/financial/MonthSelector.tsx` | Period stepper control for switching active budget months (`YYYY-MM`) |
+| **GroupBadge** | `components/financial/GroupBadge.tsx` | Semantic tag for Needs, Wants, Culture, and Unexpected |
+| **MoneyField** | `components/forms/MoneyField.tsx` | Currency input field with tabular formatting and symbol prefix |
+| **Button** | `components/ui/Button.tsx` | Styled button supporting primary, destructive, ghost, and loading states |
+| **Toast** | `components/layout/Toast.tsx` | Global floating notification toast for mutation feedback |
+
+### Global State & Synchronization
+* **AppShellContext (`useAppShell`):**
+  * Manages global modal state (`openAdd`, `openTransaction`, `openEdit`).
+  * Emits notifications via `notify(message)`.
+  * Increments `dataVersion` on mutations (adding, editing, or deleting transactions), prompting all active data queries to re-fetch without full page reloads.
+* **useApiData Hook:**
+  * Handles asynchronous data fetching with automatic retry logic, loading states, and error handling.
 
 ---
 
-## 📱 6. Mobile & Responsive Design Standards
-
-Divido adheres to strict responsive guidelines ensuring zero horizontal overflow on small devices:
-1. **Viewport Verification:** Tested at `375px` (iPhone SE/Mini) up to `4K` displays.
-2. **Touch Targets:** All interactive buttons and inputs maintain a minimum touch target of `44px` height.
-3. **Adaptive Grids:**
-   * Desktop: 4-column overview grid (`repeat(4, minmax(0, 1fr))`).
-   * Tablet: 2-column overview grid.
-   * Mobile: Single-column stacked cards with fluid width.
-4. **Dock Offset:** Main page content includes `padding-bottom: 90px` on mobile viewports so content is never obscured by the floating bottom dock.
-
----
-
-## ⚡ 7. State Management & API Layer
-
-* **Server State Synchronization:**
-  * Uses the custom hook `useApiData` for handling fetch lifecycle: `loading`, `error`, `ready`.
-  * Automatic retry mechanisms on network drops or intermittent 5xx errors.
-* **AppShell Context (`useAppShell`):**
-  * Maintains `dataVersion` timestamp counter. Mutating operations (e.g. adding an expense or updating a budget) increment `dataVersion`, triggering an automatic silent refresh across all active page queries.
-* **Modal Orchestration:**
-  * Global dialogs (`QuickAddDialog`, `TransactionFormDialog`, `DeleteTransactionDialog`) are mounted at the layout level in `AppShell`, preventing nested re-renders and modal stacking issues.
-
+*Divido UI Architecture Documentation — Maintained by the Divido Core Engineering Team.*
