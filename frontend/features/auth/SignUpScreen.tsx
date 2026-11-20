@@ -9,7 +9,7 @@ import { SignUpForm } from "./SignUpForm";
 export function SignUpScreen() {
   const { user } = useAuth();
   return (
-    <AuthLayout title="Create your account" subtitle="Start your mindful money journey.">
+    <AuthLayout customHeader>
       <SessionGate require="signed-out" redirectTo={homeFor(user)}>
         <SignUpForm />
       </SessionGate>

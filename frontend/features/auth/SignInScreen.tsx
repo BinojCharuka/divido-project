@@ -19,7 +19,7 @@ function SignInWithNotice() {
 export function SignInScreen() {
   const { user } = useAuth();
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to a calmer view of your money.">
+    <AuthLayout customHeader>
       <SessionGate require="signed-out" redirectTo={homeFor(user)}>
         <Suspense fallback={<SignInForm notice={null} />}>
           <SignInWithNotice />

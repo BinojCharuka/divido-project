@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState, type FormEvent } from "react";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { ChevronRight, User } from "lucide-react";
 import { FormAlert } from "@/components/feedback/FormAlert";
 import { TextField } from "@/components/forms/TextField";
 import { Button } from "@/components/ui/Button";
@@ -62,94 +62,126 @@ export function SignUpForm() {
   }
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-4" aria-busy={pending}>
-      {formError && (
-        <FormAlert tone="error">
-          {formError}
-          {conflict && (
-            <>
-              {" "}
-              <Link href="/sign-in" className="font-medium underline">
-                Sign in instead
-              </Link>
-            </>
-          )}
-        </FormAlert>
-      )}
+    <div className="w-full flex flex-col">
+      {/* Top Gold User Badge */}
+      <div className="flex flex-col items-center text-center mb-6">
+        <div className="w-14 h-14 rounded-2xl bg-[#fcd34d] flex items-center justify-center shadow-lg shadow-amber-500/10">
+          <User size={24} className="text-zinc-950" strokeWidth={2.2} />
+        </div>
+        <span className="text-[11px] font-semibold tracking-[0.2em] text-zinc-400 uppercase mt-5">
+          START YOUR JOURNEY
+        </span>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1.5">
+          Create your account
+        </h1>
+        <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          Start your mindful money journey.
+        </p>
+      </div>
 
-      <TextField
-        label="Name"
-        name="displayName"
-        autoComplete="name"
-        placeholder="Your full name"
-        value={displayName}
-        onChange={(e) => setDisplayName(e.target.value)}
-        error={fieldErrors.displayName}
-        icon={<User size={17} />}
-      />
-
-      <TextField
-        label="Email address"
-        aria-label="Email"
-        type="email"
-        name="email"
-        autoComplete="email"
-        placeholder="you@example.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        error={fieldErrors.email}
-        icon={<Mail size={17} />}
-      />
-
-      <TextField
-        label="Password"
-        type={showPassword ? "text" : "password"}
-        name="password"
-        autoComplete="new-password"
-        placeholder="At least 8 characters"
-        hint="At least 8 characters."
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        error={fieldErrors.password}
-        icon={<Lock size={17} />}
-        rightAction={
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 focus:outline-hidden p-1 transition-colors cursor-pointer"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        }
-      />
-
-      <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        loading={pending}
-        className="button-block"
-      >
-        {pending ? (
-          "Creating account…"
-        ) : (
-          <>
-            Create account
-            <ArrowRight size={16} aria-hidden="true" />
-          </>
-        )}
-      </Button>
-
-      <p className="text-center text-xs text-zinc-500 dark:text-zinc-400 pt-1">
-        Already have an account?{" "}
+      {/* Segmented Switcher Pill */}
+      <div className="w-full bg-[#111914] border border-white/[0.08] p-1 rounded-xl flex gap-1 mb-5">
         <Link
           href="/sign-in"
-          className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 underline underline-offset-4 transition-colors"
+          className="flex-1 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-colors text-center"
         >
-          Sign in ↗
+          Log in
         </Link>
-      </p>
-    </form>
+        <div className="flex-1 py-2 rounded-lg text-xs font-semibold text-white bg-[#1d2a22] shadow-sm text-center select-none">
+          Sign up
+        </div>
+      </div>
+
+      <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-4" aria-busy={pending}>
+        {formError && (
+          <FormAlert tone="error">
+            {formError}
+            {conflict && (
+              <>
+                {" "}
+                <Link href="/sign-in" className="font-medium underline">
+                  Sign in instead
+                </Link>
+              </>
+            )}
+          </FormAlert>
+        )}
+
+        <TextField
+          label="Name"
+          name="displayName"
+          autoComplete="name"
+          placeholder="Your full name"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          error={fieldErrors.displayName}
+        />
+
+        <TextField
+          label="Email address"
+          aria-label="Email"
+          type="email"
+          name="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={fieldErrors.email}
+        />
+
+        <TextField
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          name="password"
+          autoComplete="new-password"
+          placeholder="At least 8 characters"
+          hint="At least 8 characters."
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={fieldErrors.password}
+          rightAction={
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="text-xs font-semibold text-[#5fa88f] hover:text-[#74c69d] focus:outline-hidden px-1.5 py-0.5 transition-colors cursor-pointer"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          }
+        />
+
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          loading={pending}
+          className="button-block auth-submit-btn mt-1"
+        >
+          {pending ? (
+            "Creating account…"
+          ) : (
+            <>
+              <span>Create account</span>
+              <ChevronRight size={17} strokeWidth={2.5} aria-hidden="true" />
+            </>
+          )}
+        </Button>
+
+        <p className="text-center text-xs text-zinc-400 pt-2">
+          Already have an account?{" "}
+          <Link
+            href="/sign-in"
+            className="font-semibold text-[#5fa88f] hover:text-[#74c69d] hover:underline underline-offset-4 transition-colors"
+          >
+            Sign in ↗
+          </Link>
+        </p>
+
+        <p className="text-center text-[11px] text-zinc-500 mt-2">
+          UI preview — no account data is sent or stored.
+        </p>
+      </form>
+    </div>
   );
 }
