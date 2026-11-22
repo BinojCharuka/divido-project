@@ -87,7 +87,7 @@ export function SessionBoundary({ children }: { children: ReactNode }) {
         } else {
           onContentReady();
         }
-      }, 60);
+      }, 150);
     }
 
     return () => {
