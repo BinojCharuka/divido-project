@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, type ChangeEvent, type DragEvent } from "react";
+import { useState, useRef, useEffect, type ChangeEvent, type DragEvent } from "react";
 import {
   AlertTriangle,
   Camera,
@@ -52,6 +52,19 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  // Clean up any lingering object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        try {
+          URL.revokeObjectURL(previewUrl);
+        } catch {
+          // ignore
+        }
+      }
+    };
+  }, [previewUrl]);
+
   const handleFileChange = (file: File) => {
     if (!file.type.startsWith("image/")) {
       setErrorMessage("Please select a valid image file (JPG, PNG, WebP).");
@@ -75,10 +88,10 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
     setPreviewUrl(url);
 
     // Auto-start scanning on selection for smooth UX
-    triggerScan(file);
+    triggerScan(file, url);
   };
 
-  const triggerScan = async (file: File) => {
+  const triggerScan = async (file: File, currentUrl?: string | null) => {
     setScanning(true);
     setErrorMessage(null);
     setScanResult(null);
@@ -95,6 +108,20 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
         setMerchantName(result.merchant?.name || "");
         setTotalAmount(result.transaction?.total != null ? String(result.transaction.total) : "");
         setTransactionDate(result.transaction?.date || new Date().toISOString().split("T")[0]);
+
+        // Details successfully extracted! Immediately revoke and purge cached image from browser memory
+        const activeUrl = currentUrl || previewUrl;
+        if (activeUrl) {
+          try {
+            URL.revokeObjectURL(activeUrl);
+          } catch {
+            // ignore
+          }
+        }
+        setPreviewUrl(null);
+        setSelectedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (cameraInputRef.current) cameraInputRef.current.value = "";
       }
     } catch (err: unknown) {
       const errorMsg =
@@ -139,10 +166,22 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
     setMerchantName("");
     setTotalAmount("");
     setTransactionDate("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
   };
 
   const handleApplyToForm = () => {
     if (!scanResult || !scanResult.transaction) return;
+
+    if (previewUrl) {
+      try {
+        URL.revokeObjectURL(previewUrl);
+      } catch {
+        // Safe fallback
+      }
+    }
+    setPreviewUrl(null);
+    setSelectedFile(null);
 
     const merchant = merchantName.trim() || scanResult.merchant?.name || "";
     const purpose = scanResult.expense?.purpose || "";
@@ -169,12 +208,23 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
     });
   };
 
+  const handleModalClose = () => {
+    if (previewUrl) {
+      try {
+        URL.revokeObjectURL(previewUrl);
+      } catch {
+        // Safe fallback
+      }
+    }
+    onClose();
+  };
+
   return (
     <Modal
       className="receipt-scan-modal max-w-lg"
       title="AI Smart Receipt Scanner"
       eyebrow="POWERED BY GEMINI"
-      onClose={onClose}
+      onClose={handleModalClose}
     >
       <div className="flex flex-col gap-4 text-zinc-200">
         {/* Hidden File Inputs */}
@@ -220,7 +270,7 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
         )}
 
         {/* State 1: Upload or Capture */}
-        {!selectedFile && (
+        {!scanning && !scanResult && (
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -272,7 +322,7 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
         )}
 
         {/* State 2: Preview & Scanning Animation */}
-        {selectedFile && scanning && (
+        {scanning && (
           <div className="flex flex-col items-center justify-center p-6 bg-[#0a110d] border border-white/[0.08] rounded-2xl text-center relative overflow-hidden">
             {/* Visual Scan Line Animation */}
             <div className="relative w-40 h-48 rounded-xl overflow-hidden border border-emerald-500/30 shadow-lg mb-4 bg-zinc-900">
@@ -298,8 +348,13 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
         )}
 
         {/* State 3: Extraction Result */}
-        {selectedFile && !scanning && scanResult && (
+        {!scanning && scanResult && (
           <div className="flex flex-col gap-3">
+            {/* Privacy & Cache Cleared Notification */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-medium">
+              <CheckCircle2 size={15} className="text-[#34d399] shrink-0" />
+              <span>Details extracted • Cached receipt image deleted from memory</span>
+            </div>
             {/* Quality Warnings Banner */}
             {scanResult.receiptQuality?.warnings &&
               scanResult.receiptQuality.warnings.length > 0 && (

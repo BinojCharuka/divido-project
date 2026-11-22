@@ -43,6 +43,7 @@ public class ReceiptOcrService {
         try {
             String extension = mimeType != null && mimeType.contains("png") ? ".png" : ".jpg";
             tempImage = File.createTempFile("receipt_ocr_", extension);
+            tempImage.deleteOnExit();
             try (FileOutputStream fos = new FileOutputStream(tempImage)) {
                 fos.write(imageBytes);
             }
@@ -96,8 +97,19 @@ public class ReceiptOcrService {
         } finally {
             if (tempImage != null && tempImage.exists()) {
                 try {
-                    Files.deleteIfExists(tempImage.toPath());
-                } catch (Exception ignored) {
+                    boolean deleted = Files.deleteIfExists(tempImage.toPath());
+                    if (deleted) {
+                        log.info("Cached temporary receipt image successfully deleted from disk: {}", tempImage.getName());
+                    } else {
+                        boolean fallbackDeleted = tempImage.delete();
+                        log.info("Cached temporary receipt image deleted via fallback: {} (success: {})", tempImage.getName(), fallbackDeleted);
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not delete cached temporary receipt image: {}", e.getMessage());
+                    try {
+                        tempImage.delete();
+                    } catch (Exception ignored) {
+                    }
                 }
             }
         }

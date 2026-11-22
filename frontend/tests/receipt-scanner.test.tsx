@@ -83,8 +83,9 @@ describe("ReceiptScanModal", () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, fakeImage);
 
-    // Verify extracted details are shown
+    // Verify extracted details and memory purge notification are shown
     expect(await screen.findByText("Keells Super")).toBeInTheDocument();
+    expect(screen.getByText("Details extracted • Cached receipt image deleted from memory")).toBeInTheDocument();
     expect(screen.getByText("LKR 630.00")).toBeInTheDocument();
     expect(screen.getByText("2026-11-22")).toBeInTheDocument();
     expect(screen.getByText(/Groceries/)).toBeInTheDocument();
@@ -103,6 +104,37 @@ describe("ReceiptScanModal", () => {
       purpose: "Grocery Shopping",
       merchantName: "Keells Super",
     });
+  });
+
+  it("temporarily caches preview and automatically revokes/purges it after extraction", async () => {
+    const user = userEvent.setup();
+    const mockCreateObjectURL = vi.fn().mockReturnValue("blob:http://localhost/receipt-123");
+    const mockRevokeObjectURL = vi.fn();
+    global.URL.createObjectURL = mockCreateObjectURL;
+    global.URL.revokeObjectURL = mockRevokeObjectURL;
+
+    const mockResponse: ReceiptScanResponse = {
+      success: true,
+      receiptQuality: { isReadable: true },
+      merchant: { name: "Arpico" },
+      transaction: { total: 1200.0, date: "2026-11-22", currency: "LKR" },
+      rawText: "Arpico Supercentre 1200",
+    };
+    vi.spyOn(receiptsApi, "scanReceipt").mockResolvedValueOnce(mockResponse);
+
+    render(<ReceiptScanModal onClose={vi.fn()} onApply={vi.fn()} />);
+
+    const file = new File(["receipt data"], "arpico.png", { type: "image/png" });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, file);
+
+    // Verify preview URL was created
+    expect(mockCreateObjectURL).toHaveBeenCalledWith(file);
+
+    // Verify extraction completes and cached image is purged from memory
+    expect(await screen.findByText("Arpico")).toBeInTheDocument();
+    expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:http://localhost/receipt-123");
+    expect(screen.getByText("Details extracted • Cached receipt image deleted from memory")).toBeInTheDocument();
   });
 });
 
