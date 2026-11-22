@@ -10,11 +10,13 @@ import tools.jackson.databind.json.JsonMapper;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -153,16 +155,58 @@ public class ReceiptOcrService {
     }
 
     private String resolveScriptPath() {
-        Path[] candidates = {
-                Paths.get("ocr/receipt_ocr.py"),
-                Paths.get("../ocr/receipt_ocr.py"),
-                Paths.get("receipt_ocr.py")
-        };
-        for (Path p : candidates) {
+        // 1. Check explicit environment variable
+        String envPath = System.getenv("DIVIDO_OCR_SCRIPT_PATH");
+        if (envPath == null || envPath.isBlank()) {
+            envPath = System.getenv("OCR_SCRIPT_PATH");
+        }
+        if (envPath != null && !envPath.isBlank()) {
+            Path p = Paths.get(envPath.trim());
             if (Files.exists(p)) {
                 return p.toAbsolutePath().toString();
             }
         }
+
+        // 2. Direct candidate paths from working directory
+        Path[] directCandidates = {
+                Paths.get("backend/ocr/receipt_ocr.py"),
+                Paths.get("ocr/receipt_ocr.py"),
+                Paths.get("../ocr/receipt_ocr.py"),
+                Paths.get("../../ocr/receipt_ocr.py"),
+                Paths.get("receipt_ocr.py")
+        };
+        for (Path p : directCandidates) {
+            if (Files.exists(p)) {
+                return p.toAbsolutePath().toString();
+            }
+        }
+
+        // 3. Search parent directories from working directory
+        try {
+            Path current = Paths.get("").toAbsolutePath();
+            for (int i = 0; i < 5 && current != null; i++) {
+                Path check1 = current.resolve("ocr/receipt_ocr.py");
+                if (Files.exists(check1)) return check1.toAbsolutePath().toString();
+                Path check2 = current.resolve("backend/ocr/receipt_ocr.py");
+                if (Files.exists(check2)) return check2.toAbsolutePath().toString();
+                current = current.getParent();
+            }
+        } catch (Exception ignored) {
+        }
+
+        // 4. Guaranteed Fallback: extract bundled script from classpath resource
+        try (InputStream in = getClass().getResourceAsStream("/ocr/receipt_ocr.py")) {
+            if (in != null) {
+                File tempScript = File.createTempFile("divido_receipt_ocr_", ".py");
+                tempScript.deleteOnExit();
+                Files.copy(in, tempScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                boolean ignored = tempScript.setExecutable(true, false);
+                return tempScript.getAbsolutePath();
+            }
+        } catch (Exception e) {
+            log.warn("Could not extract receipt_ocr.py from classpath: {}", e.getMessage());
+        }
+
         return null;
     }
 
