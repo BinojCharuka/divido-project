@@ -83,9 +83,8 @@ describe("ReceiptScanModal", () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, fakeImage);
 
-    // Verify extracted details and memory purge notification are shown
+    // Verify extracted details are shown
     expect(await screen.findByText("Keells Super")).toBeInTheDocument();
-    expect(screen.getByText("Details extracted • Cached receipt image deleted from memory")).toBeInTheDocument();
     expect(screen.getByText("LKR 630.00")).toBeInTheDocument();
     expect(screen.getByText("2026-11-22")).toBeInTheDocument();
     expect(screen.getByText(/Groceries/)).toBeInTheDocument();
@@ -148,7 +147,6 @@ describe("ReceiptScanModal", () => {
     // Verify extraction completes and cached image is purged from memory
     expect(await screen.findByText("Arpico")).toBeInTheDocument();
     expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:http://localhost/receipt-123");
-    expect(screen.getByText("Details extracted • Cached receipt image deleted from memory")).toBeInTheDocument();
   });
 });
 

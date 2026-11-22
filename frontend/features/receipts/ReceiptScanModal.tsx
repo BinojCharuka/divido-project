@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   Camera,
   CheckCircle2,
-  FileText,
   Loader2,
   Receipt,
   RotateCcw,
@@ -34,6 +33,76 @@ interface ReceiptScanModalProps {
   onApply: (data: ExtractedExpenseData) => void;
 }
 
+function extractBestAmount(result: ReceiptScanResponse): string {
+  // 1. Explicit transaction total
+  if (result.transaction?.total != null && Number(result.transaction.total) > 0) {
+    return String(result.transaction.total);
+  }
+  // 2. Mapped transaction amount
+  if (result.mappedTransaction?.amount) {
+    const cleaned = result.mappedTransaction.amount.replace(/[^0-9.]/g, "");
+    if (cleaned && Number(cleaned) > 0) return cleaned;
+  }
+  // 3. Subtotal
+  if (result.transaction?.subtotal != null && Number(result.transaction.subtotal) > 0) {
+    return String(result.transaction.subtotal);
+  }
+  // 4. Amount paid
+  if (result.transaction?.amountPaid != null && Number(result.transaction.amountPaid) > 0) {
+    return String(result.transaction.amountPaid);
+  }
+  // 5. Items sum
+  if (result.items && result.items.length > 0) {
+    const sum = result.items.reduce((acc, item) => {
+      const price = item.totalPrice ?? (item.unitPrice != null && item.quantity ? item.unitPrice * item.quantity : item.unitPrice);
+      return price != null ? acc + price : acc;
+    }, 0);
+    if (sum > 0) return sum.toFixed(2);
+  }
+  // 6. Regex match in rawText
+  if (result.rawText) {
+    const matches = Array.from(
+      result.rawText.matchAll(/(?:total|amount|net|due|lkr|rs\.?)\s*[:.]?\s*([0-9,]+(?:\.[0-9]{1,2})?)/gi)
+    );
+    if (matches.length > 0) {
+      const rawMatch = matches[matches.length - 1][1].replace(/,/g, "");
+      if (Number(rawMatch) > 0) return rawMatch;
+    }
+    const anyNumMatches = Array.from(result.rawText.matchAll(/\b([0-9,]+\.[0-9]{2})\b/g));
+    if (anyNumMatches.length > 0) {
+      const highestNum = anyNumMatches
+        .map((m) => Number(m[1].replace(/,/g, "")))
+        .filter((n) => !isNaN(n) && n > 0 && n < 10000000)
+        .sort((a, b) => b - a)[0];
+      if (highestNum) return highestNum.toFixed(2);
+    }
+  }
+  return "";
+}
+
+function extractBestMerchant(result: ReceiptScanResponse): string {
+  if (result.merchant?.name && result.merchant.name.trim()) {
+    return result.merchant.name.trim();
+  }
+  if (result.mappedTransaction?.description) {
+    const desc = result.mappedTransaction.description;
+    const split = desc.split(" - ")[0].split(" (")[0].trim();
+    if (split && split !== "Receipt expense") return split;
+  }
+  if (result.rawText) {
+    const lines = result.rawText.split("\n").map(l => l.trim()).filter(Boolean);
+    for (const line of lines.slice(0, 5)) {
+      if (/(keells|cargills|arpico|spar|glomark|supermarket|pharmacy|fuel|petrol|ceypetco|ioc|food|restaurant|cafe)/i.test(line)) {
+        return line.replace(/[^a-zA-Z0-9\s&'-]/g, "").trim();
+      }
+    }
+    if (lines.length > 0) {
+      return lines[0].replace(/[^a-zA-Z0-9\s&'-]/g, "").trim().slice(0, 30);
+    }
+  }
+  return "";
+}
+
 export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -42,7 +111,6 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showItems, setShowItems] = useState(false);
-  const [showRawOcr, setShowRawOcr] = useState(false);
 
   // Editable review fields
   const [merchantName, setMerchantName] = useState("");
@@ -105,9 +173,12 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
             "Receipt could not be analyzed. Please ensure image is clear and try again."
         );
       } else {
+        const bestMerchant = extractBestMerchant(result);
+        const bestAmount = extractBestAmount(result);
+
         setScanResult(result);
-        setMerchantName(result.merchant?.name || "");
-        setTotalAmount(result.transaction?.total != null ? String(result.transaction.total) : "");
+        setMerchantName(bestMerchant);
+        setTotalAmount(bestAmount);
         setTransactionDate(result.transaction?.date || new Date().toISOString().split("T")[0]);
 
         // Details successfully extracted! Immediately revoke and purge cached image from browser memory
@@ -172,7 +243,7 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
   };
 
   const handleApplyToForm = () => {
-    if (!scanResult || !scanResult.transaction) return;
+    if (!scanResult) return;
 
     if (previewUrl) {
       try {
@@ -184,7 +255,7 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
     setPreviewUrl(null);
     setSelectedFile(null);
 
-    const merchant = merchantName.trim() || scanResult.merchant?.name || "";
+    const merchant = merchantName.trim() || extractBestMerchant(scanResult) || "Receipt expense";
     const purpose = scanResult.expense?.purpose || "";
 
     // Generate descriptive text: "Merchant - Item1, Item2" or purpose
@@ -192,18 +263,30 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
     if (scanResult.items && scanResult.items.length > 0) {
       const itemNames = scanResult.items
         .map((i) => i.name)
+        .filter(Boolean)
         .slice(0, 3)
         .join(", ");
-      desc = merchant ? `${merchant} - ${itemNames}` : itemNames;
+      if (itemNames) {
+        desc = merchant ? `${merchant} - ${itemNames}` : itemNames;
+      }
     } else if (purpose) {
       desc = merchant ? `${merchant} (${purpose})` : purpose;
+    } else if (scanResult.mappedTransaction?.description) {
+      desc = scanResult.mappedTransaction.description;
     }
 
+    if (!desc) {
+      desc = "Receipt expense";
+    }
+
+    const rawAmt = totalAmount || extractBestAmount(scanResult);
+    const cleanedAmt = rawAmt ? rawAmt.replace(/[^0-9.]/g, "") : "";
+
     onApply({
-      amount: totalAmount || (scanResult.transaction.total != null ? String(scanResult.transaction.total) : ""),
-      date: transactionDate || scanResult.transaction.date || new Date().toISOString().split("T")[0],
+      amount: cleanedAmt,
+      date: transactionDate || scanResult.transaction?.date || new Date().toISOString().split("T")[0],
       description: desc,
-      categoryId: scanResult.expense?.matchedCategoryId || undefined,
+      categoryId: scanResult.expense?.matchedCategoryId || scanResult.mappedTransaction?.categoryId || undefined,
       purpose: purpose || undefined,
       merchantName: merchant || undefined,
     });
@@ -350,11 +433,6 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
         {/* State 3: Extraction Result */}
         {!scanning && scanResult && (
           <div className="flex flex-col gap-3">
-            {/* Privacy & Cache Cleared Notification */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-medium">
-              <CheckCircle2 size={15} className="text-[#34d399] shrink-0" />
-              <span>Details extracted • Cached receipt image deleted from memory</span>
-            </div>
             {/* Quality Warnings Banner */}
             {scanResult.receiptQuality?.warnings &&
               scanResult.receiptQuality.warnings.length > 0 && (
@@ -490,29 +568,6 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Raw OCR Text Accordion Toggle */}
-              {scanResult.rawText && (
-                <div className="pt-2 border-t border-white/[0.06]">
-                  <button
-                    type="button"
-                    onClick={() => setShowRawOcr(!showRawOcr)}
-                    className="w-full flex items-center justify-between text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer py-1"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <FileText size={12} />
-                      <span>View Raw OCR Text</span>
-                    </span>
-                    {showRawOcr ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                  </button>
-
-                  {showRawOcr && (
-                    <pre className="mt-1.5 p-2 rounded bg-black/40 text-[10px] text-zinc-400 font-mono overflow-x-auto max-h-28 whitespace-pre-wrap leading-relaxed">
-                      {scanResult.rawText}
-                    </pre>
                   )}
                 </div>
               )}

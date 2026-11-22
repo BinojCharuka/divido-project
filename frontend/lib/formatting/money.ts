@@ -71,10 +71,13 @@ export function isValidMoneyAmount(value: string): boolean {
 
 /**
  * Normalizes user input for an amount to a standardized string format "1234.56" or "1234.00".
+ * Safely strips currency symbols (Rs, LKR), commas, and spaces.
  */
 export function normalizeMoneyInput(value: string): string {
+  if (!value) return "0.00";
   const trimmed = value.trim();
-  const num = parseFloat(trimmed);
+  const cleaned = trimmed.replace(/[^0-9.]/g, "");
+  const num = parseFloat(cleaned);
   if (isNaN(num)) return "0.00";
   return num.toFixed(2);
 }

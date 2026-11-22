@@ -321,18 +321,18 @@ public class GeminiReceiptScannerService {
             combinedWarnings.add("Transaction date not clearly visible; defaulted to today.");
         }
 
-        TransactionInfo transaction = new TransactionInfo(
-                date,
-                asNullableText(txNode.path("time")),
-                txNode.path("currency").isMissingNode() ? "LKR" : txNode.path("currency").asText("LKR"),
-                asBigDecimal(txNode.path("subtotal")),
-                asBigDecimal(txNode.path("discount")),
-                asBigDecimal(txNode.path("tax")),
-                asBigDecimal(txNode.path("serviceCharge")),
-                asBigDecimal(txNode.path("total")),
-                asBigDecimal(txNode.path("amountPaid")),
-                asBigDecimal(txNode.path("change"))
-        );
+        BigDecimal total = asBigDecimal(txNode.path("total"));
+        BigDecimal subtotal = asBigDecimal(txNode.path("subtotal"));
+        BigDecimal amountPaid = asBigDecimal(txNode.path("amountPaid"));
+
+        // Fallback 1: if total is null or zero, check subtotal or amountPaid
+        if (total == null || total.compareTo(BigDecimal.ZERO) == 0) {
+            if (subtotal != null && subtotal.compareTo(BigDecimal.ZERO) > 0) {
+                total = subtotal;
+            } else if (amountPaid != null && amountPaid.compareTo(BigDecimal.ZERO) > 0) {
+                total = amountPaid;
+            }
+        }
 
         // Line Items
         List<ReceiptItem> items = new ArrayList<>();
@@ -350,6 +350,48 @@ public class GeminiReceiptScannerService {
                 }
             }
         }
+
+        // Fallback 2: if total is still missing or zero, sum line items
+        if ((total == null || total.compareTo(BigDecimal.ZERO) == 0) && !items.isEmpty()) {
+            BigDecimal itemsSum = BigDecimal.ZERO;
+            for (ReceiptItem item : items) {
+                if (item.totalPrice() != null) {
+                    itemsSum = itemsSum.add(item.totalPrice());
+                } else if (item.unitPrice() != null) {
+                    BigDecimal qty = item.quantity() != null ? BigDecimal.valueOf(item.quantity()) : BigDecimal.ONE;
+                    itemsSum = itemsSum.add(item.unitPrice().multiply(qty));
+                }
+            }
+            if (itemsSum.compareTo(BigDecimal.ZERO) > 0) {
+                total = itemsSum;
+            }
+        }
+
+        // Fallback 3: extract from raw OCR text using regex
+        if (total == null || total.compareTo(BigDecimal.ZERO) == 0) {
+            total = extractTotalFromRawText(ocrResult.safeRawText());
+        }
+
+        // Fallback for merchant name from raw OCR text
+        if (merchant.name() == null || merchant.name().isBlank()) {
+            String guessed = guessMerchantFromRawText(ocrResult.safeRawText());
+            if (guessed != null && !guessed.isBlank()) {
+                merchant = new MerchantInfo(guessed, merchant.branch(), merchant.address(), merchant.contact());
+            }
+        }
+
+        TransactionInfo transaction = new TransactionInfo(
+                date,
+                asNullableText(txNode.path("time")),
+                txNode.path("currency").isMissingNode() ? "LKR" : txNode.path("currency").asText("LKR"),
+                subtotal != null ? subtotal : total,
+                asBigDecimal(txNode.path("discount")),
+                asBigDecimal(txNode.path("tax")),
+                asBigDecimal(txNode.path("serviceCharge")),
+                total,
+                amountPaid,
+                asBigDecimal(txNode.path("change"))
+        );
 
         // Step 7: Backend Math Validation
         verifyCalculations(transaction, items, combinedWarnings);
@@ -524,5 +566,47 @@ public class GeminiReceiptScannerService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private BigDecimal extractTotalFromRawText(String rawText) {
+        if (rawText == null || rawText.isBlank()) return null;
+        try {
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+                "(?i)(?:total|net|amount|due|lkr|rs\\.?)\\s*[:.]?\\s*([0-9,]+(?:\\.[0-9]{1,2})?)"
+            );
+            java.util.regex.Matcher m = p.matcher(rawText);
+            BigDecimal lastFound = null;
+            while (m.find()) {
+                String numStr = m.group(1).replace(",", "").trim();
+                try {
+                    BigDecimal val = new BigDecimal(numStr);
+                    if (val.compareTo(BigDecimal.ZERO) > 0 && val.compareTo(new BigDecimal("10000000")) < 0) {
+                        lastFound = val;
+                    }
+                } catch (Exception ignored) {}
+            }
+            return lastFound;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String guessMerchantFromRawText(String rawText) {
+        if (rawText == null || rawText.isBlank()) return null;
+        String[] lines = rawText.split("\\r?\\n");
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) continue;
+            if (trimmed.matches("(?i).*(keells|cargills|arpico|spar|glomark|supermarket|pharmacy|fuel|petrol|ceypetco|ioc|food|restaurant|cafe).*")) {
+                return trimmed.replaceAll("[^a-zA-Z0-9\\s&'-]", "").trim();
+            }
+        }
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.length() >= 3 && !trimmed.matches(".*\\d{4,}.*")) {
+                return trimmed.replaceAll("[^a-zA-Z0-9\\s&'-]", "").trim();
+            }
+        }
+        return null;
     }
 }

@@ -88,10 +88,23 @@ export function TransactionFormDialog({
   const [pending, setPending] = useState(false);
 
   const handleReceiptExtracted = (data: ExtractedExpenseData) => {
-    if (data.amount) setAmount(normalizeMoneyInput(data.amount));
+    if (data.amount) {
+      const normalized = normalizeMoneyInput(data.amount);
+      if (normalized && normalized !== "0.00") {
+        setAmount(normalized);
+      } else if (data.amount.trim()) {
+        setAmount(data.amount.trim());
+      }
+    }
     if (data.date) setDate(data.date);
     if (data.description) setDescription(data.description);
-    if (data.categoryId) setCategoryId(data.categoryId);
+    if (data.categoryId) {
+      setCategoryId(data.categoryId);
+    } else if (categories && categories.length > 0) {
+      const target = (data.purpose || data.description || "").toLowerCase();
+      const matched = categories.find((c) => target.includes(c.name.toLowerCase()));
+      if (matched) setCategoryId(matched.id);
+    }
     setIsAiScanned(true);
     setScannerOpen(false);
   };
