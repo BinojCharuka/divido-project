@@ -94,6 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <MobileDock
           onAdd={(type) => actions.openAdd(type)}
+          onScan={actions.openScan}
           userName={userName}
           email={user?.email ?? ""}
           initials={initials}

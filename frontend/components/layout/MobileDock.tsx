@@ -8,6 +8,7 @@ import {
   ArrowDownLeft,
   BarChart3,
   BookOpen,
+  Camera,
   CircleHelp,
   History,
   LayoutGrid,
@@ -33,6 +34,7 @@ interface NavItem {
 
 export interface MobileDockProps {
   onAdd: (type?: TransactionType) => void;
+  onScan?: () => void;
   userName?: string;
   email?: string;
   initials?: string;
@@ -64,6 +66,7 @@ function isItemActive(item: NavItem, pathname: string, tappedHref: string | null
  */
 export function MobileDock({
   onAdd,
+  onScan,
   userName = "Divido user",
   email = "",
   initials = "DU",
@@ -359,18 +362,18 @@ export function MobileDock({
         />
       )}
 
-      {/* 4. Speed-Dial Floating Actions (Add Income & Add Expense) */}
+      {/* 4. Speed-Dial Floating Actions (Add Income, Scan Receipt & Add Expense) */}
       {addMenuOpen && (
         <div
           className={`dock-action-popup ${isAddClosing ? "is-closing" : "is-open"}`}
           role="menu"
           aria-label="Add transaction actions"
         >
-          {/* Add Income Action Button (Green Halo, matching reference image) */}
+          {/* Action 1: Add Income (Left) */}
           <button
             type="button"
             role="menuitem"
-            className="dock-action-item group"
+            className="dock-action-item dock-item-left group"
             onClick={() => {
               closeAddMenu();
               onAdd("INCOME");
@@ -383,11 +386,34 @@ export function MobileDock({
             <span className="dock-action-label">Add income</span>
           </button>
 
-          {/* Add Expense Action Button (Blue Halo, matching reference image) */}
+          {/* Action 2: Scan Receipt (Middle / Center Hero) */}
           <button
             type="button"
             role="menuitem"
-            className="dock-action-item group"
+            className="dock-action-item dock-item-center group"
+            onClick={() => {
+              closeAddMenu();
+              if (onScan) {
+                onScan();
+              } else {
+                onAdd("EXPENSE");
+              }
+            }}
+            aria-label="Scan receipt"
+          >
+            <div className="dock-action-btn scan-btn">
+              <Camera size={28} strokeWidth={2.4} className="text-white drop-shadow-sm" aria-hidden="true" />
+            </div>
+            <span className="dock-action-label scan-label">
+              <span className="scan-ai-badge">AI</span> Scan receipt
+            </span>
+          </button>
+
+          {/* Action 3: Add Expense (Right) */}
+          <button
+            type="button"
+            role="menuitem"
+            className="dock-action-item dock-item-right group"
             onClick={() => {
               closeAddMenu();
               onAdd("EXPENSE");
@@ -418,11 +444,7 @@ export function MobileDock({
             aria-expanded={addMenuOpen}
             onClick={toggleAddMenu}
           >
-            {addMenuOpen ? (
-              <X size={22} strokeWidth={3} className="floating-dock-add-icon" aria-hidden="true" />
-            ) : (
-              <Plus size={24} strokeWidth={2.8} className="floating-dock-add-icon" aria-hidden="true" />
-            )}
+            <Plus size={24} strokeWidth={2.8} className="floating-dock-add-icon" aria-hidden="true" />
           </button>
         </div>
 

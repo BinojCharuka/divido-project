@@ -65,5 +65,30 @@ describe("MobileDock Speed-Dial Action Menu", () => {
     await user.click(addExpenseBtn);
     expect(mockOnAdd).toHaveBeenCalledWith("EXPENSE");
   });
+
+  it("renders Scan receipt option in center and invokes onScan when clicked", async () => {
+    const user = userEvent.setup();
+    const mockOnAdd = vi.fn();
+    const mockOnScan = vi.fn();
+
+    render(
+      <MobileDock
+        onAdd={mockOnAdd}
+        onScan={mockOnScan}
+        userName="Charu"
+        email="charu@example.com"
+        initials="CP"
+      />,
+    );
+
+    const addButton = screen.getByRole("button", { name: "Add transaction" });
+    await user.click(addButton);
+
+    const scanBtn = screen.getByRole("menuitem", { name: "Scan receipt" });
+    expect(scanBtn).toBeInTheDocument();
+
+    await user.click(scanBtn);
+    expect(mockOnScan).toHaveBeenCalledTimes(1);
+  });
 });
 
