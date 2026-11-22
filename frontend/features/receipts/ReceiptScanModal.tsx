@@ -98,9 +98,10 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
 
     try {
       const result = await scanReceipt(file);
-      if (!result.success && (!result.receiptQuality?.isReadable)) {
+      if (!result.success) {
         setErrorMessage(
-          result.receiptQuality?.warnings?.[0] ||
+          result.error ||
+            result.receiptQuality?.warnings?.[0] ||
             "Receipt could not be analyzed. Please ensure image is clear and try again."
         );
       } else {

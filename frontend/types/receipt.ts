@@ -64,4 +64,5 @@ export interface ReceiptScanResponse {
   rawText: string | null;
   uncertainFields?: string[];
   mappedTransaction?: MappedTransaction | null;
+  error?: string | null;
 }

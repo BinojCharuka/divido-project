@@ -73,11 +73,11 @@ public class GeminiReceiptScannerService {
         String prompt = buildTextPrompt(categoryNames, ocrResult.rawText(), ocrResult.safeWarnings());
         String requestJson = buildTextOnlyGeminiRequest(prompt);
 
-        // Call Gemini API with model fallback
+        // Call Gemini API with active and fallback models
         String[] candidateModels = {
                 geminiProperties.getModel(),
-                "gemini-2.5-flash",
-                "gemini-1.5-flash",
+                "gemini-flash-lite-latest",
+                "gemini-flash-latest",
                 "gemini-3.8-flash"
         };
 
@@ -88,14 +88,11 @@ public class GeminiReceiptScannerService {
                 response = executeGeminiRequest(model, apiKey, requestJson);
                 if (response.statusCode() == 200) {
                     break;
-                } else if (response.statusCode() == 404) {
-                    log.warn("Gemini model {} returned 404 Not Found, attempting fallback model.", model);
                 } else if (response.statusCode() == 429) {
                     log.warn("Gemini rate limit exceeded (HTTP 429).");
                     return ReceiptScanResponse.failure("Gemini API rate limit or quota exceeded. Please try again shortly.");
                 } else {
-                    log.warn("Gemini API responded with status {}: {}", response.statusCode(), response.body());
-                    break;
+                    log.warn("Gemini model {} returned status {}, attempting fallback model.", model, response.statusCode());
                 }
             } catch (Exception e) {
                 log.error("Failed to connect to Gemini API model {}: {}", model, e.getMessage());

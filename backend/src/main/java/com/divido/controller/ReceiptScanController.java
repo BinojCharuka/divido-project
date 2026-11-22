@@ -46,9 +46,15 @@ public class ReceiptScanController {
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal DividoUserDetails user) {
 
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    new ApiError(401, "UNAUTHENTICATED", "Please sign in to continue.")
+            );
+        }
+
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body(
-                    new ApiError("INVALID_RECEIPT_IMAGE", "Please upload a valid receipt image.")
+                    new ApiError(400, "INVALID_RECEIPT_IMAGE", "Please upload a valid receipt image.")
             );
         }
 
@@ -75,12 +81,12 @@ public class ReceiptScanController {
         } catch (IllegalArgumentException e) {
             log.warn("Receipt image validation error: {}", e.getMessage());
             return ResponseEntity.badRequest().body(
-                    new ApiError("INVALID_RECEIPT_IMAGE", e.getMessage())
+                    new ApiError(400, "INVALID_RECEIPT_IMAGE", e.getMessage())
             );
         } catch (Exception e) {
             log.error("Failed to process receipt image: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    new ApiError("RECEIPT_SCAN_ERROR", "Failed to process receipt image. Please try again.")
+                    new ApiError(500, "RECEIPT_SCAN_ERROR", "Failed to process receipt image. Please try again.")
             );
         }
     }
@@ -93,9 +99,15 @@ public class ReceiptScanController {
             @RequestBody ReceiptScanJsonRequest request,
             @AuthenticationPrincipal DividoUserDetails user) {
 
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    new ApiError(401, "UNAUTHENTICATED", "Please sign in to continue.")
+            );
+        }
+
         if (request == null || request.image() == null || request.image().isBlank()) {
             return ResponseEntity.badRequest().body(
-                    new ApiError("INVALID_RECEIPT_IMAGE", "Please provide a receipt image in base64 format.")
+                    new ApiError(400, "INVALID_RECEIPT_IMAGE", "Please provide a receipt image in base64 format.")
             );
         }
 
@@ -136,12 +148,12 @@ public class ReceiptScanController {
         } catch (IllegalArgumentException e) {
             log.warn("Receipt image validation error: {}", e.getMessage());
             return ResponseEntity.badRequest().body(
-                    new ApiError("INVALID_RECEIPT_IMAGE", e.getMessage())
+                    new ApiError(400, "INVALID_RECEIPT_IMAGE", e.getMessage())
             );
         } catch (Exception e) {
             log.error("Failed to process receipt JSON image: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    new ApiError("RECEIPT_SCAN_ERROR", "Failed to process receipt image. Please try again.")
+                    new ApiError(500, "RECEIPT_SCAN_ERROR", "Failed to process receipt image. Please try again.")
             );
         }
     }

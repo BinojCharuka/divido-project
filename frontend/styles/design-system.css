@@ -51,6 +51,8 @@
   --radius-2xl: 16px;
   --shadow-card: none;
   --shadow-modal: 0 10px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
+  /* Keep desktop content comfortably inset while preserving a readable maximum measure. */
+  --desktop-page-gutter: clamp(32px, 2.5vw, 64px);
 }
 :root[data-theme='dark'],
 html[data-theme='dark'],
@@ -127,7 +129,12 @@ html[data-theme='dark'],
 .sidebar .sidebar-user .avatar { width: 35px; height: 35px; }
 .sidebar .sidebar-user strong { font-size: 12px; }
 .sidebar .sidebar-user button > span { font-size: 10px; }
-.main-content { max-width: 1376px; padding: 40px 32px 0; }
+.main-content {
+  width: 100%;
+  max-width: calc(1400px + (var(--desktop-page-gutter) * 2));
+  margin-inline: auto;
+  padding: 40px var(--desktop-page-gutter) 0;
+}
 
 /* Page Transition - Smooth Downward Slide */
 .page-transition-water-droplet,
@@ -163,7 +170,7 @@ html[data-theme='dark'],
 }
 .topbar { display: none !important; }
 @media (min-width: 768px) {
-  .topbar { height: 88px; padding: 0 32px; position: sticky; top: 0; z-index: 30; background: var(--nav-surface); display: flex !important; }
+  .topbar { height: 88px; padding: 0 var(--desktop-page-gutter); position: sticky; top: 0; z-index: 30; background: var(--nav-surface); display: flex !important; }
 }
 .header-content { width: 100%; max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 28px; }
 .header-brand { flex-shrink: 0; display: none; }
