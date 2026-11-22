@@ -36,7 +36,7 @@ export function InsightsPage({ month, onMonthChange }: { month: string; onMonthC
 
   return (
     <>
-      <div className="insights-header-wrap flex items-start justify-between gap-4 mb-4">
+      <div className="insights-header-wrap flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-4">
         <div>
           <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
             FINANCIAL PATTERNS
@@ -44,7 +44,9 @@ export function InsightsPage({ month, onMonthChange }: { month: string; onMonthC
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Insights & analytics</h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">A calm, clear view of how your money has moved over time.</p>
         </div>
-        <MonthSelector month={month} onChange={onMonthChange} />
+        <div className="flex items-center justify-start sm:justify-end w-full sm:w-auto">
+          <MonthSelector month={month} onChange={onMonthChange} />
+        </div>
       </div>
 
       <div className="sr-only">

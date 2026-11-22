@@ -6,6 +6,8 @@ import {
   getMonthDateRange,
   getTodayIso,
   getYesterdayIso,
+  getCurrentHour,
+  getTimeGreeting,
 } from "@/lib/formatting/dates";
 import {
   formatMoney,
@@ -93,5 +95,27 @@ describe("Date formatting & utilities", () => {
 
     const rangeFeb = getMonthDateRange("2026-02");
     expect(rangeFeb).toEqual({ from: "2026-02-01", to: "2026-02-28" });
+  });
+
+  it("returns time-of-day greetings based on hour in application timezone", () => {
+    // 08:00 AM UTC+5:30 -> 02:30 AM UTC
+    const morningUtc = new Date("2026-11-22T02:30:00Z");
+    expect(getCurrentHour(morningUtc)).toBe(8);
+    expect(getTimeGreeting(morningUtc)).toBe("Good morning");
+
+    // 02:00 PM UTC+5:30 -> 08:30 AM UTC
+    const afternoonUtc = new Date("2026-11-22T08:30:00Z");
+    expect(getCurrentHour(afternoonUtc)).toBe(14);
+    expect(getTimeGreeting(afternoonUtc)).toBe("Good afternoon");
+
+    // 08:00 PM UTC+5:30 -> 02:30 PM UTC
+    const eveningUtc = new Date("2026-11-22T14:30:00Z");
+    expect(getCurrentHour(eveningUtc)).toBe(20);
+    expect(getTimeGreeting(eveningUtc)).toBe("Good evening");
+
+    // 01:00 AM UTC+5:30 -> 07:30 PM (previous day) UTC
+    const nightUtc = new Date("2026-11-21T19:30:00Z");
+    expect(getCurrentHour(nightUtc)).toBe(1);
+    expect(getTimeGreeting(nightUtc)).toBe("Good evening");
   });
 });

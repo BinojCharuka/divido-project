@@ -24,7 +24,7 @@ export function DividoLoadingScreen({
       aria-live="polite"
       aria-label="Loading Divido"
       className={`${
-        fullscreen ? "fixed inset-0 min-h-screen z-50" : "w-full min-h-[400px]"
+        fullscreen ? "fixed inset-0 min-h-screen z-[99999]" : "w-full min-h-[400px]"
       } flex flex-col items-center justify-center bg-[#faf9f5] dark:bg-[#090c0a] text-zinc-900 dark:text-zinc-100 transition-colors duration-200 antialiased relative select-none ${className}`}
       {...props}
     >

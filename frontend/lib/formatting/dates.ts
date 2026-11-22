@@ -107,3 +107,27 @@ export function getRecentMonths(count = 6): { val: string; label: string }[] {
     return { val, label };
   });
 }
+
+/** Returns current hour (0-23) in {@link APP_TIME_ZONE}. */
+export function getCurrentHour(now: Date = new Date()): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE,
+    hour: "numeric",
+    hour12: false,
+  }).formatToParts(now);
+  const hourPart = parts.find((p) => p.type === "hour")?.value ?? "0";
+  return parseInt(hourPart, 10);
+}
+
+/**
+ * Returns dynamic greeting based on the hour of day in {@link APP_TIME_ZONE}:
+ * - 05:00 – 11:59: "Good morning"
+ * - 12:00 – 16:59: "Good afternoon"
+ * - 17:00 – 04:59: "Good evening"
+ */
+export function getTimeGreeting(now: Date = new Date()): string {
+  const hour = getCurrentHour(now);
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  return "Good evening";
+}

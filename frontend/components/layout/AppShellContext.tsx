@@ -11,6 +11,7 @@ import type { Transaction, TransactionType } from "@/types/transaction";
 export interface AppShellActions {
   notify: (message: string) => void;
   openAdd: (type?: TransactionType) => void;
+  openScan?: () => void;
   openTransaction: (transaction: Transaction) => void;
   openEdit: (transaction: Transaction) => void;
   dataVersion: number;

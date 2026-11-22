@@ -30,7 +30,7 @@ export function BudgetPage({ month, onMonthChange }: { month: string; onMonthCha
 
   return (
     <>
-      <div className="budget-header-wrap flex items-start justify-between gap-4 mb-4">
+      <div className="budget-header-wrap flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-4">
         <div>
           <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
             PLAN WITH PURPOSE
@@ -40,7 +40,9 @@ export function BudgetPage({ month, onMonthChange }: { month: string; onMonthCha
             Give every category a comfortable limit and keep your next goal visible.
           </p>
         </div>
-        <MonthSelector month={month} onChange={onMonthChange} />
+        <div className="flex items-center justify-start sm:justify-end w-full sm:w-auto">
+          <MonthSelector month={month} onChange={onMonthChange} />
+        </div>
       </div>
 
       <div className="sr-only">

@@ -43,7 +43,7 @@ export function TextField({
           id={id}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className={`w-full rounded-xl border border-zinc-200/90 bg-zinc-50/60 py-3 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-[#5fa88f] focus:bg-white focus:ring-1 focus:ring-[#5fa88f]/30 aria-invalid:border-red-500 dark:border-white/[0.08] dark:bg-[#0d1410] dark:text-zinc-100 dark:placeholder:text-zinc-500 hover:dark:border-white/[0.14] dark:focus:border-[#5fa88f] dark:focus:bg-[#0f1712] dark:focus:ring-1 dark:focus:ring-[#5fa88f]/30 dark:aria-invalid:border-red-400 ${
+          className={`w-full rounded-xl border border-zinc-200/90 bg-zinc-50/60 py-3 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-[#5fa88f] focus:bg-white focus:ring-1 focus:ring-[#5fa88f]/30 aria-invalid:border-red-500 autofill:shadow-[inset_0_0_0px_1000px_#f4f4f5] dark:border-white/[0.08] dark:bg-[#0d1410] dark:text-zinc-100 dark:placeholder:text-zinc-500 hover:dark:border-white/[0.14] dark:focus:border-[#5fa88f] dark:focus:bg-[#0f1712] dark:focus:ring-1 dark:focus:ring-[#5fa88f]/30 dark:aria-invalid:border-red-400 dark:autofill:shadow-[inset_0_0_0px_1000px_#0d1410] ${
             icon ? "pl-10" : "px-4"
           } ${rightAction ? "pr-16" : "pr-4"}`}
           {...input}

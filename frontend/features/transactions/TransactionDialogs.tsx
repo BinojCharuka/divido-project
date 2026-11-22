@@ -4,12 +4,14 @@ import type { Transaction, TransactionType } from "@/types/transaction";
 import { DeleteTransactionDialog } from "./DeleteTransactionDialog";
 import { QuickAddDialog } from "./QuickAddDialog";
 import { TransactionDetailDialog } from "./TransactionDetailDialog";
-import { TransactionFormDialog } from "./TransactionFormDialog";
+import { TransactionFormDialog, type InitialTransactionValues } from "./TransactionFormDialog";
+import { ReceiptScanModal } from "@/features/receipts/ReceiptScanModal";
 
 export type TransactionDialogState =
   | null
   | { mode: "choose" }
-  | { mode: "form"; type: TransactionType; transaction?: Transaction }
+  | { mode: "scan" }
+  | { mode: "form"; type: TransactionType; transaction?: Transaction; initialValues?: InitialTransactionValues }
   | { mode: "detail"; transaction: Transaction }
   | { mode: "delete"; transaction: Transaction };
 
@@ -35,14 +37,34 @@ export function TransactionDialogs({
 
   switch (state.mode) {
     case "choose":
-      return <QuickAddDialog onChoose={(type) => onStateChange({ mode: "form", type })} onClose={close} />;
+      return (
+        <QuickAddDialog
+          onChoose={(type) => onStateChange({ mode: "form", type })}
+          onScanReceipt={() => onStateChange({ mode: "scan" })}
+          onClose={close}
+        />
+      );
+    case "scan":
+      return (
+        <ReceiptScanModal
+          onClose={close}
+          onApply={(data) =>
+            onStateChange({
+              mode: "form",
+              type: "EXPENSE",
+              initialValues: { ...data, isAiScanned: true },
+            })
+          }
+        />
+      );
     case "form": {
-      const { transaction } = state;
+      const { transaction, initialValues } = state;
       return (
         <TransactionFormDialog
-          key={transaction?.id ?? state.type}
+          key={transaction?.id ?? (initialValues?.isAiScanned ? "scanned-" + Date.now() : state.type)}
           type={state.type}
           transaction={transaction}
+          initialValues={initialValues}
           onClose={close}
           onBack={!transaction ? () => onStateChange({ mode: "choose" }) : undefined}
           onDelete={transaction ? () => onStateChange({ mode: "delete", transaction }) : undefined}

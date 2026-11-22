@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { History, Plus } from "lucide-react";
+import { History, Plus, Sparkles } from "lucide-react";
 import { InlineError } from "@/components/feedback/InlineError";
 import { LoadingPanel } from "@/components/feedback/LoadingPanel";
 import { Money } from "@/components/financial/Money";
@@ -26,7 +26,7 @@ export const PAGE_SIZE = 20;
  * (GET /api/v1/transactions); month totals come from the dashboard aggregate.
  */
 export function TransactionsPage({ month, onMonthChange }: { month: string; onMonthChange: (m: string) => void }) {
-  const { openAdd, openTransaction, dataVersion } = useAppShell();
+  const { openAdd, openScan, openTransaction, dataVersion } = useAppShell();
   const [filters, setFilters] = useState<TransactionFilterValues>({});
   // A page number belongs to the month it was chosen in; a new month starts at page 0.
   const [paging, setPaging] = useState({ month, page: 0 });
@@ -61,7 +61,7 @@ export function TransactionsPage({ month, onMonthChange }: { month: string; onMo
 
   return (
     <>
-      <div className="transactions-header-wrap flex items-start justify-between gap-4 mb-4">
+      <div className="transactions-header-wrap flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-4">
         <div>
           <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
             MONEY MOVEMENT
@@ -69,18 +69,27 @@ export function TransactionsPage({ month, onMonthChange }: { month: string; onMo
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Transaction history</h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">Search, review, and manage every recorded transaction.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="md:hidden">
-            <MonthSelector month={month} onChange={onMonthChange} />
-          </div>
+        <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
+          <MonthSelector month={month} onChange={onMonthChange} />
+          {openScan && (
+            <button
+              type="button"
+              onClick={openScan}
+              aria-label="Scan receipt"
+              className="px-3 py-2.5 rounded-xl sm:rounded-2xl bg-[#13271c] hover:bg-[#1a3627] text-[#34d399] border border-emerald-500/20 flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer shrink-0 text-xs font-semibold shadow-xs"
+            >
+              <Sparkles size={16} className="text-[#34d399]" aria-hidden="true" />
+              <span className="hidden sm:inline">Scan receipt</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => openAdd()}
             aria-label="Add transaction"
-            className="w-11 h-11 md:w-auto md:px-5 md:py-2.5 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-white flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 cursor-pointer"
+            className="w-10 h-10 sm:w-auto sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#10b981] hover:bg-[#059669] text-white flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-transform active:scale-95 cursor-pointer shrink-0"
           >
             <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
-            <span className="hidden md:inline text-sm font-semibold">Add transaction</span>
+            <span className="hidden sm:inline text-sm font-semibold">Add transaction</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, ChartNoAxesCombined, Plus } from "lucide-react";
 import { InlineError } from "@/components/feedback/InlineError";
 import { LoadingPanel } from "@/components/feedback/LoadingPanel";
@@ -12,7 +13,7 @@ import { getDashboard } from "@/lib/api/dashboard";
 import { listTransactions } from "@/lib/api/transactions";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { displayNameFor } from "@/lib/auth/displayName";
-import { formatMonthYear, getMonthDateRange } from "@/lib/formatting/dates";
+import { formatMonthYear, getMonthDateRange, getTimeGreeting } from "@/lib/formatting/dates";
 import { useApiData } from "@/lib/useApiData";
 import { FreshMonthNotice } from "./FreshMonthNotice";
 import { GroupProgressCard } from "./GroupProgressCard";
@@ -20,6 +21,7 @@ import { PlanSummary } from "./PlanSummary";
 import { SummaryCards } from "./SummaryCards";
 
 const RECENT_COUNT = 5;
+const RECENT_DISPLAY_LIMIT = 3;
 
 /**
  * DASH-001. Every figure comes from the backend; this page only lays them out.
@@ -42,6 +44,27 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
   const monthLabel = formatMonthYear(month);
   const budgetHref = `/budget?month=${month}`;
 
+  const [greeting, setGreeting] = useState(() => getTimeGreeting());
+
+  useEffect(() => {
+    setGreeting(getTimeGreeting());
+    const timer = setInterval(() => {
+      setGreeting(getTimeGreeting());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const greetingHeading = name ? `${greeting}, ${name}` : `${greeting}, ready to plan?`;
+
+  const readyData = data.status === "ready" ? data.data : undefined;
+  const displayedRecent = readyData ? readyData.recent.slice(0, RECENT_DISPLAY_LIMIT) : [];
+  const totalTransactions = readyData
+    ? (readyData.dashboard.expenseTransactionCount ?? 0) + (readyData.dashboard.incomeTransactionCount ?? 0)
+    : 0;
+  const hasMore = readyData
+    ? totalTransactions > displayedRecent.length || readyData.recent.length > displayedRecent.length
+    : false;
+
   return (
     <>
       {data.status === "loading" && <LoadingPanel label="Loading dashboard…" />}
@@ -49,6 +72,17 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
       {data.status === "ready" && (
         <>
           <FreshMonthNotice dashboard={data.data.dashboard} monthLabel={monthLabel} budgetHref={budgetHref} onAddIncome={() => openAdd("INCOME")} />
+          
+          {/* Compact greeting placed on page background ABOVE the black frame/card on mobile */}
+          <div className="dashboard-greeting-compact md:hidden mb-4 px-0.5">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-[#34d399] uppercase block leading-none mb-1">
+              OVERVIEW
+            </span>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              {greetingHeading}
+            </h1>
+          </div>
+
           <div className="dashboard-reference-frame">
             <div className="dashboard-reference-header sr-only">
               <div>
@@ -56,7 +90,7 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
                   OVERVIEW
                 </span>
                 <h1 className="dashboard-reference-greeting text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                  {name ? `Good morning, ${name}` : "Good morning, ready to plan?"}
+                  {greetingHeading}
                 </h1>
               </div>
               <div className="dashboard-reference-controls">
@@ -109,13 +143,13 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
                   </span>
                   <h2 id="recent-heading">Recent transactions</h2>
                 </div>
-                <Link className="text-button flex items-center gap-1 text-sm text-[#34d399] hover:underline" href={`/transactions?month=${month}`}>
+                <Link className="text-button flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#34d399] hover:underline py-1 px-2 rounded-md hover:bg-emerald-500/10 transition-colors" href={`/transactions?month=${month}`}>
                   <span>View all</span>
                   <ArrowRight size={14} aria-hidden="true" />
                 </Link>
               </div>
               <TransactionRows
-                transactions={data.data.recent}
+                transactions={displayedRecent}
                 onOpen={openTransaction}
                 empty={
                   <div className="empty-state text-center py-8">
@@ -136,6 +170,22 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
                   </div>
                 }
               />
+              {displayedRecent.length > 0 && (
+                <div className="border-t border-white/[0.08] px-4 sm:px-5 py-3.5 flex items-center justify-between flex-wrap gap-2.5">
+                  <span className="text-xs text-zinc-400">
+                    {hasMore
+                      ? `Showing latest ${displayedRecent.length} of ${totalTransactions > displayedRecent.length ? totalTransactions : data.data.recent.length} records`
+                      : `Showing ${displayedRecent.length} record${displayedRecent.length === 1 ? "" : "s"}`}
+                  </span>
+                  <Link
+                    href={`/transactions?month=${month}`}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#14261d] hover:bg-[#1b3528] border border-emerald-500/20 text-xs font-semibold text-[#34d399] hover:text-emerald-300 transition-all shadow-xs"
+                  >
+                    <span>View all in History</span>
+                    <ArrowRight size={13} aria-hidden="true" />
+                  </Link>
+                </div>
+              )}
             </section>
             <div className="dashboard-side">
               <PlanSummary dashboard={data.data.dashboard} budgetHref={budgetHref} />

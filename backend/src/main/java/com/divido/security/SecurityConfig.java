@@ -202,7 +202,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
-        config.setAllowedHeaders(List.of(HttpHeaders.CONTENT_TYPE, CSRF_HEADER_NAME));
+        config.setAllowedHeaders(List.of(HttpHeaders.CONTENT_TYPE, HttpHeaders.ACCEPT, CSRF_HEADER_NAME));
         config.setAllowCredentials(true);
         config.setMaxAge(Duration.ofHours(1));
         source.registerCorsConfiguration("/api/**", config);

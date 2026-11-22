@@ -43,7 +43,7 @@ export function TransactionFilters({
 }) {
   const { type, categoryId, incomeSourceId, search = "" } = values;
   return (
-    <div className="transaction-filters-container flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+    <div className="transaction-filters-container p-3.5 sm:p-5 flex flex-col gap-3.5 border-b border-white/[0.08]">
       {/* Search Input matching desktop screenshot 2 and mobile */}
       <div className="relative w-full md:max-w-md">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -67,14 +67,14 @@ export function TransactionFilters({
         )}
       </div>
 
-      <div className="filter-row flex flex-wrap items-center gap-2.5">
-        <div className="segmented-tabs" role="group" aria-label="Transaction type">
+      <div className="filter-row flex flex-wrap items-center gap-2.5 !p-0 !border-b-0">
+        <div className="segmented-tabs w-full sm:w-auto flex" role="group" aria-label="Transaction type">
           {TYPES.map(([label, value]) => (
             <button
               key={label}
               type="button"
               aria-pressed={type === value}
-              className={type === value ? "selected" : ""}
+              className={type === value ? "selected flex-1 sm:flex-none" : "flex-1 sm:flex-none"}
               onClick={() =>
                 onChange({
                   ...values,
@@ -88,44 +88,48 @@ export function TransactionFilters({
             </button>
           ))}
         </div>
-        {type !== "INCOME" && (
-          <select
-            aria-label="Filter by category"
-            value={categoryId ?? ""}
-            disabled={optionsUnavailable}
-            onChange={(e) => {
-              const id = e.target.value || undefined;
-              onChange({ ...values, type: id ? "EXPENSE" : type, categoryId: id });
-            }}
-          >
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} · {GROUP_META[c.group].label}
-                {c.active ? "" : " · inactive"}
-              </option>
-            ))}
-          </select>
-        )}
-        {type !== "EXPENSE" && (
-          <select
-            aria-label="Filter by income source"
-            value={incomeSourceId ?? ""}
-            disabled={optionsUnavailable}
-            onChange={(e) => {
-              const id = e.target.value || undefined;
-              onChange({ ...values, type: id ? "INCOME" : type, incomeSourceId: id });
-            }}
-          >
-            <option value="">All income sources</option>
-            {sources.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-                {s.active ? "" : " · inactive"}
-              </option>
-            ))}
-          </select>
-        )}
+        <div className="flex items-center gap-2.5 w-full sm:w-auto flex-1">
+          {type !== "INCOME" && (
+            <select
+              aria-label="Filter by category"
+              value={categoryId ?? ""}
+              disabled={optionsUnavailable}
+              className="flex-1 min-w-0"
+              onChange={(e) => {
+                const id = e.target.value || undefined;
+                onChange({ ...values, type: id ? "EXPENSE" : type, categoryId: id });
+              }}
+            >
+              <option value="">All categories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {GROUP_META[c.group].label}
+                  {c.active ? "" : " · inactive"}
+                </option>
+              ))}
+            </select>
+          )}
+          {type !== "EXPENSE" && (
+            <select
+              aria-label="Filter by income source"
+              value={incomeSourceId ?? ""}
+              disabled={optionsUnavailable}
+              className="flex-1 min-w-0"
+              onChange={(e) => {
+                const id = e.target.value || undefined;
+                onChange({ ...values, type: id ? "INCOME" : type, incomeSourceId: id });
+              }}
+            >
+              <option value="">All income sources</option>
+              {sources.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                  {s.active ? "" : " · inactive"}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
         {isFiltered(values) && (
           <Button variant="ghost" onClick={() => onChange({})}>
             Clear filters <X size={14} aria-hidden="true" />

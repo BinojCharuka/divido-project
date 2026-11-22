@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Check, KeyRound, Wallet } from "lucide-react";
+import { AnimatedBackground } from "./AnimatedBackground";
 
 export function PoweredByDivido({ className = "" }: { className?: string }) {
   return (
@@ -34,6 +35,7 @@ export interface AuthLayoutProps {
 export function AuthLayout({ title, subtitle, children, customHeader = false }: AuthLayoutProps) {
   return (
     <div className="dark min-h-screen w-full flex bg-[#070b09] text-zinc-100 antialiased relative selection:bg-[#5fa88f]/30 overflow-x-hidden font-sans">
+      <AnimatedBackground />
       {/* LEFT PANEL: Hero & Branding (Desktop >= 1024px) */}
       <div className="hidden lg:flex lg:w-1/2 min-h-screen flex-col justify-between p-12 xl:p-16 relative overflow-hidden bg-[#06170f] border-r border-white/[0.06]">
         {/* Ambient background glows */}

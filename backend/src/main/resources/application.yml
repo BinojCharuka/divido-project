@@ -21,8 +21,16 @@ spring:
   flyway:
     enabled: true
 
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
+
 server:
   port: ${PORT:${SERVER_PORT:8080}}
+  tomcat:
+    max-http-form-post-size: 15MB
+    max-swallow-size: 15MB
   servlet:
     session:
       # Idle timeout; Tomcat applies it in whole minutes.
@@ -42,7 +50,7 @@ divido:
   cors:
     # Comma-separated exact frontend origins allowed to make credentialed requests,
     # e.g. http://localhost:3000. Empty means no cross-origin access.
-    allowed-origins: ${DIVIDO_CORS_ALLOWED_ORIGINS:}
+    allowed-origins: ${DIVIDO_CORS_ALLOWED_ORIGINS:http://localhost:3000}
   rate-limit:
     enabled: ${DIVIDO_RATE_LIMIT_ENABLED:true}
     trusted-proxies: ${DIVIDO_RATE_LIMIT_TRUSTED_PROXIES:}
@@ -67,6 +75,11 @@ divido:
   app:
     # The frontend origin used in reset links, e.g. https://app.example.com
     public-url: ${DIVIDO_APP_PUBLIC_URL:http://localhost:3000}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-2.5-flash}
+    base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
+    timeout: ${GEMINI_TIMEOUT:35s}
 
 management:
   endpoints:

@@ -161,7 +161,10 @@ html[data-theme='dark'],
     transform: none !important;
   }
 }
-.topbar { height: 88px; padding: 0 32px; position: sticky; top: 0; z-index: 30; background: var(--nav-surface); }
+.topbar { display: none !important; }
+@media (min-width: 768px) {
+  .topbar { height: 88px; padding: 0 32px; position: sticky; top: 0; z-index: 30; background: var(--nav-surface); display: flex !important; }
+}
 .header-content { width: 100%; max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 28px; }
 .header-brand { flex-shrink: 0; display: none; }
 .header-location { display: flex; align-items: center; gap: 22px; min-width: 0; font-size: 14px; }
@@ -391,30 +394,26 @@ html[data-theme='dark'],
   .sidebar-toggle-btn { display: none !important; }
   .main-shell,
   .sidebar-collapsed .main-shell { margin-left: 0 !important; width: 100% !important; }
-  /* Mobile TopBar Redesign - Balanced Header with Logo, Theme Toggle & Avatar */
+  /* Mobile: TopBar is completely hidden; mobile navigation is handled by bottom dock & slide drawer */
   .topbar {
-    height: 64px !important;
-    min-height: 64px !important;
-    padding: 0 16px !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 50 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.07) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
   }
   :root[data-theme='dark'] .topbar,
   .dark .topbar {
-    background: rgba(11, 14, 12, 0.95) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
   }
   .header-content {
     width: 100% !important;
@@ -462,7 +461,11 @@ html[data-theme='dark'],
     display: none !important;
   }
   .main-content {
-    padding: 24px 16px 125px !important;
+    padding: 20px 16px max(150px, calc(120px + env(safe-area-inset-bottom, 24px))) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
   }
   .header-nav,
   .header-add,
@@ -765,11 +768,13 @@ html[data-theme='dark'],
 }
 @media (max-width: 600px) {
   .main-content {
-    padding: 20px 14px max(135px, calc(110px + env(safe-area-inset-bottom, 16px)));
-    max-width: 100vw;
-    box-sizing: border-box;
+    padding: 20px 16px max(150px, calc(120px + env(safe-area-inset-bottom, 24px))) !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
   }
-  .topbar { padding: 0 18px; }
+  .topbar { display: none !important; height: 0 !important; padding: 0 !important; }
   .brand { font-size: 22px; }
   .page-heading { gap: 20px; }
   .page-heading h1 { font-size: 26px; line-height: 36px; letter-spacing: -.8px; }
@@ -885,9 +890,12 @@ html[data-theme='dark'],
 }
 @media (max-width: 359px) {
   .topbar {
-    padding: 0 12px !important;
-    height: 60px !important;
-    min-height: 60px !important;
+    display: none !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border: none !important;
   }
   .header-brand .brand-logo-img {
     height: 28px !important;

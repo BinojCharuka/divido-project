@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
+import { PageTransition } from "@/components/transition/PageTransition";
 import "./globals.css";
 import "@/styles/figma-styles.css";
 import "@/styles/design-system.css";
@@ -76,7 +77,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <PageTransition />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { ArrowDown, ArrowUp, Check, ShieldCheck, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { FormError } from "@/components/feedback/FieldError";
 import { GroupBadge } from "@/components/financial/GroupBadge";
 import { GROUP_META } from "@/components/financial/groups";
@@ -10,6 +10,7 @@ import { MoneyField } from "@/components/forms/MoneyField";
 import { SelectField } from "@/components/forms/SelectField";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { ReceiptScanModal, type ExtractedExpenseData } from "@/features/receipts/ReceiptScanModal";
 import { listCategories } from "@/lib/api/categories";
 import { ApiError } from "@/lib/api/client";
 import { listIncomeSources } from "@/lib/api/income-sources";
@@ -23,6 +24,16 @@ import type { Category } from "@/types/category";
 import type { IncomeSource } from "@/types/income-source";
 import type { Transaction, TransactionType } from "@/types/transaction";
 
+export interface InitialTransactionValues {
+  amount?: string;
+  categoryId?: string;
+  incomeSourceId?: string;
+  date?: string;
+  description?: string;
+  paymentMethod?: string;
+  isAiScanned?: boolean;
+}
+
 /**
  * Create or edit one transaction (TX-001..004). Edits send only changed fields
  * (buildTransactionPatch). Entered values are kept after any error.
@@ -30,6 +41,7 @@ import type { Transaction, TransactionType } from "@/types/transaction";
 export function TransactionFormDialog({
   type,
   transaction,
+  initialValues,
   onClose,
   onBack,
   onDelete,
@@ -37,6 +49,7 @@ export function TransactionFormDialog({
 }: {
   type: TransactionType;
   transaction?: Transaction;
+  initialValues?: InitialTransactionValues;
   onClose: () => void;
   onBack?: () => void;
   onDelete?: () => void;
@@ -46,15 +59,42 @@ export function TransactionFormDialog({
   const isIncome = activeType === "INCOME";
   const editing = !!transaction;
 
-  const [amount, setAmount] = useState(transaction ? normalizeMoneyInput(transaction.amount) : "");
-  const [categoryId, setCategoryId] = useState(transaction?.category?.id ?? "");
-  const [incomeSourceId, setIncomeSourceId] = useState(transaction?.incomeSource?.id ?? "");
-  const [date, setDate] = useState(transaction?.date ?? getTodayIso());
-  const [description, setDescription] = useState(transaction?.description ?? "");
-  const [paymentMethod, setPaymentMethod] = useState(transaction?.paymentMethod ?? "");
+  const [amount, setAmount] = useState(
+    transaction
+      ? normalizeMoneyInput(transaction.amount)
+      : initialValues?.amount
+      ? normalizeMoneyInput(initialValues.amount)
+      : ""
+  );
+  const [categoryId, setCategoryId] = useState(
+    transaction?.category?.id ?? initialValues?.categoryId ?? ""
+  );
+  const [incomeSourceId, setIncomeSourceId] = useState(
+    transaction?.incomeSource?.id ?? initialValues?.incomeSourceId ?? ""
+  );
+  const [date, setDate] = useState(
+    transaction?.date ?? initialValues?.date ?? getTodayIso()
+  );
+  const [description, setDescription] = useState(
+    transaction?.description ?? initialValues?.description ?? ""
+  );
+  const [paymentMethod, setPaymentMethod] = useState(
+    transaction?.paymentMethod ?? initialValues?.paymentMethod ?? ""
+  );
+  const [isAiScanned, setIsAiScanned] = useState(!!initialValues?.isAiScanned);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  const handleReceiptExtracted = (data: ExtractedExpenseData) => {
+    if (data.amount) setAmount(normalizeMoneyInput(data.amount));
+    if (data.date) setDate(data.date);
+    if (data.description) setDescription(data.description);
+    if (data.categoryId) setCategoryId(data.categoryId);
+    setIsAiScanned(true);
+    setScannerOpen(false);
+  };
 
   const options = useApiData<Category[] | IncomeSource[]>(
     () => (isIncome ? listIncomeSources() : listCategories()),
@@ -160,6 +200,26 @@ export function TransactionFormDialog({
           </div>
         )}
 
+        {isAiScanned && (
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[#34d399] text-xs mb-3 shadow-xs">
+            <Sparkles size={14} className="shrink-0 text-[#34d399]" />
+            <span className="flex-1">
+              Auto-filled by Gemini AI from your receipt. Please review and edit before saving.
+            </span>
+          </div>
+        )}
+
+        {!editing && !isIncome && !isAiScanned && (
+          <button
+            type="button"
+            onClick={() => setScannerOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 mb-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[#34d399] hover:bg-emerald-500/15 hover:border-emerald-500/30 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+          >
+            <Sparkles size={14} className="text-[#34d399]" />
+            <span>Scan receipt with Gemini AI</span>
+          </button>
+        )}
+
         <MoneyField label="Amount" required variant="large" name="amount" autoFocus value={amount} onChange={setAmount} error={fieldErrors.amount} />
 
         {isIncome ? (
@@ -258,6 +318,13 @@ export function TransactionFormDialog({
           </Button>
         </div>
       </form>
+
+      {scannerOpen && (
+        <ReceiptScanModal
+          onClose={() => setScannerOpen(false)}
+          onApply={handleReceiptExtracted}
+        />
+      )}
     </Modal>
   );
 }

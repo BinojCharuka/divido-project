@@ -19,6 +19,7 @@ export function renderWithShellStub(page: ReactElement, overrides: Partial<AppSh
   const actions: AppShellActions = {
     notify: vi.fn(),
     openAdd: vi.fn(),
+    openScan: vi.fn(),
     openTransaction: vi.fn(),
     openEdit: vi.fn(),
     dataVersion: 0,
