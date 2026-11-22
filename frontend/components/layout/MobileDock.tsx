@@ -167,13 +167,14 @@ export function MobileDock({
         <div className="floating-dock-item">
           <div className={`floating-dock-icon-wrap ${active ? "is-raised" : ""}`}>
             <Icon
-              size={active ? 22 : 20}
-              strokeWidth={active ? 2.4 : 1.9}
+              size={active ? 21 : 20}
+              strokeWidth={active ? 2.5 : 1.9}
               className="floating-dock-icon"
               aria-hidden="true"
             />
           </div>
           <span className="floating-dock-label">{item.label}</span>
+          {active && <span className="floating-dock-active-dot" aria-hidden="true" />}
         </div>
       </Link>
     );
@@ -381,7 +382,7 @@ export function MobileDock({
             aria-label="Add income"
           >
             <div className="dock-action-btn income-btn">
-              <ArrowDownLeft size={28} strokeWidth={2.8} className="text-white drop-shadow-sm" aria-hidden="true" />
+              <ArrowDownLeft size={26} strokeWidth={2.4} className="text-[#34d399] transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
             </div>
             <span className="dock-action-label">Add income</span>
           </button>
@@ -402,7 +403,7 @@ export function MobileDock({
             aria-label="Scan receipt"
           >
             <div className="dock-action-btn scan-btn">
-              <Camera size={28} strokeWidth={2.4} className="text-white drop-shadow-sm" aria-hidden="true" />
+              <Camera size={28} strokeWidth={2.4} className="text-[#34d399] transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
             </div>
             <span className="dock-action-label">Scan receipt</span>
           </button>
@@ -419,7 +420,7 @@ export function MobileDock({
             aria-label="Add expense"
           >
             <div className="dock-action-btn expense-btn">
-              <Receipt size={26} strokeWidth={2.4} className="text-white drop-shadow-sm" aria-hidden="true" />
+              <Receipt size={26} strokeWidth={2.4} className="text-[#f87171] transition-transform duration-200 group-hover:scale-110" aria-hidden="true" />
             </div>
             <span className="dock-action-label">Add expense</span>
           </button>
@@ -462,13 +463,14 @@ export function MobileDock({
             <div className="floating-dock-item">
               <div className={`floating-dock-icon-wrap ${isMoreActive ? "is-raised" : ""}`}>
                 <Menu
-                  size={isMoreActive ? 22 : 20}
-                  strokeWidth={isMoreActive ? 2.4 : 1.9}
+                  size={isMoreActive ? 21 : 20}
+                  strokeWidth={isMoreActive ? 2.5 : 1.9}
                   className="floating-dock-icon"
                   aria-hidden="true"
                 />
               </div>
               <span className="floating-dock-label">More</span>
+              {isMoreActive && <span className="floating-dock-active-dot" aria-hidden="true" />}
             </div>
           </button>
         </div>

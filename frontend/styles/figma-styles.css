@@ -5071,47 +5071,56 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 3px !important;
+    gap: 2px !important;
     width: 100% !important;
     max-width: 72px !important;
     height: 48px !important;
     border-radius: 14px !important;
     position: relative !important;
-    transition: background 0.2s ease, color 0.2s ease !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease !important;
+  }
+
+  .floating-dock-link:active .floating-dock-item {
+    transform: scale(0.92) !important;
   }
 
   .floating-dock-link.active .floating-dock-item {
-    background: #13271c !important;
+    background: transparent !important;
   }
 
   .floating-dock-icon-wrap {
-    width: 22px !important;
-    height: 22px !important;
+    width: 24px !important;
+    height: 24px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     background: transparent !important;
-    color: #6b7280 !important;
-    transition: color 0.2s ease !important;
+    color: #64748b !important;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease, filter 0.25s ease !important;
   }
 
-  .floating-dock-link.active .floating-dock-icon-wrap {
+  .floating-dock-link.active .floating-dock-icon-wrap,
+  .floating-dock-link.is-active .floating-dock-icon-wrap {
     color: #34d399 !important;
+    transform: translateY(-2px) scale(1.15) !important;
+    filter: drop-shadow(0 2px 8px rgba(52, 211, 153, 0.5)) !important;
   }
 
   .floating-dock-icon {
     width: 20px !important;
     height: 20px !important;
     flex-shrink: 0 !important;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease !important;
   }
 
-  .floating-dock-link.active .floating-dock-icon {
+  .floating-dock-link.active .floating-dock-icon,
+  .floating-dock-link.is-active .floating-dock-icon {
     color: #34d399 !important;
   }
 
   /* Dock Label */
   .floating-dock-label {
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 500 !important;
     letter-spacing: -0.15px !important;
     white-space: nowrap !important;
@@ -5119,13 +5128,38 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     text-overflow: ellipsis !important;
     line-height: 1 !important;
     display: block !important;
-    color: #6b7280 !important;
-    transition: color 0.2s ease, font-weight 0.2s ease !important;
+    color: #64748b !important;
+    transition: color 0.25s ease, font-weight 0.25s ease !important;
   }
 
-  .floating-dock-link.active .floating-dock-label {
+  .floating-dock-link.active .floating-dock-label,
+  .floating-dock-link.is-active .floating-dock-label {
     color: #34d399 !important;
     font-weight: 600 !important;
+  }
+
+  .floating-dock-active-dot {
+    position: absolute !important;
+    bottom: 2px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 4px !important;
+    height: 4px !important;
+    border-radius: 9999px !important;
+    background: #34d399 !important;
+    box-shadow: 0 0 6px rgba(52, 211, 153, 0.75) !important;
+    animation: dock-dot-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+  }
+
+  @keyframes dock-dot-pop {
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
   }
 
   /* Central Elevated Rotated 45-deg Diamond Add (+) Button */
@@ -5257,164 +5291,157 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border: 2.5px solid rgba(255, 255, 255, 0.28) !important;
-    transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+    background: rgba(12, 22, 17, 0.94) !important;
+    backdrop-filter: blur(24px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.75), 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease !important;
   }
 
   .dock-action-btn.income-btn {
-    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%) !important;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(52, 211, 153, 0.35) !important;
+    background: rgba(12, 22, 17, 0.95) !important;
+  }
+
+  .dock-action-btn.income-btn:hover {
+    border-color: rgba(52, 211, 153, 0.8) !important;
+    background: rgba(16, 36, 26, 0.98) !important;
   }
 
   .dock-action-btn.scan-btn {
     width: 66px !important;
     height: 66px !important;
-    border: 3px solid rgba(255, 255, 255, 0.45) !important;
-    background: linear-gradient(135deg, #059669 0%, #10b981 40%, #06b6d4 100%) !important;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+    border: 2px solid #10b981 !important;
+    background: linear-gradient(145deg, #13271c 0%, #0c1611 100%) !important;
+    box-shadow: 0 18px 40px -4px rgba(0, 0, 0, 0.8), 0 6px 14px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .dock-action-btn.scan-btn:hover {
+    border-color: #34d399 !important;
+    background: linear-gradient(145deg, #193828 0%, #0f2017 100%) !important;
   }
 
   .dock-action-btn.expense-btn {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%) !important;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(248, 113, 113, 0.32) !important;
+    background: rgba(12, 22, 17, 0.95) !important;
+  }
+
+  .dock-action-btn.expense-btn:hover {
+    border-color: rgba(248, 113, 113, 0.75) !important;
+    background: rgba(30, 16, 16, 0.98) !important;
   }
 
   .dock-action-label {
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.02em !important;
-    color: #ffffff !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.1px !important;
+    color: #e2e8f0 !important;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9) !important;
     white-space: nowrap !important;
   }
 
-  .scan-ai-badge {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background: rgba(52, 211, 153, 0.22) !important;
-    border: 1px solid rgba(52, 211, 153, 0.45) !important;
-    color: #34d399 !important;
-    font-size: 9px !important;
-    font-weight: 800 !important;
-    line-height: 1 !important;
-    padding: 1px 4px !important;
-    border-radius: 4px !important;
-    margin-right: 3px !important;
-    letter-spacing: 0.04em !important;
-    vertical-align: middle !important;
-  }
-
-  /* Spiral Bloom Animations for Speed-Dial Items */
-  @keyframes dock-spiral-left {
+  /* Fluid Spring Fan-out Animations for Speed-Dial Items */
+  @keyframes dock-fluid-left {
     0% {
       opacity: 0;
-      transform: translate(75px, 85px) rotate(-140deg) scale(0.15);
+      transform: translate(50px, 65px) scale(0.2);
     }
-    60% {
-      opacity: 0.9;
-      transform: translate(-6px, -6px) rotate(12deg) scale(1.08);
-    }
-    85% {
-      transform: translate(2px, 2px) rotate(-4deg) scale(0.98);
+    70% {
+      opacity: 1;
+      transform: translate(-3px, -3px) scale(1.06);
     }
     100% {
       opacity: 1;
-      transform: translate(0, 0) rotate(0deg) scale(1);
+      transform: translate(0, 0) scale(1);
     }
   }
 
-  @keyframes dock-spiral-left-out {
+  @keyframes dock-fluid-left-out {
     0% {
       opacity: 1;
-      transform: translate(0, 0) rotate(0deg) scale(1);
+      transform: translate(0, 0) scale(1);
     }
     100% {
       opacity: 0;
-      transform: translate(75px, 85px) rotate(-140deg) scale(0.15);
+      transform: translate(50px, 65px) scale(0.2);
     }
   }
 
-  @keyframes dock-spiral-center {
+  @keyframes dock-fluid-center {
     0% {
       opacity: 0;
-      transform: translateY(95px) rotate(180deg) scale(0.15);
+      transform: translateY(75px) scale(0.2);
     }
-    60% {
-      opacity: 0.95;
-      transform: translateY(-8px) rotate(-15deg) scale(1.12);
-    }
-    85% {
-      transform: translateY(3px) rotate(5deg) scale(0.97);
+    70% {
+      opacity: 1;
+      transform: translateY(-6px) scale(1.08);
     }
     100% {
       opacity: 1;
-      transform: translateY(0) rotate(0deg) scale(1);
+      transform: translateY(0) scale(1);
     }
   }
 
-  @keyframes dock-spiral-center-out {
+  @keyframes dock-fluid-center-out {
     0% {
       opacity: 1;
-      transform: translateY(0) rotate(0deg) scale(1);
+      transform: translateY(0) scale(1);
     }
     100% {
       opacity: 0;
-      transform: translateY(95px) rotate(180deg) scale(0.15);
+      transform: translateY(75px) scale(0.2);
     }
   }
 
-  @keyframes dock-spiral-right {
+  @keyframes dock-fluid-right {
     0% {
       opacity: 0;
-      transform: translate(-75px, 85px) rotate(140deg) scale(0.15);
+      transform: translate(-50px, 65px) scale(0.2);
     }
-    60% {
-      opacity: 0.9;
-      transform: translate(6px, -6px) rotate(-12deg) scale(1.08);
-    }
-    85% {
-      transform: translate(-2px, 2px) rotate(4deg) scale(0.98);
+    70% {
+      opacity: 1;
+      transform: translate(3px, -3px) scale(1.06);
     }
     100% {
       opacity: 1;
-      transform: translate(0, 0) rotate(0deg) scale(1);
+      transform: translate(0, 0) scale(1);
     }
   }
 
-  @keyframes dock-spiral-right-out {
+  @keyframes dock-fluid-right-out {
     0% {
       opacity: 1;
-      transform: translate(0, 0) rotate(0deg) scale(1);
+      transform: translate(0, 0) scale(1);
     }
     100% {
       opacity: 0;
-      transform: translate(-75px, 85px) rotate(140deg) scale(0.15);
+      transform: translate(-50px, 65px) scale(0.2);
     }
   }
 
   .dock-action-popup.is-open .dock-item-left {
-    animation: dock-spiral-left 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275) both !important;
+    animation: dock-fluid-left 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
   }
 
   .dock-action-popup.is-open .dock-item-center {
-    animation: dock-spiral-center 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.04s both !important;
+    animation: dock-fluid-center 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) 0.03s both !important;
   }
 
   .dock-action-popup.is-open .dock-item-right {
-    animation: dock-spiral-right 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.08s both !important;
+    animation: dock-fluid-right 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) 0.06s both !important;
   }
 
   .dock-action-popup.is-closing .dock-item-left {
-    animation: dock-spiral-left-out 0.22s ease-in both !important;
+    animation: dock-fluid-left-out 0.18s cubic-bezier(0.4, 0, 0.2, 1) both !important;
   }
 
   .dock-action-popup.is-closing .dock-item-center {
-    animation: dock-spiral-center-out 0.22s ease-in both !important;
+    animation: dock-fluid-center-out 0.18s cubic-bezier(0.4, 0, 0.2, 1) both !important;
   }
 
   .dock-action-popup.is-closing .dock-item-right {
-    animation: dock-spiral-right-out 0.22s ease-in both !important;
+    animation: dock-fluid-right-out 0.18s cubic-bezier(0.4, 0, 0.2, 1) both !important;
   }
 
   @media (prefers-reduced-motion: reduce) {
