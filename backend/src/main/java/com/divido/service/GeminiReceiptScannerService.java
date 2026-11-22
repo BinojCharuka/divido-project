@@ -132,6 +132,155 @@ public class GeminiReceiptScannerService {
         return scanReceiptText(userId, fallbackResult);
     }
 
+    /**
+     * Direct Multimodal Fallback: When the host environment (such as a cloud container)
+     * lacks Python/Tesseract, this directly sends the receipt image to Gemini Multimodal
+     * so that receipt scanning NEVER fails for the user.
+     */
+    public ReceiptScanResponse scanReceiptDirectImage(UUID userId, byte[] imageBytes, String mimeType) {
+        String apiKey = geminiProperties.getApiKey();
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            log.error("Gemini API key is not configured.");
+            return ReceiptScanResponse.failure("Gemini API key is not configured on the server. Please check environment settings.");
+        }
+
+        List<Category> usableCategories = categoryRepository.findUsableCategories(userId, true, null);
+        List<String> categoryNames = usableCategories.stream().map(Category::getName).toList();
+
+        String base64Image = java.util.Base64.getEncoder().encodeToString(imageBytes);
+        String prompt = buildImagePrompt(categoryNames);
+        String requestJson = buildMultimodalGeminiRequest(prompt, base64Image, mimeType);
+
+        String[] candidateModels = {
+                geminiProperties.getModel(),
+                "gemini-flash-lite-latest",
+                "gemini-flash-latest"
+        };
+
+        HttpResponse<String> response = null;
+        for (String model : candidateModels) {
+            if (model == null || model.isBlank()) continue;
+            try {
+                response = executeGeminiRequest(model, apiKey, requestJson);
+                if (response.statusCode() == 200) {
+                    break;
+                } else if (response.statusCode() == 429) {
+                    return ReceiptScanResponse.failure("Gemini API rate limit exceeded. Please try again shortly.");
+                }
+            } catch (Exception e) {
+                log.error("Failed to connect to Gemini multimodal model {}: {}", model, e.getMessage());
+            }
+        }
+
+        if (response == null || response.statusCode() != 200) {
+            String errorMsg = response != null ? "Gemini API error (HTTP " + response.statusCode() + ")" : "Unable to reach Gemini API";
+            return ReceiptScanResponse.failure(errorMsg);
+        }
+
+        try {
+            OcrResult fallbackOcr = new OcrResult(true, true, 92.0, "Extracted via Gemini Multimodal Understanding", List.of(), "eng", true, true, List.of(), null);
+            return parseGeminiResponse(response.body(), usableCategories, fallbackOcr);
+        } catch (Exception e) {
+            log.error("Failed to parse Gemini multimodal receipt extraction response: {}", e.getMessage(), e);
+            return ReceiptScanResponse.failure("Could not parse extracted receipt details. Please review manually.");
+        }
+    }
+
+    private String buildImagePrompt(List<String> availableCategories) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("You are an expert financial receipt semantic analyzer for Divido Personal Finance.\n");
+        sb.append("Analyze the provided receipt image and extract structured financial details.\n\n");
+
+        sb.append("AVAILABLE DIVIDO CATEGORIES:\n");
+        sb.append(String.join(", ", availableCategories));
+        sb.append("\n\n");
+
+        sb.append("INSTRUCTIONS:\n");
+        sb.append("1. Extract merchant name, branch, address, contact.\n");
+        sb.append("2. Extract transaction date (format: YYYY-MM-DD), time (HH:MM or null), and currency (default LKR or detected).\n");
+        sb.append("3. Extract financial amounts: subtotal, discount, tax, serviceCharge, final total, amountPaid, change.\n");
+        sb.append("4. Extract individual line items with name, quantity, unitPrice, and totalPrice.\n");
+        sb.append("5. Distinguish item prices from subtotal, and cash tendered from the actual total expense.\n");
+        sb.append("6. Suggest a short clear purpose (e.g. 'Grocery Shopping', 'Dinner with Friends', 'Fuel').\n");
+        sb.append("7. Suggest the closest matching category from the available categories list.\n");
+        sb.append("8. In uncertainFields, list any field names where image was ambiguous (e.g. ['tax', 'date']).\n");
+        sb.append("9. Return confidence scores between 0.0 and 1.0 based on image clarity.\n\n");
+
+        sb.append("RETURN ONLY VALID JSON WITH THE EXACT STRUCTURE:\n");
+        sb.append("{\n");
+        sb.append("  \"merchant\": {\n");
+        sb.append("    \"name\": \"...\",\n");
+        sb.append("    \"branch\": null,\n");
+        sb.append("    \"address\": null,\n");
+        sb.append("    \"contact\": null\n");
+        sb.append("  },\n");
+        sb.append("  \"transaction\": {\n");
+        sb.append("    \"date\": \"YYYY-MM-DD\",\n");
+        sb.append("    \"time\": null,\n");
+        sb.append("    \"currency\": \"LKR\",\n");
+        sb.append("    \"subtotal\": 0.00,\n");
+        sb.append("    \"discount\": 0.00,\n");
+        sb.append("    \"tax\": 0.00,\n");
+        sb.append("    \"serviceCharge\": 0.00,\n");
+        sb.append("    \"total\": 0.00,\n");
+        sb.append("    \"amountPaid\": 0.00,\n");
+        sb.append("    \"change\": 0.00\n");
+        sb.append("  },\n");
+        sb.append("  \"items\": [\n");
+        sb.append("    {\n");
+        sb.append("      \"name\": \"...\",\n");
+        sb.append("      \"quantity\": 1,\n");
+        sb.append("      \"unitPrice\": 0.00,\n");
+        sb.append("      \"totalPrice\": 0.00\n");
+        sb.append("    }\n");
+        sb.append("  ],\n");
+        sb.append("  \"expense\": {\n");
+        sb.append("    \"purpose\": \"...\",\n");
+        sb.append("    \"suggestedCategory\": \"...\"\n");
+        sb.append("  },\n");
+        sb.append("  \"confidence\": {\n");
+        sb.append("    \"merchant\": 0.95,\n");
+        sb.append("    \"date\": 0.90,\n");
+        sb.append("    \"total\": 0.98,\n");
+        sb.append("    \"purpose\": 0.90\n");
+        sb.append("  },\n");
+        sb.append("  \"uncertainFields\": [],\n");
+        sb.append("  \"warnings\": []\n");
+        sb.append("}\n");
+
+        return sb.toString();
+    }
+
+    private String buildMultimodalGeminiRequest(String prompt, String base64Image, String mimeType) {
+        try {
+            Map<String, Object> partText = Map.of("text", prompt);
+            Map<String, Object> inlineData = Map.of(
+                    "mimeType", mimeType != null ? mimeType : "image/jpeg",
+                    "data", base64Image
+            );
+            Map<String, Object> partImage = Map.of("inlineData", inlineData);
+
+            Map<String, Object> content = Map.of(
+                    "role", "user",
+                    "parts", List.of(partText, partImage)
+            );
+
+            Map<String, Object> generationConfig = Map.of(
+                    "responseMimeType", "application/json",
+                    "temperature", 0.1
+            );
+
+            Map<String, Object> root = Map.of(
+                    "contents", List.of(content),
+                    "generationConfig", generationConfig
+            );
+
+            return jsonMapper.writeValueAsString(root);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize multimodal Gemini request", e);
+        }
+    }
+
     private HttpResponse<String> executeGeminiRequest(String model, String apiKey, String requestBody) throws IOException, InterruptedException {
         String url = String.format("%s/v1beta/models/%s:generateContent?key=%s",
                 geminiProperties.getBaseUrl(), model, apiKey);

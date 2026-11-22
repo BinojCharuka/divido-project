@@ -195,16 +195,28 @@ public class ReceiptOcrService {
         }
 
         // 4. Guaranteed Fallback: extract bundled script from classpath resource
-        try (InputStream in = getClass().getResourceAsStream("/ocr/receipt_ocr.py")) {
-            if (in != null) {
+        InputStream in = getClass().getResourceAsStream("/ocr/receipt_ocr.py");
+        if (in == null) {
+            in = getClass().getClassLoader().getResourceAsStream("ocr/receipt_ocr.py");
+        }
+        if (in == null) {
+            in = Thread.currentThread().getContextClassLoader().getResourceAsStream("ocr/receipt_ocr.py");
+        }
+        if (in != null) {
+            try {
                 File tempScript = File.createTempFile("divido_receipt_ocr_", ".py");
                 tempScript.deleteOnExit();
                 Files.copy(in, tempScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 boolean ignored = tempScript.setExecutable(true, false);
                 return tempScript.getAbsolutePath();
+            } catch (Exception e) {
+                log.warn("Could not extract receipt_ocr.py from classpath: {}", e.getMessage());
+            } finally {
+                try {
+                    in.close();
+                } catch (Exception ignored) {
+                }
             }
-        } catch (Exception e) {
-            log.warn("Could not extract receipt_ocr.py from classpath: {}", e.getMessage());
         }
 
         return null;
