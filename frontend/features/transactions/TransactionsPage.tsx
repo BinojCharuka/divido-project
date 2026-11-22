@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { History, Plus, Sparkles } from "lucide-react";
+import { History, Plus } from "lucide-react";
 import { InlineError } from "@/components/feedback/InlineError";
 import { LoadingPanel } from "@/components/feedback/LoadingPanel";
 import { Money } from "@/components/financial/Money";
@@ -26,7 +26,7 @@ export const PAGE_SIZE = 20;
  * (GET /api/v1/transactions); month totals come from the dashboard aggregate.
  */
 export function TransactionsPage({ month, onMonthChange }: { month: string; onMonthChange: (m: string) => void }) {
-  const { openAdd, openScan, openTransaction, dataVersion } = useAppShell();
+  const { openAdd, openTransaction, dataVersion } = useAppShell();
   const [filters, setFilters] = useState<TransactionFilterValues>({});
   // A page number belongs to the month it was chosen in; a new month starts at page 0.
   const [paging, setPaging] = useState({ month, page: 0 });
@@ -71,17 +71,6 @@ export function TransactionsPage({ month, onMonthChange }: { month: string; onMo
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
           <MonthSelector month={month} onChange={onMonthChange} />
-          {openScan && (
-            <button
-              type="button"
-              onClick={openScan}
-              aria-label="Scan receipt"
-              className="px-3 py-2.5 rounded-xl sm:rounded-2xl bg-[#13271c] hover:bg-[#1a3627] text-[#34d399] border border-emerald-500/20 flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer shrink-0 text-xs font-semibold shadow-xs"
-            >
-              <Sparkles size={16} className="text-[#34d399]" aria-hidden="true" />
-              <span className="hidden sm:inline">Scan receipt</span>
-            </button>
-          )}
           <button
             type="button"
             onClick={() => openAdd()}
