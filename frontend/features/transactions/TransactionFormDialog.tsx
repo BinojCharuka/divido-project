@@ -204,7 +204,7 @@ export function TransactionFormDialog({
           <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[#34d399] text-xs mb-3 shadow-xs">
             <Sparkles size={14} className="shrink-0 text-[#34d399]" />
             <span className="flex-1">
-              Auto-filled by Gemini AI from your receipt. Please review and edit before saving.
+              Auto-filled from your receipt. Please review and edit before saving.
             </span>
           </div>
         )}
@@ -216,7 +216,7 @@ export function TransactionFormDialog({
             className="w-full flex items-center justify-center gap-2 py-2 px-3 mb-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[#34d399] hover:bg-emerald-500/15 hover:border-emerald-500/30 text-xs font-semibold transition-all cursor-pointer shadow-xs"
           >
             <Sparkles size={14} className="text-[#34d399]" />
-            <span>Scan receipt with Gemini AI</span>
+            <span>Scan receipt</span>
           </button>
         )}
 

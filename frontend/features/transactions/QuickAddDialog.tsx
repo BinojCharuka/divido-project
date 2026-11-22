@@ -20,7 +20,7 @@ export function QuickAddDialog({
               <Sparkles size={20} />
             </span>
             <div>
-              <strong>Scan receipt (Gemini AI)</strong>
+              <strong>Scan receipt</strong>
             </div>
             <ChevronRight size={19} aria-hidden="true" />
           </button>

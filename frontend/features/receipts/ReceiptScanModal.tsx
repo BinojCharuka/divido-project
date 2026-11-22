@@ -223,8 +223,7 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
   return (
     <Modal
       className="receipt-scan-modal max-w-lg"
-      title="AI Smart Receipt Scanner"
-      eyebrow="POWERED BY GEMINI"
+      title="Receipt Scanner"
       onClose={handleModalClose}
     >
       <div className="flex flex-col gap-4 text-zinc-200">
@@ -291,7 +290,7 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
               Drop your receipt here, or browse
             </h4>
             <p className="text-xs text-zinc-400 max-w-xs mb-4">
-              Upload a clear photo or screenshot of your receipt. Free local OCR extracts the text, and Gemini AI structures your expense.
+              Upload a clear photo or screenshot of your receipt.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -340,10 +339,10 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
 
             <div className="flex items-center gap-2 text-sm font-semibold text-white mb-1">
               <Loader2 size={16} className="animate-spin text-[#34d399]" />
-              <span>Running Local OCR & Gemini AI...</span>
+              <span>Scanning receipt...</span>
             </div>
             <p className="text-xs text-zinc-400">
-              Extracting text locally, identifying totals, items, and matching Divido categories.
+              Extracting merchant, items, and total amount.
             </p>
           </div>
         )}

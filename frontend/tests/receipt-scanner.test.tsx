@@ -10,7 +10,7 @@ describe("ReceiptScanModal", () => {
   it("renders upload options and hints", () => {
     render(<ReceiptScanModal onClose={vi.fn()} onApply={vi.fn()} />);
 
-    expect(screen.getByRole("dialog", { name: "AI Smart Receipt Scanner" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Receipt Scanner" })).toBeInTheDocument();
     expect(screen.getByText("Upload image")).toBeInTheDocument();
     expect(screen.getByText("Take photo")).toBeInTheDocument();
     expect(screen.getByText(/Supports JPG, PNG, WebP up to 10MB/i)).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe("TransactionFormDialog with AI Scan pre-population", () => {
       />
     );
 
-    expect(screen.getByText(/Auto-filled by Gemini AI/i)).toBeInTheDocument();
+    expect(screen.getByText(/Auto-filled from your receipt/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Amount/)).toHaveValue("630.00");
     expect(screen.getByLabelText(/^Date/)).toHaveValue("2026-11-22");
     expect(screen.getByLabelText(/^Description/)).toHaveValue("Keells Super - Fresh Milk 1L, Bread");

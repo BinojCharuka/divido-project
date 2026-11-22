@@ -404,9 +404,7 @@ export function MobileDock({
             <div className="dock-action-btn scan-btn">
               <Camera size={28} strokeWidth={2.4} className="text-white drop-shadow-sm" aria-hidden="true" />
             </div>
-            <span className="dock-action-label scan-label">
-              <span className="scan-ai-badge">AI</span> Scan receipt
-            </span>
+            <span className="dock-action-label">Scan receipt</span>
           </button>
 
           {/* Action 3: Add Expense (Right) */}
