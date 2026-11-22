@@ -118,6 +118,37 @@ describe("recording transactions (TXN-001, TXN-002)", () => {
     expect(post.body).toMatchObject({ type: "INCOME", amount: "50000.00" });
     expect(post.body).not.toHaveProperty("incomeSourceId");
   });
+
+  it("allows creating an income source inline and auto-selects it", async () => {
+    const user = userEvent.setup();
+    renderInShell(<Harness />);
+    await user.click((await screen.findAllByRole("button", { name: "Add transaction" }))[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /Add income/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Record income" });
+
+    // Click "Create an income source"
+    const addSourceBtn = within(dialog).getByRole("button", { name: /Create an income source|Add new source/ });
+    await user.click(addSourceBtn);
+
+    // Type the source name and submit
+    const input = within(dialog).getByPlaceholderText("e.g. Salary, Freelance, Rent");
+    await user.type(input, "Freelance Work");
+    await user.click(within(dialog).getByRole("button", { name: "Add" }));
+
+    // Verify it is created and selected in the select field
+    const select = within(dialog).getByLabelText(/^Income source/);
+    expect(within(select).getByRole("option", { name: "Freelance Work" })).toBeInTheDocument();
+    expect(select).not.toHaveValue("");
+
+    // Submit transaction
+    await user.type(within(dialog).getByLabelText(/^Amount/), "75000");
+    await user.click(within(dialog).getByRole("button", { name: "Save income" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Income added");
+    const [post] = backend.callsTo("/api/v1/transactions").filter((c) => c.method === "POST" && (c.body as { amount?: string })?.amount === "75000.00");
+    expect(post.body).toMatchObject({ type: "INCOME", amount: "75000.00" });
+    expect(post.body).toHaveProperty("incomeSourceId");
+  });
 });
 
 describe("viewing, editing and deleting (TXN-004..006)", () => {
