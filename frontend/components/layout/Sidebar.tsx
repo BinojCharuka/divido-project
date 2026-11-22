@@ -15,6 +15,7 @@ export function Sidebar({
   initials,
   onHelp: _onHelp,
   onSignOut,
+  onNavigate,
 }: {
   collapsed: boolean;
   onToggleCollapsed: () => void;
@@ -22,11 +23,12 @@ export function Sidebar({
   initials: string;
   onHelp: () => void;
   onSignOut: () => void;
+  onNavigate?: () => void;
 }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-header-row mb-6">
-        <Link href="/dashboard" className="sidebar-brand" aria-label="Divido dashboard">
+        <Link href="/dashboard" className="sidebar-brand" aria-label="Divido dashboard" onClick={onNavigate}>
           <Brand variant={collapsed ? "icon" : "full"} />
         </Link>
         <button
@@ -42,11 +44,11 @@ export function Sidebar({
       <nav className="desktop-nav flex flex-col gap-1" aria-label="Main navigation">
         {!collapsed && <div className="workspace-label text-[11px] font-bold tracking-[0.14em] text-zinc-400 uppercase px-3.5 py-2">WORKSPACE</div>}
         {PRIMARY_NAV.map((item) => (
-          <NavLink key={item.href} item={item} collapsed={collapsed} />
+          <NavLink key={item.href} item={item} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
         {!collapsed && <div className="workspace-label text-[11px] font-bold tracking-[0.14em] text-zinc-400 uppercase px-3.5 pt-5 pb-2">ACCOUNT</div>}
         {SECONDARY_NAV.map((item) => (
-          <NavLink key={item.href} item={item} collapsed={collapsed} />
+          <NavLink key={item.href} item={item} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
       </nav>
       <div className="sidebar-bottom mt-auto pt-6 flex flex-col gap-3">
@@ -67,7 +69,7 @@ export function Sidebar({
             {initials}
           </span>
           {!collapsed && (
-            <Link href="/settings" className="flex-1 min-w-0 text-left">
+            <Link href="/settings" className="flex-1 min-w-0 text-left" onClick={onNavigate}>
               <strong className="block text-xs font-semibold text-white truncate">{userName || "Divido user"}</strong>
               <span className="block text-[11px] text-zinc-400">Personal account</span>
             </Link>

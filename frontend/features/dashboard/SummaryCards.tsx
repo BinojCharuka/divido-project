@@ -46,12 +46,12 @@ export function SummaryCards({
     : "0";
 
   return (
-    <div className="dashboard-hero-summary grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5" aria-label="Financial summary">
+    <div className="dashboard-hero-summary grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5 items-stretch" aria-label="Financial summary">
       {/* Column 1: Available Balance Card + Quick Action Buttons Row */}
-      <div className="flex flex-col gap-3.5">
+      <div className="flex flex-col gap-3.5 h-full justify-between col-span-1 md:col-span-2 lg:col-span-1">
         {/* 1. Primary Hero Card: Available Balance with Forest Green Gradient & Decorative Arcs */}
         <section
-          className="available-balance-card summary-card relative overflow-hidden rounded-[26px] p-6 text-white border border-emerald-500/20 shadow-2xl flex-1 flex flex-col justify-between"
+          className="available-balance-card summary-card relative overflow-hidden rounded-2xl p-5 sm:p-6 text-white border border-emerald-500/25 shadow-xl flex-1 flex flex-col justify-between"
           style={{ background: "linear-gradient(145deg, #0e3d27 0%, #072316 100%)" }}
           aria-labelledby="available-balance-title"
         >
@@ -65,26 +65,26 @@ export function SummaryCards({
             <circle cx="85%" cy="85%" r="110" fill="none" stroke="#6ee7b7" strokeWidth="1" />
           </svg>
 
-          <div className="relative z-10">
+          <div className="relative z-10 flex-1 flex flex-col justify-between">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-11 h-11 rounded-2xl bg-[#cbead8] flex items-center justify-center shadow-xs">
+              <div className="w-10 h-10 rounded-xl bg-[#cbead8] flex items-center justify-center shadow-xs">
                 <Wallet size={20} className="text-[#072316]" strokeWidth={2.2} />
               </div>
               <span className="text-xs font-medium text-[#a7f3d0] tracking-wide">{monthLabel}</span>
             </div>
 
-            <div className="mb-6">
-              <span id="available-balance-title" className="text-[11px] font-bold tracking-[0.2em] text-[#a7f3d0] uppercase block mb-1">
+            <div className="my-auto py-2">
+              <span id="available-balance-title" className="text-[11px] font-bold tracking-[0.14em] text-[#a7f3d0] uppercase block mb-1">
                 AVAILABLE BALANCE
               </span>
-              <div className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
+              <div className="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
                 <span>{isNegative ? "Rs. −" : "Rs. "}</span>
                 {availableFormatted}
               </div>
               <p className="sr-only">Your remaining money this month</p>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-white/[0.08]">
+            <div className="flex items-center justify-between pt-4 mt-4 border-t border-white/[0.08]">
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5 text-xs text-[#a7f3d0] font-medium">
                   <span className="w-2 h-2 rounded-full bg-[#10b981]" />
@@ -105,7 +105,7 @@ export function SummaryCards({
         </section>
 
         {/* 2. Quick Action Buttons Row */}
-        <div className="quick-actions-bar grid grid-cols-3 bg-[#0d1611] border border-white/[0.07] rounded-2xl py-3 shadow-lg">
+        <div className="quick-actions-bar grid grid-cols-3 bg-[#0d1611] border border-white/[0.08] rounded-2xl py-3 shadow-lg shrink-0">
           <button
             type="button"
             onClick={onAddExpense}
@@ -133,78 +133,78 @@ export function SummaryCards({
       </div>
 
       {/* Column 2: Total Income & Total Expenses Cards (Side-by-side on mobile, stacked on desktop) */}
-      <div className="grid grid-cols-2 lg:grid-cols-1 gap-3.5">
-        <section className="dashboard-stat-card income summary-card bg-[#0d1611] border border-white/[0.07] rounded-2xl p-5 shadow-lg flex flex-col justify-between" aria-labelledby="total-income-title">
+      <div className="grid grid-cols-2 lg:grid-cols-1 gap-3.5 h-full">
+        <section className="dashboard-stat-card income summary-card bg-[#0d1611] border border-white/[0.08] rounded-2xl p-5 sm:p-5.5 shadow-lg flex-1 flex flex-col justify-between" aria-labelledby="total-income-title">
           <span className="summary-label sr-only">Recorded income</span>
           <div>
-            <div className="w-10 h-10 rounded-full bg-emerald-950/70 border border-emerald-500/20 text-[#10b981] flex items-center justify-center mb-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-950/70 border border-emerald-500/20 text-[#10b981] flex items-center justify-center mb-3">
               <ArrowDown size={18} strokeWidth={2.4} />
             </div>
-            <span id="total-income-title" className="text-xs text-zinc-400 font-medium block mb-1">
-              Total income
+            <span id="total-income-title" className="text-[11px] font-bold tracking-[0.14em] text-zinc-400 uppercase block mb-1">
+              TOTAL INCOME
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               Rs. {recordedRounded}
             </div>
             {/* Hidden exact test assertion string */}
             <div className="sr-only">LKR {d.recordedIncome !== null && d.recordedIncome !== undefined ? amountDigits(d.recordedIncome) : "0.00"}</div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-2 block">This month</span>
+          <span className="text-xs text-zinc-400 mt-2 block">This month</span>
           <div className="summary-note sr-only">{plural(d.incomeTransactionCount, "record", "records")}</div>
         </section>
 
-        <section className="dashboard-stat-card expense summary-card bg-[#0d1611] border border-white/[0.07] rounded-2xl p-5 shadow-lg flex flex-col justify-between" aria-labelledby="total-expenses-title">
+        <section className="dashboard-stat-card expense summary-card bg-[#0d1611] border border-white/[0.08] rounded-2xl p-5 sm:p-5.5 shadow-lg flex-1 flex flex-col justify-between" aria-labelledby="total-expenses-title">
           <span className="summary-label sr-only">Spent this month</span>
           <div>
-            <div className="w-10 h-10 rounded-full bg-red-950/40 border border-red-500/20 text-[#f87171] flex items-center justify-center mb-3">
+            <div className="w-10 h-10 rounded-xl bg-red-950/40 border border-red-500/20 text-[#f87171] flex items-center justify-center mb-3">
               <ArrowUp size={18} strokeWidth={2.4} />
             </div>
-            <span id="total-expenses-title" className="text-xs text-zinc-400 font-medium block mb-1">
-              Total expenses
+            <span id="total-expenses-title" className="text-[11px] font-bold tracking-[0.14em] text-zinc-400 uppercase block mb-1">
+              TOTAL EXPENSES
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               Rs. {spentRounded}
             </div>
             {/* Hidden exact test assertion string */}
             <div className="sr-only">LKR {d.totalSpent !== null && d.totalSpent !== undefined ? amountDigits(d.totalSpent) : "0.00"}</div>
           </div>
-          <span className="text-[11px] text-zinc-500 mt-2 block">This month</span>
+          <span className="text-xs text-zinc-400 mt-2 block">This month</span>
           <div className="summary-note sr-only">{plural(d.expenseTransactionCount, "expense", "expenses")}</div>
         </section>
       </div>
 
       {/* Column 3: Savings Target Card */}
-      <div className="flex flex-col">
-        <section className="dashboard-savings-card summary-card bg-[#0d1611] border border-white/[0.07] rounded-2xl p-5 shadow-lg flex-1 flex flex-col justify-between" aria-labelledby="savings-target-title">
+      <div className="flex flex-col h-full">
+        <section className="dashboard-savings-card summary-card bg-[#0d1611] border border-white/[0.08] rounded-2xl p-5 sm:p-6 shadow-lg flex-1 flex flex-col justify-between" aria-labelledby="savings-target-title">
           <div>
             <span className="summary-label sr-only">Savings target</span>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-start justify-between mb-3">
               <div>
-                <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase block">
+                <span className="text-[11px] font-bold tracking-[0.14em] text-zinc-400 uppercase block">
                   SAVINGS TARGET
                 </span>
-                <h3 id="savings-target-title" className="text-sm font-semibold text-white mt-0.5">
+                <h3 id="savings-target-title" className="text-sm font-semibold text-white mt-1">
                   {hasTarget ? "Monthly savings goal" : "Set your first goal"}
                 </h3>
               </div>
-              <div className="w-9 h-9 rounded-xl bg-emerald-950/60 border border-emerald-500/20 text-[#10b981] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-emerald-950/60 border border-emerald-500/20 text-[#10b981] flex items-center justify-center shrink-0">
                 <Target size={18} strokeWidth={2.2} />
               </div>
             </div>
 
-            <div className="mt-4">
-              <div className="text-3xl font-bold text-white tracking-tight">
+            <div className="my-auto py-2">
+              <div className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
                 Rs. {targetRounded}
               </div>
-              <div className="text-xs text-zinc-400 mt-0.5">
-                of Rs. {targetRounded}
+              <div className="text-xs text-zinc-400 mt-1">
+                of Rs. {targetRounded} goal
               </div>
             </div>
           </div>
 
-          <div>
+          <div className="pt-2">
             <div
-              className="dashboard-savings-progress-track w-full h-1.5 bg-[#14261d] rounded-full overflow-hidden mt-4 mb-2"
+              className="dashboard-savings-progress-track w-full h-2 bg-[#14261d] rounded-full overflow-hidden mb-2.5"
               role="progressbar"
               aria-label="Savings goal progress"
               aria-valuenow={progressPercent}
@@ -215,7 +215,7 @@ export function SummaryCards({
             </div>
 
             <div className="flex items-center justify-between text-xs text-zinc-400">
-              <span>{progressPercent}% complete</span>
+              <span className="font-medium text-emerald-400">{progressPercent}% complete</span>
               <span>Rs. {remainingToGoal} to go</span>
             </div>
           </div>

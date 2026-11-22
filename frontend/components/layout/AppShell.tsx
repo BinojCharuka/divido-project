@@ -53,6 +53,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const handleNavCloseSidebar = useCallback(() => {
+    // Automatically close/collapse the slide-out navigation sidebar when an item is selected
+    // so the destination page/content is showcased without obstruction.
+    setCollapsed(true);
+    try {
+      localStorage.setItem(SIDEBAR_KEY, "true");
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const dismissToast = useCallback(() => setToast(""), []);
 
   const actions = useMemo<AppShellActions>(
@@ -81,6 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           initials={initials}
           onHelp={() => setDialog("help")}
           onSignOut={() => setDialog("signout")}
+          onNavigate={handleNavCloseSidebar}
         />
         <div className="main-shell relative z-10">
           <TopBar

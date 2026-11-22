@@ -214,14 +214,6 @@ export function MobileDock({
                 <div className="w-11 h-11 rounded-full bg-[#7bc8a4] text-[#07100b] font-bold flex items-center justify-center text-sm ring-2 ring-[#e2d274] shadow-xs shrink-0">
                   {initials}
                 </div>
-                <button
-                  type="button"
-                  onClick={closeDrawer}
-                  aria-label="Close menu"
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors ml-0.5 cursor-pointer"
-                >
-                  <X size={18} strokeWidth={2.2} />
-                </button>
               </div>
             </div>
 

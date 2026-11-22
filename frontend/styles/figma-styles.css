@@ -959,6 +959,12 @@ html[data-theme='dark'],
   border: 1px solid var(--line);
   border-radius: 11px;
   padding: 18px 19px;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
 }
 
 .summary-label {
@@ -1754,6 +1760,12 @@ html:not(.dark) .dashboard-savings-note,
   gap: 14px;
 }
 
+@media (min-width: 1280px) {
+  .dashboard-reference-frame .budget-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .dashboard-reference-frame .budget-card {
   background: #0f1411;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -2073,11 +2085,13 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
   padding: 17px 17px 15px;
   min-width: 0;
   background: var(--white);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .budget-card:hover {
   border-color: #05966955;
   background: #05966902;
+  transform: translateY(-2px);
 }
 
 .budget-card-top {
@@ -6474,10 +6488,35 @@ html:not(.dark) .ambient-geo {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
   .ambient-blob,
   .ambient-geo,
   .ambient-sparkle {
     animation: none !important;
+  }
+
+  .summary-card:hover,
+  .budget-card:hover,
+  .available-balance-card:hover,
+  .nav-item:hover,
+  .floating-dock-icon-wrap {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .sidebar,
+  .main-shell,
+  .more-drawer-panel,
+  .more-drawer-backdrop {
+    transition: none !important;
   }
 }
 

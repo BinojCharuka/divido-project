@@ -17,7 +17,7 @@ export function GroupProgressCard({ group: g, href }: { group: DashboardGroup; h
       : `${g.expenseCount} ${g.expenseCount === 1 ? "expense" : "expenses"}`;
 
   return (
-    <Link href={href} className={`budget-card ${pillarClass(g.group)} ${over ? "over-budget" : ""}`}>
+    <Link href={href} className={`budget-card h-full flex flex-col justify-between ${pillarClass(g.group)} ${over ? "over-budget" : ""}`}>
       <div className="budget-card-top">
         <span className="group-icon" aria-hidden="true">
           <Icon size={19} strokeWidth={1.8} />
