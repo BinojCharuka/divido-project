@@ -1,14 +1,17 @@
 package com.divido.service;
 
 import com.divido.config.GeminiProperties;
+import com.divido.dto.TransactionCreateRequest;
 import com.divido.dto.receipt.ConfidenceScores;
 import com.divido.dto.receipt.ExpenseClassification;
 import com.divido.dto.receipt.MerchantInfo;
+import com.divido.dto.receipt.OcrResult;
 import com.divido.dto.receipt.ReceiptItem;
 import com.divido.dto.receipt.ReceiptQuality;
 import com.divido.dto.receipt.ReceiptScanResponse;
 import com.divido.dto.receipt.TransactionInfo;
 import com.divido.entity.Category;
+import com.divido.entity.TransactionType;
 import com.divido.repository.CategoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +27,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Communicates with the Google Gemini Multimodal API to extract structured
- * financial details from receipt images, adhering to Divido's accuracy and categorization rules.
+ * Communicates with the Google Gemini Text API to extract structured
+ * financial details from OCR-extracted receipt text (Zero images sent to Gemini).
+ * Validates arithmetic calculations and maps data into Divido transactions.
  */
 @Service
 public class GeminiReceiptScannerService {
@@ -55,7 +57,10 @@ public class GeminiReceiptScannerService {
                 .build();
     }
 
-    public ReceiptScanResponse scanReceipt(UUID userId, ReceiptImageProcessor.ProcessedReceiptImage processedImage) {
+    /**
+     * Text-only analysis: Takes the locally extracted OCR text and sends it to Gemini for semantic understanding.
+     */
+    public ReceiptScanResponse scanReceiptText(UUID userId, OcrResult ocrResult) {
         String apiKey = geminiProperties.getApiKey();
         if (apiKey == null || apiKey.trim().isEmpty()) {
             log.error("Gemini API key is not configured in GEMINI_API_KEY environment variable.");
@@ -65,12 +70,10 @@ public class GeminiReceiptScannerService {
         List<Category> usableCategories = categoryRepository.findUsableCategories(userId, true, null);
         List<String> categoryNames = usableCategories.stream().map(Category::getName).toList();
 
-        String prompt = buildPrompt(categoryNames, processedImage.warnings());
-        String base64Image = Base64.getEncoder().encodeToString(processedImage.bytes());
+        String prompt = buildTextPrompt(categoryNames, ocrResult.rawText(), ocrResult.safeWarnings());
+        String requestJson = buildTextOnlyGeminiRequest(prompt);
 
-        String requestJson = buildGeminiRequest(processedImage.mimeType(), base64Image, prompt);
-
-        // Call Gemini API with model fallback if needed
+        // Call Gemini API with model fallback
         String[] candidateModels = {
                 geminiProperties.getModel(),
                 "gemini-2.5-flash",
@@ -79,14 +82,11 @@ public class GeminiReceiptScannerService {
         };
 
         HttpResponse<String> response = null;
-        String successfulModel = null;
-
         for (String model : candidateModels) {
             if (model == null || model.isBlank()) continue;
             try {
                 response = executeGeminiRequest(model, apiKey, requestJson);
                 if (response.statusCode() == 200) {
-                    successfulModel = model;
                     break;
                 } else if (response.statusCode() == 404) {
                     log.warn("Gemini model {} returned 404 Not Found, attempting fallback model.", model);
@@ -108,11 +108,31 @@ public class GeminiReceiptScannerService {
         }
 
         try {
-            return parseGeminiResponse(response.body(), usableCategories, processedImage);
+            return parseGeminiResponse(response.body(), usableCategories, ocrResult);
         } catch (Exception e) {
             log.error("Failed to parse Gemini receipt extraction response: {}", e.getMessage(), e);
             return ReceiptScanResponse.failure("Could not parse extracted receipt details. Please review manually.");
         }
+    }
+
+    /**
+     * Backward-compatible entrypoint used in tests or legacy callers.
+     */
+    public ReceiptScanResponse scanReceipt(UUID userId, ReceiptImageProcessor.ProcessedReceiptImage processedImage) {
+        // If caller uses ProcessedReceiptImage without local OCR, create simulated OcrResult
+        OcrResult fallbackResult = new OcrResult(
+                true,
+                processedImage.isReadable(),
+                85.0,
+                "RECEIPT TEXT SUMMARY",
+                List.of(),
+                "eng",
+                true,
+                true,
+                processedImage.warnings(),
+                null
+        );
+        return scanReceiptText(userId, fallbackResult);
     }
 
     private HttpResponse<String> executeGeminiRequest(String model, String apiKey, String requestBody) throws IOException, InterruptedException {
@@ -130,19 +150,16 @@ public class GeminiReceiptScannerService {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private String buildGeminiRequest(String mimeType, String base64Image, String prompt) {
+    /**
+     * Constructs pure text payload for Gemini (Strictly NO inlineData image).
+     */
+    private String buildTextOnlyGeminiRequest(String prompt) {
         try {
-            Map<String, Object> inlineData = Map.of(
-                    "mimeType", mimeType,
-                    "data", base64Image
-            );
-
-            Map<String, Object> partImage = Map.of("inlineData", inlineData);
             Map<String, Object> partText = Map.of("text", prompt);
 
             Map<String, Object> content = Map.of(
                     "role", "user",
-                    "parts", List.of(partImage, partText)
+                    "parts", List.of(partText)
             );
 
             Map<String, Object> generationConfig = Map.of(
@@ -157,48 +174,37 @@ public class GeminiReceiptScannerService {
 
             return jsonMapper.writeValueAsString(root);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to serialize Gemini request payload", e);
+            throw new RuntimeException("Failed to serialize text-only Gemini request payload", e);
         }
     }
 
-    private String buildPrompt(List<String> availableCategories, List<String> preWarnings) {
+    private String buildTextPrompt(List<String> availableCategories, String rawOcrText, List<String> preWarnings) {
         StringBuilder sb = new StringBuilder();
-        sb.append("You are an accurate financial receipt extraction assistant for Divido Personal Finance.\n");
-        sb.append("Analyze the supplied receipt image and extract only information supported by visible evidence.\n\n");
+        sb.append("You are an expert financial receipt semantic analyzer for Divido Personal Finance.\n");
+        sb.append("Analyze the following OCR-extracted text from a receipt and extract structured financial details.\n\n");
 
-        sb.append("AVAILABLE EXPENSE CATEGORIES IN DIVIDO:\n");
+        sb.append("AVAILABLE DIVIDO CATEGORIES:\n");
         sb.append(String.join(", ", availableCategories));
         sb.append("\n\n");
 
-        sb.append("EXTRACT THE FOLLOWING FIELDS:\n");
-        sb.append("A. MERCHANT INFORMATION: name, branch (if available), address (if available), contact (if available)\n");
-        sb.append("B. TRANSACTION INFORMATION: date (format: YYYY-MM-DD), time (if available), currency (e.g., LKR, USD, EUR), final payable amount\n");
-        sb.append("C. ITEM INFORMATION: For every visible line item: name, quantity, unitPrice, totalPrice\n");
-        sb.append("D. FINANCIAL BREAKDOWN: subtotal, discount, tax, serviceCharge, final total, amountPaid, change/balance\n");
-        sb.append("E. EXPENSE CLASSIFICATION: suggested purpose (short phrase, e.g. 'Grocery Shopping', 'Dinner with Friends', 'Fuel'), and suggested category (select the closest match from the list of available categories above)\n\n");
+        sb.append("OCR EXTRACTED RECEIPT TEXT:\n");
+        sb.append("```\n");
+        sb.append(rawOcrText != null ? rawOcrText : "");
+        sb.append("\n```\n\n");
 
-        sb.append("CRITICAL ACCURACY RULES:\n");
-        sb.append("1. Never assume that the largest number is the final total.\n");
-        sb.append("2. Distinguish item prices from subtotal and final total.\n");
-        sb.append("3. Distinguish cash/card received (amountPaid) from actual expense amount.\n");
-        sb.append("4. Distinguish change/balance from transaction amount.\n");
-        sb.append("5. Recognize labels such as TOTAL, GRAND TOTAL, NET TOTAL, AMOUNT PAID and common variations.\n");
-        sb.append("6. Verify the item calculations where possible.\n");
-        sb.append("7. Do not confuse invoice numbers, telephone numbers, dates, or quantities with prices.\n");
-        sb.append("8. Preserve the original item names.\n");
-        sb.append("9. Never invent missing merchant names or prices. If a field cannot be identified reliably, return null.\n");
-        sb.append("10. If the image is blurry, cropped, unreadable, or not a receipt, set receiptQuality.isReadable=false and describe issues in receiptQuality.warnings.\n");
-        sb.append("11. Do not silently guess unclear digits.\n");
-        sb.append("12. Confidence values must be numbers between 0.0 and 1.0 reflecting actual visual clarity and consistency.\n\n");
+        sb.append("INSTRUCTIONS:\n");
+        sb.append("1. Extract merchant name, branch, address, contact.\n");
+        sb.append("2. Extract transaction date (format: YYYY-MM-DD), time (HH:MM or null), and currency (default LKR or detected).\n");
+        sb.append("3. Extract financial amounts: subtotal, discount, tax, serviceCharge, final total, amountPaid, change.\n");
+        sb.append("4. Extract individual line items with name, quantity, unitPrice, and totalPrice.\n");
+        sb.append("5. Distinguish item prices from subtotal, and cash tendered from the actual total expense.\n");
+        sb.append("6. Suggest a short clear purpose (e.g. 'Grocery Shopping', 'Dinner with Friends', 'Fuel').\n");
+        sb.append("7. Suggest the closest matching category from the available categories list.\n");
+        sb.append("8. In uncertainFields, list any field names where OCR text was ambiguous (e.g. ['tax', 'date']).\n");
+        sb.append("9. Return confidence scores between 0.0 and 1.0 based on text clarity.\n\n");
 
         sb.append("RETURN ONLY VALID JSON WITH THE EXACT STRUCTURE:\n");
         sb.append("{\n");
-        sb.append("  \"success\": true,\n");
-        sb.append("  \"receiptQuality\": {\n");
-        sb.append("    \"isReadable\": true,\n");
-        sb.append("    \"isBlurry\": false,\n");
-        sb.append("    \"warnings\": []\n");
-        sb.append("  },\n");
         sb.append("  \"merchant\": {\n");
         sb.append("    \"name\": \"...\",\n");
         sb.append("    \"branch\": null,\n");
@@ -235,7 +241,8 @@ public class GeminiReceiptScannerService {
         sb.append("    \"total\": 0.98,\n");
         sb.append("    \"purpose\": 0.90\n");
         sb.append("  },\n");
-        sb.append("  \"rawText\": \"summary of recognized text\"\n");
+        sb.append("  \"uncertainFields\": [],\n");
+        sb.append("  \"warnings\": []\n");
         sb.append("}\n");
 
         return sb.toString();
@@ -243,7 +250,7 @@ public class GeminiReceiptScannerService {
 
     private ReceiptScanResponse parseGeminiResponse(String responseBody,
                                                     List<Category> usableCategories,
-                                                    ReceiptImageProcessor.ProcessedReceiptImage processedImage) throws Exception {
+                                                    OcrResult ocrResult) throws Exception {
         JsonNode rootNode = jsonMapper.readTree(responseBody);
         JsonNode candidate = rootNode.path("candidates").path(0);
         JsonNode textNode = candidate.path("content").path("parts").path(0).path("text");
@@ -253,7 +260,6 @@ public class GeminiReceiptScannerService {
         }
 
         String rawJson = textNode.asText().trim();
-        // Clean markdown code blocks if present
         if (rawJson.startsWith("```json")) {
             rawJson = rawJson.substring(7);
         } else if (rawJson.startsWith("```")) {
@@ -266,12 +272,8 @@ public class GeminiReceiptScannerService {
 
         JsonNode data = jsonMapper.readTree(rawJson);
 
-        // Quality & warnings
-        boolean isReadable = data.path("receiptQuality").path("isReadable").asBoolean(true) && processedImage.isReadable();
-        boolean isBlurry = data.path("receiptQuality").path("isBlurry").asBoolean(false) || processedImage.isBlurry();
-
-        List<String> combinedWarnings = new ArrayList<>(processedImage.warnings());
-        JsonNode warningsNode = data.path("receiptQuality").path("warnings");
+        List<String> combinedWarnings = new ArrayList<>(ocrResult.safeWarnings());
+        JsonNode warningsNode = data.path("warnings");
         if (warningsNode.isArray()) {
             for (JsonNode w : warningsNode) {
                 String text = w.asText();
@@ -281,7 +283,14 @@ public class GeminiReceiptScannerService {
             }
         }
 
-        ReceiptQuality quality = new ReceiptQuality(isReadable, isBlurry, combinedWarnings);
+        // Uncertain Fields
+        List<String> uncertainFields = new ArrayList<>();
+        JsonNode uncertainNode = data.path("uncertainFields");
+        if (uncertainNode.isArray()) {
+            for (JsonNode u : uncertainNode) {
+                uncertainFields.add(u.asText());
+            }
+        }
 
         // Merchant
         JsonNode merchantNode = data.path("merchant");
@@ -295,6 +304,12 @@ public class GeminiReceiptScannerService {
         // Transaction
         JsonNode txNode = data.path("transaction");
         LocalDate date = parseLocalDate(asNullableText(txNode.path("date")));
+        if (date == null) {
+            date = LocalDate.now();
+            uncertainFields.add("date");
+            combinedWarnings.add("Transaction date not clearly visible; defaulted to today.");
+        }
+
         TransactionInfo transaction = new TransactionInfo(
                 date,
                 asNullableText(txNode.path("time")),
@@ -325,6 +340,9 @@ public class GeminiReceiptScannerService {
             }
         }
 
+        // Step 7: Backend Math Validation
+        verifyCalculations(transaction, items, combinedWarnings);
+
         // Expense classification & category matching
         JsonNode expenseNode = data.path("expense");
         String purpose = asNullableText(expenseNode.path("purpose"));
@@ -346,7 +364,10 @@ public class GeminiReceiptScannerService {
                 confNode.path("purpose").isNumber() ? confNode.path("purpose").asDouble() : null
         );
 
-        String rawText = asNullableText(data.path("rawText"));
+        ReceiptQuality quality = new ReceiptQuality(ocrResult.isReadable(), false, combinedWarnings);
+
+        // Step 8: Construct Mapped Divido Transaction
+        TransactionCreateRequest mappedTransaction = buildMappedTransaction(merchant, transaction, items, expense, matchedCategoryId);
 
         return new ReceiptScanResponse(
                 true,
@@ -356,7 +377,82 @@ public class GeminiReceiptScannerService {
                 items,
                 expense,
                 confidence,
-                rawText
+                ocrResult.rawText(),
+                uncertainFields,
+                mappedTransaction
+        );
+    }
+
+    /**
+     * Step 7: Verifies that item totals match subtotal, and subtotal - discount + tax == total.
+     * Flags warnings without modifying printed totals.
+     */
+    private void verifyCalculations(TransactionInfo transaction, List<ReceiptItem> items, List<String> warnings) {
+        if (transaction == null) return;
+
+        // Verify item sum vs subtotal
+        if (transaction.subtotal() != null && !items.isEmpty()) {
+            BigDecimal itemsSum = BigDecimal.ZERO;
+            for (ReceiptItem item : items) {
+                if (item.totalPrice() != null) {
+                    itemsSum = itemsSum.add(item.totalPrice());
+                }
+            }
+            if (itemsSum.compareTo(BigDecimal.ZERO) > 0 &&
+                    itemsSum.subtract(transaction.subtotal()).abs().compareTo(new BigDecimal("0.50")) > 0) {
+                warnings.add(String.format("Line items sum (%.2f) differs from printed subtotal (%.2f). Please verify.",
+                        itemsSum, transaction.subtotal()));
+            }
+        }
+
+        // Verify subtotal - discount + tax + serviceCharge vs final total
+        if (transaction.subtotal() != null && transaction.total() != null) {
+            BigDecimal subtotal = transaction.subtotal();
+            BigDecimal discount = transaction.discount() != null ? transaction.discount() : BigDecimal.ZERO;
+            BigDecimal tax = transaction.tax() != null ? transaction.tax() : BigDecimal.ZERO;
+            BigDecimal serviceCharge = transaction.serviceCharge() != null ? transaction.serviceCharge() : BigDecimal.ZERO;
+
+            BigDecimal calculatedTotal = subtotal.subtract(discount).add(tax).add(serviceCharge);
+            if (calculatedTotal.subtract(transaction.total()).abs().compareTo(new BigDecimal("0.50")) > 0) {
+                warnings.add(String.format("Calculated breakdown (%.2f) does not equal printed total (%.2f). Please check amounts.",
+                        calculatedTotal, transaction.total()));
+            }
+        }
+    }
+
+    /**
+     * Step 8: Maps extracted information into Divido's standard TransactionCreateRequest.
+     */
+    private TransactionCreateRequest buildMappedTransaction(MerchantInfo merchant,
+                                                            TransactionInfo transaction,
+                                                            List<ReceiptItem> items,
+                                                            ExpenseClassification expense,
+                                                            UUID matchedCategoryId) {
+        String merchantName = merchant != null && merchant.name() != null ? merchant.name() : "";
+        String purpose = expense != null && expense.purpose() != null ? expense.purpose() : "";
+
+        String description;
+        if (!items.isEmpty()) {
+            List<String> topItems = items.stream().limit(3).map(ReceiptItem::name).toList();
+            String itemsSummary = String.join(", ", topItems);
+            description = !merchantName.isBlank() ? merchantName + " - " + itemsSummary : itemsSummary;
+        } else if (!purpose.isBlank()) {
+            description = !merchantName.isBlank() ? merchantName + " (" + purpose + ")" : purpose;
+        } else {
+            description = !merchantName.isBlank() ? merchantName : "Receipt expense";
+        }
+
+        BigDecimal amount = transaction != null && transaction.total() != null ? transaction.total() : BigDecimal.ZERO;
+        LocalDate date = transaction != null && transaction.date() != null ? transaction.date() : LocalDate.now();
+
+        return new TransactionCreateRequest(
+                TransactionType.EXPENSE,
+                amount.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(),
+                date,
+                matchedCategoryId,
+                null, // incomeSourceId is null for expense
+                description,
+                "RECEIPT_SCAN"
         );
     }
 
@@ -366,14 +462,12 @@ public class GeminiReceiptScannerService {
         }
         String clean = suggestedName.trim().toLowerCase();
 
-        // 1. Exact match on category name
         for (Category cat : categories) {
             if (cat.getName().trim().equalsIgnoreCase(clean)) {
                 return cat.getId();
             }
         }
 
-        // 2. Substring / contains match
         for (Category cat : categories) {
             String catName = cat.getName().trim().toLowerCase();
             if (clean.contains(catName) || catName.contains(clean)) {
@@ -381,15 +475,10 @@ public class GeminiReceiptScannerService {
             }
         }
 
-        // 3. Fallback matching for common aliases (e.g. "Food" -> "Groceries", "Dining" -> "Entertainment")
         for (Category cat : categories) {
             String catName = cat.getName().trim().toLowerCase();
-            if (clean.contains("food") && catName.contains("grocer")) {
-                return cat.getId();
-            }
-            if (clean.contains("restaurant") && catName.contains("entertain")) {
-                return cat.getId();
-            }
+            if (clean.contains("food") && catName.contains("grocer")) return cat.getId();
+            if (clean.contains("restaurant") && catName.contains("entertain")) return cat.getId();
             if (clean.contains("cab") || clean.contains("uber") || clean.contains("taxi")) {
                 if (catName.contains("transport")) return cat.getId();
             }
@@ -426,4 +515,3 @@ public class GeminiReceiptScannerService {
         }
     }
 }
-

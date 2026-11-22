@@ -4,12 +4,20 @@
 !.env.example
 **/.env
 **/.env.*
-!**/.env.example
+!.env.example
 
-# Next.js
-frontend/node_modules/
+# Next.js & Node
+node_modules/
+**/node_modules/
 frontend/.next/
 frontend/out/
+
+# Python / OCR
+__pycache__/
+*.pyc
+venv/
+ocr/venv/
+.pytest_cache/
 
 # Java / Maven
 backend/target/

@@ -44,6 +44,15 @@ export interface ConfidenceScores {
   purpose: number | null;
 }
 
+export interface MappedTransaction {
+  type: "EXPENSE";
+  amount: string;
+  date: string;
+  categoryId?: string;
+  description: string;
+  paymentMethod?: string;
+}
+
 export interface ReceiptScanResponse {
   success: boolean;
   receiptQuality: ReceiptQuality;
@@ -53,5 +62,6 @@ export interface ReceiptScanResponse {
   expense: ExpenseClassification | null;
   confidence: ConfidenceScores | null;
   rawText: string | null;
+  uncertainFields?: string[];
+  mappedTransaction?: MappedTransaction | null;
 }
-

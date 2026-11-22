@@ -1,11 +1,12 @@
 package com.divido.controller;
 
 import com.divido.dto.ApiError;
+import com.divido.dto.receipt.OcrResult;
 import com.divido.dto.receipt.ReceiptScanJsonRequest;
 import com.divido.dto.receipt.ReceiptScanResponse;
 import com.divido.security.DividoUserDetails;
 import com.divido.service.GeminiReceiptScannerService;
-import com.divido.service.ReceiptImageProcessor;
+import com.divido.service.ReceiptOcrService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Base64;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/receipts")
@@ -27,12 +29,12 @@ public class ReceiptScanController {
 
     private static final Logger log = LoggerFactory.getLogger(ReceiptScanController.class);
 
-    private final ReceiptImageProcessor imageProcessor;
+    private final ReceiptOcrService ocrService;
     private final GeminiReceiptScannerService scannerService;
 
-    public ReceiptScanController(ReceiptImageProcessor imageProcessor,
+    public ReceiptScanController(ReceiptOcrService ocrService,
                                  GeminiReceiptScannerService scannerService) {
-        this.imageProcessor = imageProcessor;
+        this.ocrService = ocrService;
         this.scannerService = scannerService;
     }
 
@@ -51,13 +53,25 @@ public class ReceiptScanController {
         }
 
         try {
-            ReceiptImageProcessor.ProcessedReceiptImage processed = imageProcessor.processImage(
-                    file.getBytes(),
-                    file.getContentType()
-            );
+            byte[] imageBytes = file.getBytes();
+            String mimeType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
 
-            ReceiptScanResponse response = scannerService.scanReceipt(user.getId(), processed);
+            // Stage 1: Free Local OCR (OpenCV + Tesseract)
+            OcrResult ocrResult = ocrService.extractText(imageBytes, mimeType);
+
+            // Stage 2: Quality Validation & Token Protection Short-Circuit
+            if (!ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
+                log.info("Receipt OCR quality failed or lacks monetary values. Short-circuiting without calling Gemini API.");
+                List<String> warnings = ocrResult.safeWarnings().isEmpty()
+                        ? List.of("Receipt text is unclear or no prices could be identified. Please take a clearer photo.")
+                        : ocrResult.safeWarnings();
+                return ResponseEntity.ok(ReceiptScanResponse.unreadable(warnings, ocrResult.safeRawText()));
+            }
+
+            // Stage 3: Semantic Understanding with Gemini API (Pure text only, zero image data sent)
+            ReceiptScanResponse response = scannerService.scanReceiptText(user.getId(), ocrResult);
             return ResponseEntity.ok(response);
+
         } catch (IllegalArgumentException e) {
             log.warn("Receipt image validation error: {}", e.getMessage());
             return ResponseEntity.badRequest().body(
@@ -102,10 +116,23 @@ public class ReceiptScanController {
             }
 
             byte[] imageBytes = Base64.getDecoder().decode(rawImage.trim());
-            ReceiptImageProcessor.ProcessedReceiptImage processed = imageProcessor.processImage(imageBytes, mimeType);
 
-            ReceiptScanResponse response = scannerService.scanReceipt(user.getId(), processed);
+            // Stage 1: Free Local OCR (OpenCV + Tesseract)
+            OcrResult ocrResult = ocrService.extractText(imageBytes, mimeType);
+
+            // Stage 2: Quality Validation & Token Protection Short-Circuit
+            if (!ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
+                log.info("Receipt OCR quality failed or lacks monetary values. Short-circuiting without calling Gemini API.");
+                List<String> warnings = ocrResult.safeWarnings().isEmpty()
+                        ? List.of("Receipt text is unclear or no prices could be identified. Please take a clearer photo.")
+                        : ocrResult.safeWarnings();
+                return ResponseEntity.ok(ReceiptScanResponse.unreadable(warnings, ocrResult.safeRawText()));
+            }
+
+            // Stage 3: Semantic Understanding with Gemini API (Pure text only, zero image data sent)
+            ReceiptScanResponse response = scannerService.scanReceiptText(user.getId(), ocrResult);
             return ResponseEntity.ok(response);
+
         } catch (IllegalArgumentException e) {
             log.warn("Receipt image validation error: {}", e.getMessage());
             return ResponseEntity.badRequest().body(
@@ -119,4 +146,3 @@ public class ReceiptScanController {
         }
     }
 }
-

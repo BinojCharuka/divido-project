@@ -5,11 +5,13 @@ import com.divido.TestcontainersConfiguration;
 import com.divido.dto.receipt.ConfidenceScores;
 import com.divido.dto.receipt.ExpenseClassification;
 import com.divido.dto.receipt.MerchantInfo;
+import com.divido.dto.receipt.OcrResult;
 import com.divido.dto.receipt.ReceiptItem;
 import com.divido.dto.receipt.ReceiptQuality;
 import com.divido.dto.receipt.ReceiptScanResponse;
 import com.divido.dto.receipt.TransactionInfo;
 import com.divido.service.GeminiReceiptScannerService;
+import com.divido.service.ReceiptOcrService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
@@ -39,7 +40,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -54,6 +55,9 @@ class ReceiptScanControllerIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @MockitoBean
+    private ReceiptOcrService ocrService;
 
     @MockitoBean
     private GeminiReceiptScannerService scannerService;
@@ -100,11 +104,42 @@ class ReceiptScanControllerIntegrationTest {
     }
 
     @Test
+    void shortCircuitsWhenOcrIsUnreadableWithoutCallingGemini() {
+        MockHttpSession session = registerAndLogin("dave@example.com");
+
+        OcrResult unreadableOcr = OcrResult.failed("Blurry or unreadable receipt image");
+        when(ocrService.extractText(any(), any())).thenReturn(unreadableOcr);
+
+        String base64 = Base64.getEncoder().encodeToString("dummy".getBytes());
+        String jsonPayload = String.format("{\"image\":\"%s\",\"mimeType\":\"image/png\"}", base64);
+        var result = postWithCsrf("/api/v1/receipts/scan", jsonPayload, session);
+
+        assertThat(result).hasStatus(HttpStatus.OK);
+        assertThat(result).bodyJson().extractingPath("$.success").isEqualTo(false);
+        assertThat(result).bodyJson().extractingPath("$.receiptQuality.isReadable").isEqualTo(false);
+        verifyNoInteractions(scannerService);
+    }
+
+    @Test
     void scanValidReceiptReturnsStructuredJson() throws IOException {
         MockHttpSession session = registerAndLogin("carol@example.com");
 
         byte[] imageBytes = createSampleReceiptImage();
         String base64 = Base64.getEncoder().encodeToString(imageBytes);
+
+        OcrResult validOcr = new OcrResult(
+                true,
+                true,
+                92.5,
+                "KEELLS SUPER\nFresh Milk 1L 450.00\nTOTAL LKR 1250.00",
+                List.of("KEELLS SUPER", "Fresh Milk 1L 450.00", "TOTAL LKR 1250.00"),
+                "eng",
+                true,
+                true,
+                List.of(),
+                null
+        );
+        when(ocrService.extractText(any(), any())).thenReturn(validOcr);
 
         UUID groceriesId = UUID.randomUUID();
         ReceiptScanResponse mockResponse = new ReceiptScanResponse(
@@ -129,7 +164,7 @@ class ReceiptScanControllerIntegrationTest {
                 "Keells Super Total: LKR 1250.00"
         );
 
-        when(scannerService.scanReceipt(any(), any())).thenReturn(mockResponse);
+        when(scannerService.scanReceiptText(any(), any())).thenReturn(mockResponse);
 
         String jsonPayload = String.format("{\"image\":\"%s\",\"mimeType\":\"image/png\"}", base64);
         var result = postWithCsrf("/api/v1/receipts/scan", jsonPayload, session);
@@ -167,17 +202,13 @@ class ReceiptScanControllerIntegrationTest {
                 }
                 """.formatted(email, PASSWORD);
 
-        var regRes = mvc.post().uri("/api/v1/auth/register")
+        var regRes = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/register"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(regJson)
                 .exchange();
         assertThat(regRes).hasStatus(HttpStatus.CREATED);
 
-        var csrfRes = mvc.get().uri("/api/v1/auth/csrf").exchange();
-        String token = CsrfSupport.readToken(csrfRes);
-
-        var loginRes = mvc.post().uri("/api/v1/auth/login")
-                .header("X-XSRF-TOKEN", token)
+        var loginRes = CsrfSupport.fetch(mvc).apply(mvc.post().uri("/api/v1/auth/login"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(regJson)
                 .exchange();
@@ -187,15 +218,12 @@ class ReceiptScanControllerIntegrationTest {
     }
 
     private MvcTestResult postWithCsrf(String uri, String body, MockHttpSession session) {
-        var csrfRes = mvc.get().uri("/api/v1/auth/csrf").session(session).exchange();
-        String token = CsrfSupport.readToken(csrfRes);
-
-        return mvc.post().uri(uri)
-                .session(session)
-                .header("X-XSRF-TOKEN", token)
-                .contentType(MediaType.APPLICATION_JSON)
+        var request = CsrfSupport.fetch(mvc).apply(mvc.post().uri(uri));
+        if (session != null) {
+            request.session(session);
+        }
+        return request.contentType(MediaType.APPLICATION_JSON)
                 .content(body)
                 .exchange();
     }
 }
-

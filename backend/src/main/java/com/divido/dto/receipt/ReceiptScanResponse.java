@@ -1,5 +1,6 @@
 package com.divido.dto.receipt;
 
+import com.divido.dto.TransactionCreateRequest;
 import java.util.List;
 
 public record ReceiptScanResponse(
@@ -10,8 +11,23 @@ public record ReceiptScanResponse(
         List<ReceiptItem> items,
         ExpenseClassification expense,
         ConfidenceScores confidence,
-        String rawText
+        String rawText,
+        List<String> uncertainFields,
+        TransactionCreateRequest mappedTransaction
 ) {
+    public ReceiptScanResponse(
+            boolean success,
+            ReceiptQuality receiptQuality,
+            MerchantInfo merchant,
+            TransactionInfo transaction,
+            List<ReceiptItem> items,
+            ExpenseClassification expense,
+            ConfidenceScores confidence,
+            String rawText
+    ) {
+        this(success, receiptQuality, merchant, transaction, items, expense, confidence, rawText, List.of(), null);
+    }
+
     public static ReceiptScanResponse failure(String warning) {
         return new ReceiptScanResponse(
                 false,
@@ -21,8 +37,24 @@ public record ReceiptScanResponse(
                 List.of(),
                 null,
                 null,
+                null,
+                List.of(),
+                null
+        );
+    }
+
+    public static ReceiptScanResponse unreadable(List<String> warnings, String rawText) {
+        return new ReceiptScanResponse(
+                false,
+                ReceiptQuality.withWarnings(false, false, warnings),
+                null,
+                null,
+                List.of(),
+                null,
+                null,
+                rawText,
+                List.of(),
                 null
         );
     }
 }
-

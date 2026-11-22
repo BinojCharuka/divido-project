@@ -201,8 +201,14 @@ public class SecurityConfig {
         }
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(origins);
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
-        config.setAllowedHeaders(List.of(HttpHeaders.CONTENT_TYPE, HttpHeaders.ACCEPT, CSRF_HEADER_NAME));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
+        config.setAllowedHeaders(List.of(
+                HttpHeaders.CONTENT_TYPE,
+                HttpHeaders.ACCEPT,
+                HttpHeaders.AUTHORIZATION,
+                CSRF_HEADER_NAME,
+                "X-Requested-With"
+        ));
         config.setAllowCredentials(true);
         config.setMaxAge(Duration.ofHours(1));
         source.registerCorsConfiguration("/api/**", config);
