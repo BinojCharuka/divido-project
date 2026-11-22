@@ -12,8 +12,40 @@ public record OcrResult(
         boolean hasMonetaryValues,
         boolean hasLikelyTotalLabel,
         List<String> warnings,
-        String error
+        String error,
+        String errorCode
 ) {
+    public OcrResult(
+            boolean success,
+            boolean isReadable,
+            Double confidence,
+            String rawText,
+            List<String> lines,
+            String languagesUsed,
+            boolean hasMonetaryValues,
+            boolean hasLikelyTotalLabel,
+            List<String> warnings,
+            String error
+    ) {
+        this(success, isReadable, confidence, rawText, lines, languagesUsed, hasMonetaryValues, hasLikelyTotalLabel, warnings, error, null);
+    }
+
+    public static OcrResult systemError(String errorCode, String message) {
+        return new OcrResult(
+                false,
+                false,
+                0.0,
+                "",
+                List.of(),
+                "eng",
+                false,
+                false,
+                List.of(message),
+                message,
+                errorCode
+        );
+    }
+
     public static OcrResult failed(String warning) {
         return new OcrResult(
                 false,
@@ -25,7 +57,8 @@ public record OcrResult(
                 false,
                 false,
                 List.of(warning),
-                warning
+                warning,
+                "OCR_FAILED"
         );
     }
 

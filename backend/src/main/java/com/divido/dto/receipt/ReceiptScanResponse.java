@@ -13,8 +13,24 @@ public record ReceiptScanResponse(
         ConfidenceScores confidence,
         String rawText,
         List<String> uncertainFields,
-        TransactionCreateRequest mappedTransaction
+        TransactionCreateRequest mappedTransaction,
+        String error
 ) {
+    public ReceiptScanResponse(
+            boolean success,
+            ReceiptQuality receiptQuality,
+            MerchantInfo merchant,
+            TransactionInfo transaction,
+            List<ReceiptItem> items,
+            ExpenseClassification expense,
+            ConfidenceScores confidence,
+            String rawText,
+            List<String> uncertainFields,
+            TransactionCreateRequest mappedTransaction
+    ) {
+        this(success, receiptQuality, merchant, transaction, items, expense, confidence, rawText, uncertainFields, mappedTransaction, null);
+    }
+
     public ReceiptScanResponse(
             boolean success,
             ReceiptQuality receiptQuality,
@@ -25,7 +41,7 @@ public record ReceiptScanResponse(
             ConfidenceScores confidence,
             String rawText
     ) {
-        this(success, receiptQuality, merchant, transaction, items, expense, confidence, rawText, List.of(), null);
+        this(success, receiptQuality, merchant, transaction, items, expense, confidence, rawText, List.of(), null, null);
     }
 
     public static ReceiptScanResponse failure(String warning) {
@@ -39,7 +55,8 @@ public record ReceiptScanResponse(
                 null,
                 null,
                 List.of(),
-                null
+                null,
+                warning
         );
     }
 
@@ -54,6 +71,7 @@ public record ReceiptScanResponse(
                 null,
                 rawText,
                 List.of(),
+                null,
                 null
         );
     }

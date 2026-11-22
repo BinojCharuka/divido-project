@@ -22,27 +22,46 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 
+/**
+ * Controller for AI-powered Smart Receipt Scanning.
+ * Enforces a strict two-stage privacy & token-efficient pipeline:
+ *
+ * 1. Stage 1 (Local OCR): Python Tesseract OCR extracts text locally on the server (zero cost).
+ * 2. Stage 2 (Quality Gate): If OCR is unreadable or contains no monetary amounts, it short-circuits.
+ * 3. Stage 3 (Semantic AI): Gemini API processes ONLY the extracted text string to construct structured JSON.
+ *
+ * NOTE: Receipt images are NEVER transmitted to external cloud APIs.
+ */
 @RestController
 @RequestMapping("/api/v1/receipts")
 public class ReceiptScanController {
 
     private static final Logger log = LoggerFactory.getLogger(ReceiptScanController.class);
 
+    private static final Set<String> SYSTEM_ERROR_CODES = Set.of(
+            "OCR_SCRIPT_MISSING",
+            "PYTHON_UNAVAILABLE",
+            "TESSERACT_NOT_FOUND",
+            "OCR_TIMEOUT",
+            "OCR_EXECUTION_FAILED",
+            "OCR_PROCESS_EXCEPTION"
+    );
+
     private final ReceiptOcrService ocrService;
     private final GeminiReceiptScannerService scannerService;
 
-    public ReceiptScanController(ReceiptOcrService ocrService,
-                                 GeminiReceiptScannerService scannerService) {
+    public ReceiptScanController(ReceiptOcrService ocrService, GeminiReceiptScannerService scannerService) {
         this.ocrService = ocrService;
         this.scannerService = scannerService;
     }
 
     /**
-     * Multipart form-data receipt scan endpoint.
+     * Multipart file upload receipt scan endpoint.
      */
     @PostMapping(value = "/scan", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> scanMultipartReceipt(
+    public ResponseEntity<?> uploadReceipt(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal DividoUserDetails user) {
 
@@ -65,11 +84,21 @@ public class ReceiptScanController {
             // Stage 1: Free Local OCR (OpenCV + Tesseract)
             OcrResult ocrResult = ocrService.extractText(imageBytes, mimeType);
 
+            // Step 1.1: System / Infrastructure Error Handling
+            if (ocrResult.errorCode() != null && SYSTEM_ERROR_CODES.contains(ocrResult.errorCode())) {
+                String code = ocrResult.errorCode();
+                String msg = ocrResult.error() != null ? ocrResult.error() : "OCR processing failed on the server.";
+                log.error("OCR system failure: [{}] {}", code, msg);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        new ApiError(500, code, msg)
+                );
+            }
+
             // Stage 2: Quality Validation & Token Protection Short-Circuit
-            // Check if OCR failed, produced empty/short text, or identified no monetary values.
+            // Check if OCR produced unreadable text, empty/short text, or identified no monetary values.
             // If quality is insufficient, short-circuit immediately without sending anything to Gemini.
-            if (!ocrResult.isSuccess() || !ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
-                log.info("Receipt OCR quality failed or lacks monetary values. Short-circuiting without calling Gemini API.");
+            if (!ocrResult.success() || !ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
+                log.info("Receipt OCR quality insufficient or lacks monetary values. Short-circuiting without calling Gemini API.");
                 List<String> warnings = ocrResult.safeWarnings().isEmpty()
                         ? List.of(ocrResult.error() != null ? ocrResult.error() : "Receipt text is unclear or no prices could be identified. Please take a clearer photo.")
                         : ocrResult.safeWarnings();
@@ -134,11 +163,21 @@ public class ReceiptScanController {
             // Stage 1: Free Local OCR (OpenCV + Tesseract)
             OcrResult ocrResult = ocrService.extractText(imageBytes, mimeType);
 
+            // Step 1.1: System / Infrastructure Error Handling
+            if (ocrResult.errorCode() != null && SYSTEM_ERROR_CODES.contains(ocrResult.errorCode())) {
+                String code = ocrResult.errorCode();
+                String msg = ocrResult.error() != null ? ocrResult.error() : "OCR processing failed on the server.";
+                log.error("OCR system failure: [{}] {}", code, msg);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                        new ApiError(500, code, msg)
+                );
+            }
+
             // Stage 2: Quality Validation & Token Protection Short-Circuit
-            // Check if OCR failed, produced empty/short text, or identified no monetary values.
+            // Check if OCR produced unreadable text, empty/short text, or identified no monetary values.
             // If quality is insufficient, short-circuit immediately without sending anything to Gemini.
-            if (!ocrResult.isSuccess() || !ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
-                log.info("Receipt OCR quality failed or lacks monetary values. Short-circuiting without calling Gemini API.");
+            if (!ocrResult.success() || !ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
+                log.info("Receipt OCR quality insufficient or lacks monetary values. Short-circuiting without calling Gemini API.");
                 List<String> warnings = ocrResult.safeWarnings().isEmpty()
                         ? List.of(ocrResult.error() != null ? ocrResult.error() : "Receipt text is unclear or no prices could be identified. Please take a clearer photo.")
                         : ocrResult.safeWarnings();

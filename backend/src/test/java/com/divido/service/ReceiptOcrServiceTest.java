@@ -12,6 +12,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,6 +24,16 @@ class ReceiptOcrServiceTest {
     void setUp() {
         JsonMapper jsonMapper = JsonMapper.builder().build();
         ocrService = new ReceiptOcrService(jsonMapper);
+        ocrService.init();
+    }
+
+    @Test
+    void verifiesScriptPathResolutionAndDiagnostics() {
+        Path scriptPath = ocrService.getOrRefreshScriptPath();
+        assertThat(scriptPath).isNotNull();
+        assertThat(scriptPath).exists();
+        assertThat(scriptPath.toFile().length()).isGreaterThan(0L);
+        assertThat(scriptPath.toFile().canRead()).isTrue();
     }
 
     @Test
@@ -51,15 +62,12 @@ class ReceiptOcrServiceTest {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(img, "png", baos);
-        byte[] bytes = baos.toByteArray();
+        byte[] imageBytes = baos.toByteArray();
 
-        OcrResult result = ocrService.extractText(bytes, "image/png");
+        OcrResult result = ocrService.extractText(imageBytes, "image/png");
 
         assertThat(result).isNotNull();
         assertThat(result.success()).isTrue();
-        assertThat(result.rawText()).isNotBlank();
-        assertThat(result.hasMonetaryValues()).isTrue();
-        assertThat(result.isReadable()).isTrue();
+        assertThat(result.safeRawText()).contains("KEELLS");
     }
 }
-

@@ -33,6 +33,7 @@ public class ReceiptOcrService {
 
     private static final Logger log = LoggerFactory.getLogger(ReceiptOcrService.class);
     private static final String SCRIPT_FILENAME = "receipt_ocr.py";
+    private static final String CLASSPATH_RESOURCE = "ocr/" + SCRIPT_FILENAME;
 
     private final JsonMapper jsonMapper;
     private Path resolvedScriptPath;
@@ -45,14 +46,63 @@ public class ReceiptOcrService {
     @PostConstruct
     public void init() {
         this.resolvedPythonExecutable = detectPythonExecutable();
-        this.resolvedScriptPath = detectAndExtractScript();
-        log.info("ReceiptOcrService initialized. Python: {}, Script: {}",
-                this.resolvedPythonExecutable, this.resolvedScriptPath);
+        try {
+            this.resolvedScriptPath = extractAndValidateScript();
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to initialize OCR script at startup: {}", e.getMessage(), e);
+        }
+
+        boolean resourceExists = false;
+        try {
+            ClassPathResource cp = new ClassPathResource(CLASSPATH_RESOURCE);
+            resourceExists = cp.exists();
+        } catch (Exception ignored) {
+        }
+
+        boolean extractedSuccess = this.resolvedScriptPath != null && Files.isRegularFile(this.resolvedScriptPath);
+        long fileSize = -1;
+        boolean readable = false;
+        if (extractedSuccess) {
+            try {
+                fileSize = Files.size(this.resolvedScriptPath);
+                readable = Files.isReadable(this.resolvedScriptPath);
+            } catch (Exception ignored) {
+            }
+        }
+
+        log.info("=== OCR ENGINE DIAGNOSTICS ===");
+        log.info("OCR_RESOURCE_EXISTS={}", resourceExists);
+        log.info("OCR_RESOURCE_EXTRACTION_SUCCESS={}", extractedSuccess);
+        log.info("OCR_SCRIPT_ABSOLUTE_PATH={}", this.resolvedScriptPath != null ? this.resolvedScriptPath.toAbsolutePath().toString() : "null");
+        log.info("OCR_SCRIPT_FILE_SIZE={}", fileSize);
+        log.info("OCR_SCRIPT_READABLE={}", readable);
+        log.info("PYTHON_EXECUTABLE={}", this.resolvedPythonExecutable);
+        log.info("===============================");
     }
 
     public OcrResult extractText(byte[] imageBytes, String mimeType) {
         if (imageBytes == null || imageBytes.length == 0) {
             return OcrResult.failed("Receipt image payload is empty.");
+        }
+
+        Path scriptPath;
+        try {
+            scriptPath = getOrRefreshScriptPath();
+            if (scriptPath == null || !Files.exists(scriptPath) || !Files.isReadable(scriptPath) || Files.size(scriptPath) == 0) {
+                log.error("OCR engine script is not available or empty on server.");
+                return OcrResult.systemError("OCR_SCRIPT_MISSING", "OCR engine script not found. Please verify ocr/receipt_ocr.py exists.");
+            }
+        } catch (Exception e) {
+            log.error("Failed to resolve OCR script path: {}", e.getMessage(), e);
+            return OcrResult.systemError("OCR_SCRIPT_MISSING", "OCR engine script not found: " + e.getMessage());
+        }
+
+        String pythonExecutable = this.resolvedPythonExecutable != null && testPython(this.resolvedPythonExecutable)
+                ? this.resolvedPythonExecutable
+                : detectPythonExecutable();
+        if (pythonExecutable == null || pythonExecutable.isBlank() || !testPython(pythonExecutable)) {
+            log.error("Python 3 executable not available on host system.");
+            return OcrResult.systemError("PYTHON_UNAVAILABLE", "Python 3 runtime is not available on the server.");
         }
 
         File tempImage = null;
@@ -64,16 +114,10 @@ public class ReceiptOcrService {
                 fos.write(imageBytes);
             }
 
-            Path scriptPath = getOrRefreshScriptPath();
-            if (scriptPath == null || !Files.exists(scriptPath)) {
-                log.error("Could not locate or extract receipt_ocr.py on server.");
-                return OcrResult.failed("OCR engine script not found. Please verify ocr/receipt_ocr.py exists.");
-            }
+            log.info("Executing local OCR with Python [{}] and script [{}] on image [{}] (size: {} bytes)",
+                    pythonExecutable, scriptPath.toAbsolutePath(), tempImage.getName(), imageBytes.length);
 
-            String pythonExecutable = this.resolvedPythonExecutable != null ? this.resolvedPythonExecutable : detectPythonExecutable();
-            log.info("Running local OCR with Python [{}] on script [{}]", pythonExecutable, scriptPath);
-
-            ProcessBuilder pb = new ProcessBuilder(pythonExecutable, scriptPath.toString(), tempImage.getAbsolutePath());
+            ProcessBuilder pb = new ProcessBuilder(pythonExecutable, scriptPath.toAbsolutePath().toString(), tempImage.getAbsolutePath());
             pb.redirectErrorStream(true);
 
             Process process = pb.start();
@@ -89,27 +133,38 @@ public class ReceiptOcrService {
             if (!finished) {
                 process.destroyForcibly();
                 log.warn("OCR process timed out after 25 seconds.");
-                return OcrResult.failed("OCR processing timed out. Image might be overly large or unreadable.");
+                return OcrResult.systemError("OCR_TIMEOUT", "OCR processing timed out. Image might be overly large or unreadable.");
             }
 
-            String rawJson = output.toString().trim();
-            if (rawJson.isEmpty()) {
+            String rawOutput = output.toString().trim();
+            if (rawOutput.isEmpty()) {
                 log.warn("OCR process returned empty output.");
-                return OcrResult.failed("OCR engine returned no output. Check server logs.");
+                return OcrResult.systemError("OCR_EMPTY_OUTPUT", "OCR engine returned no output. Check server logs.");
+            }
+
+            // Check for missing system dependencies in output
+            if (rawOutput.contains("TesseractNotFoundError") || rawOutput.contains("tesseract is not installed")) {
+                log.error("Tesseract OCR is not installed on the system: {}", rawOutput);
+                return OcrResult.systemError("TESSERACT_NOT_FOUND", "Tesseract OCR engine is not installed on the server.");
+            }
+
+            if (process.exitValue() != 0 && !rawOutput.contains("\"success\"")) {
+                log.error("OCR script process failed with exit code {}: {}", process.exitValue(), rawOutput);
+                return OcrResult.systemError("OCR_EXECUTION_FAILED", "OCR process failed with exit code " + process.exitValue());
             }
 
             // Extract JSON if extra stdout output occurred
-            int firstBrace = rawJson.indexOf("{");
-            int lastBrace = rawJson.lastIndexOf("}");
+            int firstBrace = rawOutput.indexOf("{");
+            int lastBrace = rawOutput.lastIndexOf("}");
             if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
-                rawJson = rawJson.substring(firstBrace, lastBrace + 1);
+                rawOutput = rawOutput.substring(firstBrace, lastBrace + 1);
             }
 
-            return parseOcrJson(rawJson);
+            return parseOcrJson(rawOutput);
 
         } catch (Exception e) {
             log.error("Failed to execute local OCR process: {}", e.getMessage(), e);
-            return OcrResult.failed("Error during local OCR execution: " + e.getMessage());
+            return OcrResult.systemError("OCR_PROCESS_EXCEPTION", "Error during local OCR execution: " + e.getMessage());
         } finally {
             if (tempImage != null && tempImage.exists()) {
                 try {
@@ -127,93 +182,129 @@ public class ReceiptOcrService {
         }
     }
 
-    private synchronized Path getOrRefreshScriptPath() {
-        if (this.resolvedScriptPath != null && Files.isRegularFile(this.resolvedScriptPath)) {
-            return this.resolvedScriptPath;
+    public synchronized Path getOrRefreshScriptPath() {
+        if (this.resolvedScriptPath != null && Files.isRegularFile(this.resolvedScriptPath) && Files.isReadable(this.resolvedScriptPath)) {
+            try {
+                if (Files.size(this.resolvedScriptPath) > 0) {
+                    return this.resolvedScriptPath;
+                }
+            } catch (Exception ignored) {
+            }
         }
-        this.resolvedScriptPath = detectAndExtractScript();
+        this.resolvedScriptPath = extractAndValidateScript();
         return this.resolvedScriptPath;
     }
 
-    private synchronized Path detectAndExtractScript() {
-        // 1. Check explicit environment variable (e.g. OCR_SCRIPT_PATH)
+    private synchronized Path extractAndValidateScript() {
+        // 1. Explicit environment variable
         String envPath = System.getenv("DIVIDO_OCR_SCRIPT_PATH");
         if (envPath == null || envPath.isBlank()) {
             envPath = System.getenv("OCR_SCRIPT_PATH");
         }
         if (envPath != null && !envPath.isBlank()) {
-            Path p = Paths.get(envPath.trim());
-            if (Files.isRegularFile(p)) {
-                log.info("Using OCR script from environment variable: {}", p.toAbsolutePath());
-                return p.toAbsolutePath();
+            Path p = Paths.get(envPath.trim()).toAbsolutePath();
+            if (Files.isRegularFile(p) && Files.isReadable(p)) {
+                try {
+                    if (Files.size(p) > 0) {
+                        log.info("Using OCR script from environment variable: {}", p);
+                        return p;
+                    }
+                } catch (Exception ignored) {
+                }
             }
         }
 
-        // 2. Check filesystem candidate paths relative to current working directory and common deployment roots
+        // 2. Classpath resource extraction (Required for Spring Boot JAR & Railway deployments)
+        try {
+            InputStream in = openClasspathResourceStream();
+            if (in != null) {
+                Path extracted = extractResourceToTempFile(in);
+                if (extracted != null && Files.isRegularFile(extracted) && Files.isReadable(extracted) && Files.size(extracted) > 0) {
+                    log.info("Successfully extracted OCR script from classpath to: {} (size: {} bytes)",
+                            extracted, Files.size(extracted));
+                    return extracted;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not extract OCR script from classpath: {}", e.getMessage(), e);
+        }
+
+        // 3. Filesystem candidates (Local dev fallback)
         List<Path> candidates = List.of(
-                Paths.get("/app/ocr", SCRIPT_FILENAME),
-                Paths.get("/app", SCRIPT_FILENAME),
+                Paths.get("backend/src/main/resources/ocr", SCRIPT_FILENAME),
                 Paths.get("backend/ocr", SCRIPT_FILENAME),
                 Paths.get("ocr", SCRIPT_FILENAME),
                 Paths.get("../ocr", SCRIPT_FILENAME),
-                Paths.get("../../ocr", SCRIPT_FILENAME),
-                Paths.get(SCRIPT_FILENAME)
+                Paths.get("/app/ocr", SCRIPT_FILENAME),
+                Paths.get("/tmp/divido_ocr", SCRIPT_FILENAME)
         );
         for (Path c : candidates) {
-            if (Files.isRegularFile(c)) {
-                log.info("Found OCR script on filesystem: {}", c.toAbsolutePath());
-                return c.toAbsolutePath();
+            Path abs = c.toAbsolutePath();
+            if (Files.isRegularFile(abs) && Files.isReadable(abs)) {
+                try {
+                    if (Files.size(abs) > 0) {
+                        log.info("Found OCR script on filesystem: {}", abs);
+                        return abs;
+                    }
+                } catch (Exception ignored) {
+                }
             }
         }
 
-        // 3. Search upward from working directory (up to 5 directory levels)
+        throw new IllegalStateException("Failed to locate or extract " + SCRIPT_FILENAME +
+                " from classpath (" + CLASSPATH_RESOURCE + ") or filesystem.");
+    }
+
+    private InputStream openClasspathResourceStream() {
         try {
-            Path current = Paths.get("").toAbsolutePath();
-            for (int i = 0; i < 5 && current != null; i++) {
-                Path check1 = current.resolve("ocr").resolve(SCRIPT_FILENAME);
-                if (Files.isRegularFile(check1)) return check1.toAbsolutePath();
-                Path check2 = current.resolve("backend/ocr").resolve(SCRIPT_FILENAME);
-                if (Files.isRegularFile(check2)) return check2.toAbsolutePath();
-                current = current.getParent();
+            ClassPathResource cpr = new ClassPathResource(CLASSPATH_RESOURCE);
+            if (cpr.exists()) {
+                return cpr.getInputStream();
             }
         } catch (Exception ignored) {
         }
 
-        // 4. Guaranteed Spring Classpath Extraction
-        // Reads from classpath (e.g. src/main/resources/ocr/receipt_ocr.py or inside the packaged JAR)
         try {
-            ClassPathResource resource = new ClassPathResource("ocr/" + SCRIPT_FILENAME);
-            if (!resource.exists()) {
-                resource = new ClassPathResource(SCRIPT_FILENAME);
+            ClassPathResource cpr = new ClassPathResource(SCRIPT_FILENAME);
+            if (cpr.exists()) {
+                return cpr.getInputStream();
             }
-            if (resource.exists()) {
-                File tempDir = new File(System.getProperty("java.io.tmpdir"), "divido_ocr");
-                if (!tempDir.exists()) {
-                    boolean created = tempDir.mkdirs();
-                }
-                File targetScript = new File(tempDir, SCRIPT_FILENAME);
-                try (InputStream in = resource.getInputStream();
-                     OutputStream out = new FileOutputStream(targetScript)) {
-                    in.transferTo(out);
-                }
-                boolean readable = targetScript.setReadable(true, false);
-                boolean executable = targetScript.setExecutable(true, false);
-                log.info("Successfully extracted classpath OCR script to: {} (size: {} bytes, readable: {})",
-                        targetScript.getAbsolutePath(), targetScript.length(), readable);
-                return targetScript.toPath().toAbsolutePath();
-            } else {
-                log.warn("Spring ClassPathResource ocr/{} not found on classpath.", SCRIPT_FILENAME);
-            }
-        } catch (Exception e) {
-            log.error("Failed to extract OCR script from classpath: {}", e.getMessage(), e);
+        } catch (Exception ignored) {
         }
 
-        log.error("Could not locate or extract {} anywhere on filesystem or classpath.", SCRIPT_FILENAME);
-        return null;
+        InputStream is = getClass().getClassLoader().getResourceAsStream(CLASSPATH_RESOURCE);
+        if (is != null) return is;
+
+        is = Thread.currentThread().getContextClassLoader().getResourceAsStream(CLASSPATH_RESOURCE);
+        if (is != null) return is;
+
+        return getClass().getResourceAsStream("/" + CLASSPATH_RESOURCE);
+    }
+
+    private Path extractResourceToTempFile(InputStream in) throws Exception {
+        try (in) {
+            File tempDir = new File("/tmp/divido_ocr");
+            if (!tempDir.exists() && !tempDir.mkdirs()) {
+                tempDir = new File(System.getProperty("java.io.tmpdir"), "divido_ocr");
+                tempDir.mkdirs();
+            }
+
+            File targetScript = new File(tempDir, SCRIPT_FILENAME);
+            try (OutputStream out = new FileOutputStream(targetScript)) {
+                in.transferTo(out);
+                out.flush();
+            }
+
+            boolean readable = targetScript.setReadable(true, false);
+            boolean executable = targetScript.setExecutable(true, false);
+            log.info("Extracted script to {} (readable: {}, executable: {})",
+                    targetScript.getAbsolutePath(), readable, executable);
+
+            return targetScript.toPath().toAbsolutePath();
+        }
     }
 
     private String detectPythonExecutable() {
-        // 1. Check environment variable
         String envPython = System.getenv("DIVIDO_PYTHON_PATH");
         if (envPython == null || envPython.isBlank()) {
             envPython = System.getenv("PYTHON_EXECUTABLE");
@@ -222,7 +313,6 @@ public class ReceiptOcrService {
             return envPython.trim();
         }
 
-        // 2. Candidate paths
         List<String> candidates = List.of(
                 "python3",
                 "/usr/bin/python3",
@@ -295,11 +385,12 @@ public class ReceiptOcrService {
                     hasMonetaryValues,
                     hasLikelyTotalLabel,
                     warnings,
-                    error
+                    error,
+                    success ? null : "OCR_FAILED"
             );
         } catch (Exception e) {
             log.error("Failed to parse OCR JSON output: {}", e.getMessage());
-            return OcrResult.failed("Failed to parse OCR result format: " + e.getMessage());
+            return OcrResult.systemError("OCR_PARSE_ERROR", "Failed to parse OCR result format: " + e.getMessage());
         }
     }
 }
