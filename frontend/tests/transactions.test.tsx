@@ -180,6 +180,35 @@ describe("recording transactions (TXN-001, TXN-002)", () => {
     expect(post.body).toMatchObject({ type: "EXPENSE", amount: "3500.00" });
     expect(post.body).toHaveProperty("categoryId");
   });
+
+  it("supports quick date buttons and interactive calendar picker on mobile and desktop", async () => {
+    const user = userEvent.setup();
+    renderInShell(<Harness />);
+    await user.click((await screen.findAllByRole("button", { name: "Add transaction" }))[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /Add expense/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Record an expense" });
+
+    const dateInput = within(dialog).getByLabelText(/^Date/);
+
+    // Click "Yesterday"
+    await user.click(within(dialog).getByRole("button", { name: "Yesterday" }));
+    expect(dateInput).not.toHaveValue("");
+
+    // Click "Today"
+    await user.click(within(dialog).getByRole("button", { name: "Today" }));
+    expect(dateInput).toHaveValue(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Colombo" }));
+
+    // Click "Pick date" to open interactive calendar
+    await user.click(within(dialog).getByRole("button", { name: "Toggle calendar picker" }));
+    expect(within(dialog).getByRole("grid", { name: "Calendar dates" })).toBeInTheDocument();
+
+    // Select a date cell in the grid
+    const dayBtn = within(within(dialog).getByRole("grid", { name: "Calendar dates" })).getAllByRole("button")[15];
+    await user.click(dayBtn);
+
+    // Calendar closes and date input is updated
+    expect(within(dialog).queryByRole("grid", { name: "Calendar dates" })).not.toBeInTheDocument();
+  });
 });
 
 describe("viewing, editing and deleting (TXN-004..006)", () => {

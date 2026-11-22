@@ -36,6 +36,16 @@ export function InputField({
         aria-invalid={!!error}
         aria-describedby={describedBy}
         onChange={(e) => onValueChange(e.target.value)}
+        onClick={(e) => {
+          if (props.type === "date") {
+            try {
+              (e.currentTarget as HTMLInputElement).showPicker?.();
+            } catch {
+              // Ignore if showPicker is not supported
+            }
+          }
+          props.onClick?.(e);
+        }}
         {...props}
       />
       <FieldError id={errorId} message={error} />

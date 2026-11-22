@@ -21,6 +21,21 @@
 .compact-money:focus-within, .money-input:focus-within { border-color: var(--green); }
 .checkbox-field.inline { margin-top: 0; white-space: nowrap; }
 
+/* Date inputs: dark color-scheme for native picker, pointer cursor, clean indicator */
+input[type="date"] {
+  color-scheme: dark;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.85);
+  opacity: 0.85;
+  padding: 4px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* Loading, errors, coming later */
 .app-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80px; padding: 24px; color: transparent; border: none !important; background: transparent !important; box-shadow: none !important; pointer-events: none; }
 .app-loading-bar { display: none !important; }

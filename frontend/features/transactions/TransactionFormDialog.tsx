@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowDown, ArrowUp, Check, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { FormError } from "@/components/feedback/FieldError";
 import { GroupBadge } from "@/components/financial/GroupBadge";
 import { GROUP_META, GROUP_ORDER } from "@/components/financial/groups";
@@ -15,7 +15,7 @@ import { createCategory, listCategories } from "@/lib/api/categories";
 import { ApiError } from "@/lib/api/client";
 import { createIncomeSource, listIncomeSources } from "@/lib/api/income-sources";
 import { createTransaction, updateTransaction } from "@/lib/api/transactions";
-import { getTodayIso, formatDateDisplay, formatMonthYear } from "@/lib/formatting/dates";
+import { getTodayIso, getYesterdayIso, formatDateDisplay, formatMonthYear, shiftMonth } from "@/lib/formatting/dates";
 import { normalizeMoneyInput } from "@/lib/formatting/money";
 import { buildTransactionPatch, PAYMENT_METHODS } from "@/lib/transactions/patch";
 import { useApiData } from "@/lib/useApiData";
@@ -32,6 +32,49 @@ export interface InitialTransactionValues {
   description?: string;
   paymentMethod?: string;
   isAiScanned?: boolean;
+}
+
+function getCalendarGrid(yearMonth: string) {
+  const [year, month] = yearMonth.split("-").map(Number);
+  const firstDay = new Date(year, month - 1, 1).getDay(); // 0 is Sunday
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1; // Monday as first day of week
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const daysInPrevMonth = new Date(year, month - 1, 0).getDate();
+
+  const cells: { day: number; iso: string; isCurrentMonth: boolean }[] = [];
+
+  // Previous month padding
+  const prevMonthStr = shiftMonth(yearMonth, -1);
+  for (let i = startOffset - 1; i >= 0; i--) {
+    const day = daysInPrevMonth - i;
+    cells.push({
+      day,
+      iso: `${prevMonthStr}-${String(day).padStart(2, "0")}`,
+      isCurrentMonth: false,
+    });
+  }
+
+  // Current month
+  for (let day = 1; day <= daysInMonth; day++) {
+    cells.push({
+      day,
+      iso: `${yearMonth}-${String(day).padStart(2, "0")}`,
+      isCurrentMonth: true,
+    });
+  }
+
+  // Next month padding to fill multiple of 7
+  const remaining = (7 - (cells.length % 7)) % 7;
+  const nextMonthStr = shiftMonth(yearMonth, 1);
+  for (let day = 1; day <= remaining; day++) {
+    cells.push({
+      day,
+      iso: `${nextMonthStr}-${String(day).padStart(2, "0")}`,
+      isCurrentMonth: false,
+    });
+  }
+
+  return cells;
 }
 
 /**
@@ -75,6 +118,14 @@ export function TransactionFormDialog({
   const [date, setDate] = useState(
     transaction?.date ?? initialValues?.date ?? getTodayIso()
   );
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarViewMonth, setCalendarViewMonth] = useState(
+    () => (transaction?.date ?? initialValues?.date ?? getTodayIso()).slice(0, 7)
+  );
+
+  const calendarDays = useMemo(() => {
+    return getCalendarGrid(calendarViewMonth);
+  }, [calendarViewMonth]);
   const [description, setDescription] = useState(
     transaction?.description ?? initialValues?.description ?? ""
   );
@@ -597,29 +648,166 @@ export function TransactionFormDialog({
           </p>
         )}
 
-        <div className="relative">
-          <InputField
-            label="Date"
-            required
-            type="date"
-            name="date"
-            value={date}
-            onValueChange={setDate}
-            error={fieldErrors.date}
-            hint={
-              date !== getTodayIso()
-                ? `Selected date is ${formatDateDisplay(date)} (${formatMonthYear(date.slice(0, 7))}).`
-                : undefined
-            }
-          />
-          {date !== getTodayIso() && (
-            <button
-              type="button"
-              onClick={() => setDate(getTodayIso())}
-              className="absolute top-0 right-0 text-[11px] font-semibold text-[#34d399] hover:text-[#10b981] transition-colors cursor-pointer"
-            >
-              Set to today ({formatDateDisplay(getTodayIso())})
-            </button>
+        <div className="flex flex-col gap-1.5">
+          <div className="relative">
+            <InputField
+              label="Date"
+              required
+              type="date"
+              name="date"
+              value={date}
+              onValueChange={(val) => {
+                setDate(val);
+                if (val && val.length >= 7) {
+                  setCalendarViewMonth(val.slice(0, 7));
+                }
+              }}
+              onClick={() => {
+                if (!showCalendar && date && date.length >= 7) {
+                  setCalendarViewMonth(date.slice(0, 7));
+                }
+                setShowCalendar(true);
+              }}
+              error={fieldErrors.date}
+              hint={
+                date !== getTodayIso()
+                  ? `Selected date is ${formatDateDisplay(date)} (${formatMonthYear(date.slice(0, 7))}).`
+                  : undefined
+              }
+            />
+            {/* Quick date chips in header */}
+            <div className="absolute top-0 right-0 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  const today = getTodayIso();
+                  setDate(today);
+                  setCalendarViewMonth(today.slice(0, 7));
+                }}
+                className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  date === getTodayIso()
+                    ? "bg-emerald-500/20 text-[#34d399] border border-emerald-500/30"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const yesterday = getYesterdayIso();
+                  setDate(yesterday);
+                  setCalendarViewMonth(yesterday.slice(0, 7));
+                }}
+                className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  date === getYesterdayIso()
+                    ? "bg-emerald-500/20 text-[#34d399] border border-emerald-500/30"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                Yesterday
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!showCalendar && date && date.length >= 7) {
+                    setCalendarViewMonth(date.slice(0, 7));
+                  }
+                  setShowCalendar((prev) => !prev);
+                }}
+                className={`text-[11px] px-2 py-0.5 rounded-md font-medium transition-colors cursor-pointer flex items-center gap-1 ${
+                  showCalendar
+                    ? "bg-emerald-500 text-black font-semibold"
+                    : "text-[#34d399] hover:text-[#10b981] border border-emerald-500/20 bg-emerald-500/10"
+                }`}
+                title="Toggle interactive calendar"
+                aria-label="Toggle calendar picker"
+              >
+                <CalendarIcon size={12} />
+                <span>{showCalendar ? "Close" : "Pick date"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Touch-Friendly Interactive Calendar */}
+          {showCalendar && (
+            <div className="p-3.5 rounded-xl bg-[#0d1611] border border-emerald-500/30 flex flex-col gap-2.5 shadow-xl animate-in fade-in duration-150">
+              {/* Month Navigation */}
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setCalendarViewMonth((prev) => shiftMonth(prev, -1))}
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-xs font-semibold text-white tracking-wide">
+                  {formatMonthYear(calendarViewMonth)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCalendarViewMonth((prev) => shiftMonth(prev, 1))}
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  aria-label="Next month"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+
+              {/* Day of Week Headers */}
+              <div className="grid grid-cols-7 text-center">
+                {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
+                  <span key={day} className="text-[10px] font-semibold text-zinc-500 py-1">
+                    {day}
+                  </span>
+                ))}
+              </div>
+
+              {/* Days Grid */}
+              <div className="grid grid-cols-7 gap-1" role="grid" aria-label="Calendar dates">
+                {calendarDays.map((cell) => {
+                  const isSelected = cell.iso === date;
+                  const isToday = cell.iso === getTodayIso();
+                  return (
+                    <button
+                      key={cell.iso}
+                      type="button"
+                      onClick={() => {
+                        setDate(cell.iso);
+                        setShowCalendar(false);
+                      }}
+                      className={`h-8 rounded-lg text-xs font-medium flex items-center justify-center transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-[#10b981] text-black font-bold shadow-sm"
+                          : isToday
+                          ? "border border-emerald-500/50 text-[#34d399] hover:bg-emerald-500/10"
+                          : cell.isCurrentMonth
+                          ? "text-zinc-200 hover:bg-white/10"
+                          : "text-zinc-600 hover:bg-white/5"
+                      }`}
+                      aria-label={`${cell.iso}${isSelected ? ", selected" : ""}${isToday ? ", today" : ""}`}
+                    >
+                      {cell.day}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Calendar Footer */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.08]">
+                <span className="text-[11px] text-zinc-400">
+                  {date ? formatDateDisplay(date) : "No date selected"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowCalendar(false)}
+                  className="text-xs text-[#34d399] hover:text-[#10b981] font-semibold cursor-pointer px-2 py-0.5"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
           )}
         </div>
         <InputField
