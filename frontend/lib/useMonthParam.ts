@@ -14,9 +14,39 @@ export function useMonthParam(): [string, (month: string) => void] {
   const router = useRouter();
   const pathname = usePathname();
   const raw = searchParams.get("month");
-  const month = isValidMonth(raw) ? raw : getCurrentMonth();
+
+  let month = getCurrentMonth();
+  if (isValidMonth(raw)) {
+    month = raw;
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("divido-active-month", raw);
+      } catch {
+        // Storage unavailable
+      }
+    }
+  } else if (typeof window !== "undefined") {
+    try {
+      const stored = sessionStorage.getItem("divido-active-month");
+      if (isValidMonth(stored)) {
+        month = stored;
+      }
+    } catch {
+      // Storage unavailable
+    }
+  }
+
   const setMonth = useCallback(
-    (next: string) => router.push(`${pathname}?month=${next}`, { scroll: false }),
+    (next: string) => {
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem("divido-active-month", next);
+        } catch {
+          // Storage unavailable
+        }
+      }
+      router.push(`${pathname}?month=${next}`, { scroll: false });
+    },
     [router, pathname],
   );
   return [month, setMonth];

@@ -510,7 +510,11 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
                             current === getTodayIso() ? scanResult.transaction?.date || "" : getTodayIso()
                           )
                         }
-                        className="text-[10px] font-semibold text-[#34d399] hover:underline cursor-pointer"
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+                          transactionDate === getTodayIso()
+                            ? "bg-zinc-800 text-zinc-300 hover:text-white"
+                            : "bg-emerald-500/20 text-[#34d399] hover:bg-emerald-500/30 border border-emerald-500/30"
+                        }`}
                       >
                         {transactionDate === getTodayIso() ? "Use Receipt Date" : "Use Today"}
                       </button>
@@ -521,7 +525,7 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
                   </span>
                   {transactionDate && transactionDate !== getTodayIso() && (
                     <span className="text-[10px] text-amber-400/90 mt-0.5 block">
-                      Receipt date: {transactionDate}
+                      Receipt date: {transactionDate} (Tap &quot;Use Today&quot; to record today)
                     </span>
                   )}
                 </div>

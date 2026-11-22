@@ -115,9 +115,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               const savedMonth = savedDate.slice(0, 7);
               const formattedMonth = formatMonthYear(savedMonth);
               setToast(`${message} for ${formattedMonth}`);
-              if (pathname === "/transactions" || pathname.startsWith("/transactions")) {
-                router.push(`/transactions?month=${savedMonth}`, { scroll: false });
+              if (typeof window !== "undefined") {
+                try {
+                  sessionStorage.setItem("divido-active-month", savedMonth);
+                } catch {
+                  // ignore
+                }
               }
+              router.push(`${pathname}?month=${savedMonth}`, { scroll: false });
             } else {
               setToast(message);
             }

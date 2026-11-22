@@ -73,44 +73,36 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
         <>
           <FreshMonthNotice dashboard={data.data.dashboard} monthLabel={monthLabel} budgetHref={budgetHref} onAddIncome={() => openAdd("INCOME")} />
           
-          {/* Compact greeting placed on page background ABOVE the black frame/card on mobile and tablet */}
-          <div className="dashboard-greeting-compact max-[900px]:block hidden mb-4 px-0.5">
-            <h1 className="flex flex-col tracking-tight">
-              <span className="text-sm sm:text-base font-medium text-zinc-400 leading-snug">
-                {greeting},
-              </span>
-              <span className="text-2xl sm:text-3xl font-bold text-white tracking-tight capitalize leading-tight mt-0.5">
-                {name || "ready to plan?"}
-              </span>
-            </h1>
+          {/* Dashboard Header: 2-line greeting on left, MonthSelector & actions on right */}
+          <div className="dashboard-header-wrap flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-4">
+            <div className="dashboard-greeting-compact">
+              <h1 className="flex flex-col tracking-tight">
+                <span className="text-sm sm:text-base font-medium text-zinc-400 leading-snug">
+                  {greeting},
+                </span>
+                <span className="text-2xl sm:text-3xl font-bold text-white tracking-tight capitalize leading-tight mt-0.5">
+                  {name || "ready to plan?"}
+                </span>
+              </h1>
+            </div>
+            <div className="dashboard-reference-controls flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
+              <div className="dashboard-reference-month-control">
+                <MonthSelector month={month} onChange={onMonthChange} />
+              </div>
+              <div className="dashboard-header-buttons desktop-only">
+                <Button variant="destructive" onClick={() => openAdd("EXPENSE")}>
+                  <Plus size={15} aria-hidden="true" />
+                  Add expense
+                </Button>
+                <Button variant="primary" onClick={() => openAdd("INCOME")}>
+                  <Plus size={15} aria-hidden="true" />
+                  Add income
+                </Button>
+              </div>
+            </div>
           </div>
 
           <div className="dashboard-reference-frame">
-            <div className="dashboard-reference-header sr-only">
-              <div>
-                <span className="text-[11px] font-bold tracking-[0.2em] text-[#34d399] uppercase block mb-1">
-                  OVERVIEW
-                </span>
-                <h1 className="dashboard-reference-greeting text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                  {greetingHeading}
-                </h1>
-              </div>
-              <div className="dashboard-reference-controls">
-                <div className="dashboard-reference-month-control">
-                  <MonthSelector month={month} onChange={onMonthChange} />
-                </div>
-                <div className="dashboard-header-buttons desktop-only">
-                  <Button variant="destructive" onClick={() => openAdd("EXPENSE")}>
-                    <Plus size={15} aria-hidden="true" />
-                    Add expense
-                  </Button>
-                  <Button variant="primary" onClick={() => openAdd("INCOME")}>
-                    <Plus size={15} aria-hidden="true" />
-                    Add income
-                  </Button>
-                </div>
-              </div>
-            </div>
             <SummaryCards
               dashboard={data.data.dashboard}
               monthLabel={monthLabel}
