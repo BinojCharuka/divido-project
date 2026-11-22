@@ -174,7 +174,6 @@ export function MobileDock({
             />
           </div>
           <span className="floating-dock-label">{item.label}</span>
-          {active && <span className="floating-dock-active-dot" aria-hidden="true" />}
         </div>
       </Link>
     );
@@ -470,7 +469,6 @@ export function MobileDock({
                 />
               </div>
               <span className="floating-dock-label">More</span>
-              {isMoreActive && <span className="floating-dock-active-dot" aria-hidden="true" />}
             </div>
           </button>
         </div>
