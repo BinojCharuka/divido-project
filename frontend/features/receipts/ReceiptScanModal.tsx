@@ -17,6 +17,7 @@ import {
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { scanReceipt } from "@/lib/api/receipts";
+import { formatDateDisplay, getTodayIso } from "@/lib/formatting/dates";
 import type { ReceiptScanResponse } from "@/types/receipt";
 
 export interface ExtractedExpenseData {
@@ -496,13 +497,33 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
 
               {/* Grid: Date, Category & Purpose */}
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2.5 rounded-lg bg-[#18231c] border border-white/[0.05]">
-                  <span className="text-zinc-400 block text-[10px] uppercase font-medium">
-                    Transaction Date
-                  </span>
+                <div className="p-2.5 rounded-lg bg-[#18231c] border border-white/[0.05] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400 block text-[10px] uppercase font-medium">
+                      Transaction Date
+                    </span>
+                    {scanResult.transaction?.date && scanResult.transaction.date !== getTodayIso() && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTransactionDate((current) =>
+                            current === getTodayIso() ? scanResult.transaction?.date || "" : getTodayIso()
+                          )
+                        }
+                        className="text-[10px] font-semibold text-[#34d399] hover:underline cursor-pointer"
+                      >
+                        {transactionDate === getTodayIso() ? "Use Receipt Date" : "Use Today"}
+                      </button>
+                    )}
+                  </div>
                   <span className="font-semibold text-white mt-0.5 block">
                     {transactionDate || scanResult.transaction?.date || "Not detected"}
                   </span>
+                  {transactionDate && transactionDate !== getTodayIso() && (
+                    <span className="text-[10px] text-amber-400/90 mt-0.5 block">
+                      Receipt date: {transactionDate}
+                    </span>
+                  )}
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-[#18231c] border border-white/[0.05]">

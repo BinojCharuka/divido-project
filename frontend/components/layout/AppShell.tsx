@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { TransactionDialogs, type TransactionDialogState } from "@/features/transactions/TransactionDialogs";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { displayNameFor } from "@/lib/auth/displayName";
+import { formatMonthYear } from "@/lib/formatting/dates";
 import type { Transaction, TransactionType } from "@/types/transaction";
 import { AppShellContext, type AppShellActions } from "./AppShellContext";
 import { AnimatedBackground } from "./AnimatedBackground";
@@ -30,6 +32,8 @@ function readCollapsed(): boolean {
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   // Safe to read storage up front: the shell renders only after the client-side session check.
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [dialog, setDialog] = useState<"help" | "signout" | null>(null);
@@ -105,9 +109,18 @@ export function AppShell({ children }: { children: ReactNode }) {
         <TransactionDialogs
           state={transactionDialog}
           onStateChange={setTransactionDialog}
-          onSaved={(message) => {
+          onSaved={(message, savedDate) => {
             setDataVersion((v) => v + 1);
-            setToast(message);
+            if (savedDate) {
+              const savedMonth = savedDate.slice(0, 7);
+              const formattedMonth = formatMonthYear(savedMonth);
+              setToast(`${message} for ${formattedMonth}`);
+              if (pathname === "/transactions" || pathname.startsWith("/transactions")) {
+                router.push(`/transactions?month=${savedMonth}`, { scroll: false });
+              }
+            } else {
+              setToast(message);
+            }
           }}
         />
         {dialog === "help" && <HelpDialog onClose={() => setDialog(null)} />}

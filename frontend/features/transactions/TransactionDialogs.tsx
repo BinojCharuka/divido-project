@@ -26,13 +26,13 @@ export function TransactionDialogs({
 }: {
   state: TransactionDialogState;
   onStateChange: (next: TransactionDialogState) => void;
-  onSaved: (message: string) => void;
+  onSaved: (message: string, date?: string) => void;
 }) {
   if (!state) return null;
   const close = () => onStateChange(null);
-  const finish = (message: string) => {
+  const finish = (message: string, date?: string) => {
     close();
-    onSaved(message);
+    onSaved(message, date);
   };
 
   switch (state.mode) {

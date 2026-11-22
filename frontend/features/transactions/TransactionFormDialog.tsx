@@ -15,7 +15,7 @@ import { listCategories } from "@/lib/api/categories";
 import { ApiError } from "@/lib/api/client";
 import { listIncomeSources } from "@/lib/api/income-sources";
 import { createTransaction, updateTransaction } from "@/lib/api/transactions";
-import { getTodayIso } from "@/lib/formatting/dates";
+import { getTodayIso, formatDateDisplay, formatMonthYear } from "@/lib/formatting/dates";
 import { normalizeMoneyInput } from "@/lib/formatting/money";
 import { buildTransactionPatch, PAYMENT_METHODS } from "@/lib/transactions/patch";
 import { useApiData } from "@/lib/useApiData";
@@ -53,7 +53,7 @@ export function TransactionFormDialog({
   onClose: () => void;
   onBack?: () => void;
   onDelete?: () => void;
-  onSaved: (message: string) => void;
+  onSaved: (message: string, date?: string) => void;
 }) {
   const [activeType, setActiveType] = useState<TransactionType>(type);
   const isIncome = activeType === "INCOME";
@@ -150,10 +150,10 @@ export function TransactionFormDialog({
           return;
         }
         await updateTransaction(transaction.id, patch);
-        onSaved("Transaction updated");
+        onSaved("Transaction updated", date);
       } else {
         await createTransaction({ ...input, type: activeType, amount: normalizeMoneyInput(amount) });
-        onSaved(isIncome ? "Income added" : "Expense saved");
+        onSaved(isIncome ? "Income added" : "Expense saved", date);
       }
     } catch (err) {
       if (err instanceof ApiError) {
@@ -283,7 +283,31 @@ export function TransactionFormDialog({
           </p>
         )}
 
-        <InputField label="Date" required type="date" name="date" value={date} onValueChange={setDate} error={fieldErrors.date} />
+        <div className="relative">
+          <InputField
+            label="Date"
+            required
+            type="date"
+            name="date"
+            value={date}
+            onValueChange={setDate}
+            error={fieldErrors.date}
+            hint={
+              date !== getTodayIso()
+                ? `Selected date is ${formatDateDisplay(date)} (${formatMonthYear(date.slice(0, 7))}).`
+                : undefined
+            }
+          />
+          {date !== getTodayIso() && (
+            <button
+              type="button"
+              onClick={() => setDate(getTodayIso())}
+              className="absolute top-0 right-0 text-[11px] font-semibold text-[#34d399] hover:text-[#10b981] transition-colors cursor-pointer"
+            >
+              Set to today ({formatDateDisplay(getTodayIso())})
+            </button>
+          )}
+        </div>
         <InputField
           label="Description"
           optional
