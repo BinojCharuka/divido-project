@@ -115,10 +115,24 @@ describe("ReceiptScanModal", () => {
 
     const mockResponse: ReceiptScanResponse = {
       success: true,
-      receiptQuality: { isReadable: true },
-      merchant: { name: "Arpico" },
-      transaction: { total: 1200.0, date: "2026-11-22", currency: "LKR" },
+      receiptQuality: { isReadable: true, isBlurry: false, warnings: [] },
+      merchant: { name: "Arpico", branch: "Hyde Park", address: "Colombo", contact: "0112345678" },
+      transaction: {
+        total: 1200.0,
+        date: "2026-11-22",
+        currency: "LKR",
+        time: "10:30",
+        subtotal: 1200.0,
+        discount: 0,
+        tax: 0,
+        serviceCharge: 0,
+        amountPaid: 1200.0,
+        change: 0,
+      },
       rawText: "Arpico Supercentre 1200",
+      items: [],
+      expense: null,
+      confidence: null,
     };
     vi.spyOn(receiptsApi, "scanReceipt").mockResolvedValueOnce(mockResponse);
 

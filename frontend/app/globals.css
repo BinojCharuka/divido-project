@@ -164,27 +164,7 @@ div[data-nextjs-dev-tools-button],
    Eliminates browser default yellow/mustard autofill backgrounds in Chrome,
    Safari, Edge, and Firefox while keeping Divido's dark palette & crisp typography.
    ========================================================================== */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active,
-textarea:-webkit-autofill,
-textarea:-webkit-autofill:hover,
-textarea:-webkit-autofill:focus,
-select:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px #0d1410 inset !important;
-  box-shadow: 0 0 0 1000px #0d1410 inset !important;
-  -webkit-text-fill-color: #f4f4f5 !important;
-  caret-color: #5fa88f !important;
-  transition: background-color 999999s ease-in-out 0s;
-}
-
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #0f1712 inset !important;
-  box-shadow: 0 0 0 1000px #0f1712 inset !important;
-}
-
+/* Standard CSS Autofill (Firefox & modern standards) */
 input:autofill,
 input:autofill:hover,
 input:autofill:focus,
@@ -192,31 +172,51 @@ input:autofill:active,
 textarea:autofill,
 textarea:autofill:hover,
 textarea:autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #0d1410 inset !important;
   box-shadow: 0 0 0 1000px #0d1410 inset !important;
-  -webkit-text-fill-color: #f4f4f5 !important;
   caret-color: #5fa88f !important;
   filter: none !important;
-}
-
-:root:not(.dark) input:-webkit-autofill,
-:root:not(.dark) input:-webkit-autofill:hover,
-:root:not(.dark) input:-webkit-autofill:focus,
-:root:not(.dark) input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #f4f4f5 inset !important;
-  box-shadow: 0 0 0 1000px #f4f4f5 inset !important;
-  -webkit-text-fill-color: #18181b !important;
-  caret-color: #10b981 !important;
 }
 
 :root:not(.dark) input:autofill,
 :root:not(.dark) input:autofill:hover,
 :root:not(.dark) input:autofill:focus,
 :root:not(.dark) input:autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #f4f4f5 inset !important;
   box-shadow: 0 0 0 1000px #f4f4f5 inset !important;
-  -webkit-text-fill-color: #18181b !important;
   caret-color: #10b981 !important;
+}
+
+/* WebKit-specific Autofill (Chrome, Safari, Edge) guarded to prevent Firefox selector drop warnings */
+@supports selector(:-webkit-autofill) {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px #0d1410 inset !important;
+    box-shadow: 0 0 0 1000px #0d1410 inset !important;
+    -webkit-text-fill-color: #f4f4f5 !important;
+    caret-color: #5fa88f !important;
+    transition: background-color 999999s ease-in-out 0s;
+  }
+
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #0f1712 inset !important;
+    box-shadow: 0 0 0 1000px #0f1712 inset !important;
+  }
+
+  :root:not(.dark) input:-webkit-autofill,
+  :root:not(.dark) input:-webkit-autofill:hover,
+  :root:not(.dark) input:-webkit-autofill:focus,
+  :root:not(.dark) input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #f4f4f5 inset !important;
+    box-shadow: 0 0 0 1000px #f4f4f5 inset !important;
+    -webkit-text-fill-color: #18181b !important;
+    caret-color: #10b981 !important;
+  }
 }
 
 
