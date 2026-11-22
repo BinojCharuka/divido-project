@@ -1030,17 +1030,17 @@ html[data-theme='dark'],
   border-radius: 50%;
 }
 
-/* --- Reference Dashboard Redesign (Single Cohesive Frame) --- */
+/* --- Reference Dashboard Redesign (Seamless Clean Layout) --- */
 .dashboard-reference-frame {
-  background: #080c09;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  padding: 24px;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-top: 14px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: none !important;
 }
 
 .dashboard-reference-header {
@@ -1446,9 +1446,10 @@ html[data-theme='dark'],
 /* --- Light Theme Support for Reference Dashboard --- */
 html:not(.dark) .dashboard-reference-frame,
 :root[data-theme='light'] .dashboard-reference-frame {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
 html:not(.dark) .dashboard-reference-greeting,
@@ -1622,8 +1623,12 @@ html:not(.dark) .dashboard-savings-note,
 
 @media (max-width: 640px) {
   .dashboard-reference-frame {
-    padding: 16px 14px !important;
-    border-radius: 18px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-top: 2px !important;
+    border-radius: 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
