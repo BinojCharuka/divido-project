@@ -120,6 +120,7 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const isApplying = useRef(false);
 
   // Clean up any lingering object URL on unmount
   useEffect(() => {
@@ -244,7 +245,8 @@ export function ReceiptScanModal({ onClose, onApply }: ReceiptScanModalProps) {
   };
 
   const handleApplyToForm = () => {
-    if (!scanResult) return;
+    if (isApplying.current || !scanResult) return;
+    isApplying.current = true;
 
     if (previewUrl) {
       try {

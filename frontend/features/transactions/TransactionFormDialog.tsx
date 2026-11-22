@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { ArrowDown, ArrowUp, Check, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { FormError } from "@/components/feedback/FieldError";
 import { GroupBadge } from "@/components/financial/GroupBadge";
@@ -86,6 +86,7 @@ export function TransactionFormDialog({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const isSubmitting = useRef(false);
 
   const handleReceiptExtracted = (data: ExtractedExpenseData) => {
     if (data.amount) {
@@ -122,7 +123,7 @@ export function TransactionFormDialog({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending) return;
+    if (isSubmitting.current || pending) return;
     const input = {
       amount: amount.trim(),
       date,
@@ -134,6 +135,7 @@ export function TransactionFormDialog({
     setFormError(null);
     if (Object.keys(errors).length > 0) return;
 
+    isSubmitting.current = true;
     setPending(true);
     try {
       if (transaction) {
@@ -156,6 +158,7 @@ export function TransactionFormDialog({
         onSaved(isIncome ? "Income added" : "Expense saved", date);
       }
     } catch (err) {
+      isSubmitting.current = false;
       if (err instanceof ApiError) {
         setFieldErrors(err.fieldErrors);
         setFormError(
