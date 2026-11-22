@@ -4,14 +4,14 @@ import { useMemo, useRef, useState, type FormEvent } from "react";
 import { ArrowDown, ArrowUp, Check, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { FormError } from "@/components/feedback/FieldError";
 import { GroupBadge } from "@/components/financial/GroupBadge";
-import { GROUP_META } from "@/components/financial/groups";
+import { GROUP_META, GROUP_ORDER } from "@/components/financial/groups";
 import { InputField } from "@/components/forms/InputField";
 import { MoneyField } from "@/components/forms/MoneyField";
 import { SelectField } from "@/components/forms/SelectField";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ReceiptScanModal, type ExtractedExpenseData } from "@/features/receipts/ReceiptScanModal";
-import { listCategories } from "@/lib/api/categories";
+import { createCategory, listCategories } from "@/lib/api/categories";
 import { ApiError } from "@/lib/api/client";
 import { createIncomeSource, listIncomeSources } from "@/lib/api/income-sources";
 import { createTransaction, updateTransaction } from "@/lib/api/transactions";
@@ -20,7 +20,7 @@ import { normalizeMoneyInput } from "@/lib/formatting/money";
 import { buildTransactionPatch, PAYMENT_METHODS } from "@/lib/transactions/patch";
 import { useApiData } from "@/lib/useApiData";
 import { validateExpense, validateIncome, type FieldErrors } from "@/lib/validation/transactions";
-import type { Category } from "@/types/category";
+import type { Category, KakeiboGroup } from "@/types/category";
 import type { IncomeSource } from "@/types/income-source";
 import type { Transaction, TransactionType } from "@/types/transaction";
 
@@ -117,7 +117,52 @@ export function TransactionFormDialog({
   );
   const loaded = options.status === "ready" ? options.data : [];
   // An edited record may point at an entry that is now inactive; keep it selectable.
-  const categories = withCurrent(loaded as Category[], transaction?.category && { ...transaction.category, isDefault: false, active: false });
+  const [createdCategories, setCreatedCategories] = useState<Category[]>([]);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryGroup, setNewCategoryGroup] = useState<KakeiboGroup>("CULTURE");
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [newCategoryError, setNewCategoryError] = useState<string | null>(null);
+
+  const baseCategories = withCurrent(loaded as Category[], transaction?.category && { ...transaction.category, isDefault: false, active: false });
+  const categories = useMemo(() => {
+    const combined = [...baseCategories];
+    for (const c of createdCategories) {
+      if (!combined.some((item) => item.id === c.id)) {
+        combined.push(c);
+      }
+    }
+    return combined;
+  }, [baseCategories, createdCategories]);
+
+  const missingGroups = useMemo(() => {
+    return GROUP_ORDER.filter((group) => !categories.some((c) => c.group === group && c.active));
+  }, [categories]);
+
+  async function handleCreateCategory() {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) {
+      setNewCategoryError("Enter a name for this category.");
+      return;
+    }
+    setCreatingCategory(true);
+    setNewCategoryError(null);
+    try {
+      const created = await createCategory({ name: trimmed, group: newCategoryGroup });
+      setCreatedCategories((prev) => [...prev, created]);
+      setCategoryId(created.id);
+      setNewCategoryName("");
+      setShowAddCategory(false);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setNewCategoryError(err.kind === "conflict" ? "You already have a category with this name." : err.message);
+      } else {
+        setNewCategoryError("Failed to create category. Please try again.");
+      }
+    } finally {
+      setCreatingCategory(false);
+    }
+  }
 
   const [createdSources, setCreatedSources] = useState<IncomeSource[]>([]);
   const [showAddSource, setShowAddSource] = useState(false);
@@ -287,82 +332,16 @@ export function TransactionFormDialog({
               optional
               name="incomeSourceId"
               value={incomeSourceId}
-              onChange={setIncomeSourceId}
+              onChange={(val) => {
+                if (val === "__NEW_INCOME_SOURCE__") {
+                  setShowAddSource(true);
+                } else {
+                  setIncomeSourceId(val);
+                }
+              }}
               disabled={options.status !== "ready"}
               error={fieldErrors.incomeSourceId}
               hint="A label for your income, not a connected account."
-              after={
-                showAddSource ? (
-                  <div className="p-3 rounded-xl bg-[#111c15] border border-emerald-500/25 flex flex-col gap-2 mt-2 shadow-md">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-white flex items-center gap-1.5">
-                        <Plus size={13} className="text-[#34d399]" />
-                        New income source
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowAddSource(false);
-                          setNewSourceName("");
-                          setNewSourceError(null);
-                        }}
-                        className="text-[11px] text-zinc-400 hover:text-white cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="e.g. Salary, Freelance, Rent"
-                        value={newSourceName}
-                        onChange={(e) => {
-                          setNewSourceName(e.target.value);
-                          if (newSourceError) setNewSourceError(null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleCreateSource();
-                          }
-                        }}
-                        className="flex-1 px-3 py-2 rounded-lg bg-[#07100b] border border-white/10 text-white text-xs placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none"
-                        autoFocus
-                      />
-                      <Button
-                        type="button"
-                        variant="primary"
-                        loading={creatingSource}
-                        disabled={!newSourceName.trim() || creatingSource}
-                        onClick={handleCreateSource}
-                        className="bg-[#10b981] hover:bg-[#059669] text-white text-xs px-3 py-1.5 cursor-pointer font-medium"
-                      >
-                        Add
-                      </Button>
-                    </div>
-                    {newSourceError && (
-                      <span className="text-[11px] text-red-400 font-medium">{newSourceError}</span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between mt-1.5">
-                    {sources.length === 0 && !optionsLoading ? (
-                      <span className="text-[11px] text-zinc-400">No income sources found yet.</span>
-                    ) : (
-                      <span />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setShowAddSource(true)}
-                      className="text-xs text-[#34d399] hover:text-[#10b981] font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <Plus size={13} strokeWidth={2.4} />
-                      <span>{sources.length === 0 ? "Create an income source" : "Add new source"}</span>
-                    </button>
-                  </div>
-                )
-              }
             >
               <option value="">{optionsLoading ? "Loading income sources…" : "No income source"}</option>
               {sources.map((s) => (
@@ -371,27 +350,243 @@ export function TransactionFormDialog({
                   {s.active ? "" : " · inactive"}
                 </option>
               ))}
+              {!optionsLoading && (
+                <option value="__NEW_INCOME_SOURCE__">+ Add new income source…</option>
+              )}
             </SelectField>
+
+            {showAddSource ? (
+              <div className="p-3 rounded-xl bg-[#111c15] border border-emerald-500/25 flex flex-col gap-2 mt-1 shadow-md">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <Plus size={13} className="text-[#34d399]" />
+                    New income source
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddSource(false);
+                      setNewSourceName("");
+                      setNewSourceError(null);
+                    }}
+                    className="text-[11px] text-zinc-400 hover:text-white cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. Salary, Freelance, Rent"
+                    value={newSourceName}
+                    onChange={(e) => {
+                      setNewSourceName(e.target.value);
+                      if (newSourceError) setNewSourceError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleCreateSource();
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 rounded-lg bg-[#07100b] border border-white/10 text-white text-xs placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none"
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    loading={creatingSource}
+                    disabled={!newSourceName.trim() || creatingSource}
+                    onClick={handleCreateSource}
+                    className="bg-[#10b981] hover:bg-[#059669] text-white text-xs px-3 py-1.5 cursor-pointer font-medium"
+                  >
+                    Add
+                  </Button>
+                </div>
+                {newSourceError && (
+                  <span className="text-[11px] text-red-400 font-medium">{newSourceError}</span>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between mt-1">
+                {sources.length === 0 && !optionsLoading ? (
+                  <span className="text-[11px] text-zinc-400">No income sources found yet.</span>
+                ) : (
+                  <span />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowAddSource(true)}
+                  className="text-xs text-[#34d399] hover:text-[#10b981] font-medium flex items-center gap-1 cursor-pointer transition-colors ml-auto"
+                >
+                  <Plus size={13} strokeWidth={2.4} />
+                  <span>{sources.length === 0 ? "Create an income source" : "Add new source"}</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
-          <SelectField
-            label="Category"
-            required
-            name="categoryId"
-            value={categoryId}
-            onChange={setCategoryId}
-            disabled={options.status !== "ready"}
-            error={fieldErrors.categoryId}
-            after={selectedCategory && <GroupBadge group={selectedCategory.group} />}
-          >
-            <option value="">{optionsLoading ? "Loading categories…" : "Choose a category"}</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} · {GROUP_META[c.group].label}
-                {c.active ? "" : " · inactive"}
-              </option>
-            ))}
-          </SelectField>
+          <div className="flex flex-col gap-1">
+            <SelectField
+              label="Category"
+              required
+              name="categoryId"
+              value={categoryId}
+              onChange={(val) => {
+                if (val === "__NEW_CATEGORY__") {
+                  setShowAddCategory(true);
+                } else if (val.startsWith("__NEW_GROUP_")) {
+                  const grp = val.replace("__NEW_GROUP_", "") as KakeiboGroup;
+                  setNewCategoryGroup(grp);
+                  setShowAddCategory(true);
+                } else {
+                  setCategoryId(val);
+                }
+              }}
+              disabled={options.status !== "ready"}
+              error={fieldErrors.categoryId}
+              after={selectedCategory && <GroupBadge group={selectedCategory.group} />}
+            >
+              <option value="">{optionsLoading ? "Loading categories…" : "Choose a category"}</option>
+              {GROUP_ORDER.map((group) => {
+                const groupCats = categories.filter((c) => c.group === group);
+                const meta = GROUP_META[group];
+                return (
+                  <optgroup key={group} label={`${meta.label} (${meta.description})`}>
+                    {groupCats.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} · {meta.label}
+                        {c.active ? "" : " · inactive"}
+                      </option>
+                    ))}
+                    <option value={`__NEW_GROUP_${group}`}>
+                      + Add category in {meta.label}…
+                    </option>
+                  </optgroup>
+                );
+              })}
+            </SelectField>
+
+            {/* Inline Quick Add Category Section */}
+            {showAddCategory ? (
+              <div className="p-3 rounded-xl bg-[#111c15] border border-emerald-500/25 flex flex-col gap-2.5 mt-1 shadow-md">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <Plus size={13} className="text-[#34d399]" />
+                    New category
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddCategory(false);
+                      setNewCategoryName("");
+                      setNewCategoryError(null);
+                    }}
+                    className="text-[11px] text-zinc-400 hover:text-white cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {/* 4 Kakeibo Method Group Pills */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-[11px] text-zinc-400 font-medium">Kakeibo Group</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5" role="radiogroup" aria-label="Kakeibo group">
+                    {GROUP_ORDER.map((g) => {
+                      const meta = GROUP_META[g];
+                      const Icon = meta.icon;
+                      const selected = newCategoryGroup === g;
+                      return (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => setNewCategoryGroup(g)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                            selected
+                              ? "bg-emerald-500/15 border-emerald-500/40 text-[#34d399] shadow-xs"
+                              : "bg-[#07100b] border-white/10 text-zinc-400 hover:text-white hover:border-white/20"
+                          }`}
+                        >
+                          <Icon size={13} className={selected ? "text-[#34d399]" : "text-zinc-500"} />
+                          <span>{meta.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder={`e.g. ${
+                      newCategoryGroup === "CULTURE"
+                        ? "Books, Courses, Workshops"
+                        : newCategoryGroup === "UNEXPECTED"
+                        ? "Repairs, Medical, Emergencies"
+                        : newCategoryGroup === "NEEDS"
+                        ? "Rent, Electricity, Healthcare"
+                        : "Dining out, Coffee, Gadgets"
+                    }`}
+                    value={newCategoryName}
+                    onChange={(e) => {
+                      setNewCategoryName(e.target.value);
+                      if (newCategoryError) setNewCategoryError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleCreateCategory();
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 rounded-lg bg-[#07100b] border border-white/10 text-white text-xs placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none"
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    loading={creatingCategory}
+                    disabled={!newCategoryName.trim() || creatingCategory}
+                    onClick={handleCreateCategory}
+                    className="bg-[#10b981] hover:bg-[#059669] text-white text-xs px-3 py-1.5 cursor-pointer font-medium"
+                  >
+                    Add
+                  </Button>
+                </div>
+                {newCategoryError && (
+                  <span className="text-[11px] text-red-400 font-medium">{newCategoryError}</span>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between mt-1 flex-wrap gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {missingGroups.map((group) => (
+                    <button
+                      key={group}
+                      type="button"
+                      onClick={() => {
+                        setNewCategoryGroup(group);
+                        setShowAddCategory(true);
+                      }}
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-[#34d399] hover:bg-emerald-950/70 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                      title={`Add a category under ${GROUP_META[group].label}`}
+                    >
+                      <Plus size={11} strokeWidth={2.5} />
+                      <span>Add {GROUP_META[group].label}</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCategory(true)}
+                  className="text-xs text-[#34d399] hover:text-[#10b981] font-medium flex items-center gap-1 cursor-pointer transition-colors ml-auto"
+                >
+                  <Plus size={13} strokeWidth={2.4} />
+                  <span>Add category</span>
+                </button>
+              </div>
+            )}
+          </div>
         )}
         {options.status === "error" && (
           <p className="field-error" role="alert">

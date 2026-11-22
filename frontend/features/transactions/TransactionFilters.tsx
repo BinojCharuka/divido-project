@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { GROUP_META } from "@/components/financial/groups";
+import { GROUP_META, GROUP_ORDER } from "@/components/financial/groups";
 import { Button } from "@/components/ui/Button";
 import type { Category } from "@/types/category";
 import type { IncomeSource } from "@/types/income-source";
@@ -101,12 +101,21 @@ export function TransactionFilters({
               }}
             >
               <option value="">All categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} · {GROUP_META[c.group].label}
-                  {c.active ? "" : " · inactive"}
-                </option>
-              ))}
+              {GROUP_ORDER.map((group) => {
+                const groupCats = categories.filter((c) => c.group === group);
+                if (groupCats.length === 0) return null;
+                const meta = GROUP_META[group];
+                return (
+                  <optgroup key={group} label={`${meta.label} (${meta.description})`}>
+                    {groupCats.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} · {meta.label}
+                        {c.active ? "" : " · inactive"}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
             </select>
           )}
           {type !== "EXPENSE" && (

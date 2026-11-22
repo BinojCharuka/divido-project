@@ -149,6 +149,37 @@ describe("recording transactions (TXN-001, TXN-002)", () => {
     expect(post.body).toMatchObject({ type: "INCOME", amount: "75000.00" });
     expect(post.body).toHaveProperty("incomeSourceId");
   });
+
+  it("allows creating a category under Culture or Unexpected inline and auto-selects it", async () => {
+    const user = userEvent.setup();
+    renderInShell(<Harness />);
+    await user.click((await screen.findAllByRole("button", { name: "Add transaction" }))[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /Add expense/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Record an expense" });
+
+    // Click "Add Culture"
+    const addCultureBtn = within(dialog).getByRole("button", { name: /Add Culture/ });
+    await user.click(addCultureBtn);
+
+    // Type the category name and submit
+    const input = within(dialog).getByPlaceholderText(/Books, Courses/);
+    await user.type(input, "Books & Reading");
+    await user.click(within(dialog).getByRole("button", { name: "Add" }));
+
+    // Verify it is created and selected in the select field under Culture
+    const select = within(dialog).getByLabelText(/^Category/);
+    expect(within(select).getByRole("option", { name: /Books & Reading/ })).toBeInTheDocument();
+    expect(select).not.toHaveValue("");
+
+    // Submit transaction
+    await user.type(within(dialog).getByLabelText(/^Amount/), "3500");
+    await user.click(within(dialog).getByRole("button", { name: "Save expense" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Expense saved");
+    const [post] = backend.callsTo("/api/v1/transactions").filter((c) => c.method === "POST" && (c.body as { amount?: string })?.amount === "3500.00");
+    expect(post.body).toMatchObject({ type: "EXPENSE", amount: "3500.00" });
+    expect(post.body).toHaveProperty("categoryId");
+  });
 });
 
 describe("viewing, editing and deleting (TXN-004..006)", () => {
