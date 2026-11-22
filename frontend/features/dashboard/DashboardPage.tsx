@@ -73,13 +73,15 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
         <>
           <FreshMonthNotice dashboard={data.data.dashboard} monthLabel={monthLabel} budgetHref={budgetHref} onAddIncome={() => openAdd("INCOME")} />
           
-          {/* Compact greeting placed on page background ABOVE the black frame/card on mobile */}
-          <div className="dashboard-greeting-compact md:hidden mb-4 px-0.5">
-            <span className="text-[10px] font-bold tracking-[0.2em] text-[#34d399] uppercase block leading-none mb-1">
-              OVERVIEW
-            </span>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              {greetingHeading}
+          {/* Compact greeting placed on page background ABOVE the black frame/card on mobile and tablet */}
+          <div className="dashboard-greeting-compact max-[900px]:block hidden mb-4 px-0.5">
+            <h1 className="flex flex-col tracking-tight">
+              <span className="text-sm sm:text-base font-medium text-zinc-400 leading-snug">
+                {greeting},
+              </span>
+              <span className="text-2xl sm:text-3xl font-bold text-white tracking-tight capitalize leading-tight mt-0.5">
+                {name || "ready to plan?"}
+              </span>
             </h1>
           </div>
 

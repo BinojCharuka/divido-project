@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ArrowLeft, X } from "lucide-react";
-import { IconButton } from "./IconButton";
+import { ArrowLeft } from "lucide-react";
 
 /**
  * A native modal dialog & mobile bottom sheet with interactive touch gesture support:
@@ -225,7 +224,6 @@ export function Modal({
             {subtitle && <p>{subtitle}</p>}
           </div>
         </div>
-        <IconButton icon={X} label="Close dialog" onClick={handleClose} />
       </div>
       {children}
     </dialog>

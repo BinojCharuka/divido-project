@@ -44,9 +44,11 @@ export function TopBar({
       <div className="header-content flex items-center justify-between w-full">
         {/* Desktop Eyebrow and Page Heading */}
         <div className="flex flex-col text-left">
-          <span className="text-[10px] font-bold tracking-[0.2em] text-[#34d399] uppercase block leading-tight">
-            {eyebrow}
-          </span>
+          {eyebrow && (
+            <span className={`text-[10px] font-bold tracking-[0.2em] text-[#34d399] uppercase leading-tight ${eyebrow === "OVERVIEW" ? "hidden lg:block" : "block"}`}>
+              {eyebrow}
+            </span>
+          )}
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight mt-0.5">
             {title}
           </h2>

@@ -328,25 +328,25 @@ export function MobileDock({
           </div>
 
           {/* Bottom Logout Button matching Image 2 */}
-          <div className="more-drawer-logout pt-4 border-t border-white/[0.08] mt-4">
+          <div className="more-drawer-logout pt-4 border-t border-white/[0.08] mt-4 flex justify-start">
             <button
               type="button"
-              className="more-drawer-item group !border-none !py-2"
+              className="group flex items-center justify-start gap-3.5 !border-none !py-2 text-left cursor-pointer transition-opacity hover:opacity-85"
               onClick={() => {
                 closeDrawer();
                 onSignOut?.();
               }}
             >
-              <div className="flex flex-col">
+              <div className="w-10 h-10 rounded-xl bg-[#2a1714] border border-rose-500/20 text-[#fbbf24] flex items-center justify-center shrink-0 shadow-xs">
+                <LogOut size={18} strokeWidth={2.2} />
+              </div>
+              <div className="flex flex-col text-left">
                 <span className="text-sm font-semibold text-rose-300 group-hover:text-rose-200 transition-colors">
                   Logout
                 </span>
                 <span className="text-[11px] text-zinc-500 mt-0.5">
                   End your active session
                 </span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-[#2a1714] border border-rose-500/20 text-[#fbbf24] flex items-center justify-center shrink-0 shadow-xs">
-                <LogOut size={18} strokeWidth={2.2} />
               </div>
             </button>
           </div>

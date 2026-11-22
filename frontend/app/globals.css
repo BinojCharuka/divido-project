@@ -41,6 +41,8 @@ html[data-theme='dark'],
 html {
   overflow-x: hidden;
   max-width: 100%;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
