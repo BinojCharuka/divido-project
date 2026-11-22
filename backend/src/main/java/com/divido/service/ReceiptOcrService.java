@@ -1,8 +1,10 @@
 package com.divido.service;
 
 import com.divido.dto.receipt.OcrResult;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -12,11 +14,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -24,16 +26,28 @@ import java.util.concurrent.TimeUnit;
 /**
  * Executes local OCR using the Python receipt_ocr engine (OpenCV + Tesseract OCR).
  * Validates text length, confidence, monetary amounts, and total labels without contacting any cloud API.
+ * Ensures the OCR script is reliably resolved across local, JAR, and containerized deployments.
  */
 @Service
 public class ReceiptOcrService {
 
     private static final Logger log = LoggerFactory.getLogger(ReceiptOcrService.class);
+    private static final String SCRIPT_FILENAME = "receipt_ocr.py";
 
     private final JsonMapper jsonMapper;
+    private Path resolvedScriptPath;
+    private String resolvedPythonExecutable;
 
     public ReceiptOcrService(JsonMapper jsonMapper) {
         this.jsonMapper = jsonMapper;
+    }
+
+    @PostConstruct
+    public void init() {
+        this.resolvedPythonExecutable = detectPythonExecutable();
+        this.resolvedScriptPath = detectAndExtractScript();
+        log.info("ReceiptOcrService initialized. Python: {}, Script: {}",
+                this.resolvedPythonExecutable, this.resolvedScriptPath);
     }
 
     public OcrResult extractText(byte[] imageBytes, String mimeType) {
@@ -50,16 +64,16 @@ public class ReceiptOcrService {
                 fos.write(imageBytes);
             }
 
-            String pythonExecutable = resolvePythonExecutable();
-            String scriptPath = resolveScriptPath();
-            log.info("Receipt OCR using python: {} and script: {}", pythonExecutable, scriptPath);
-
-            if (scriptPath == null) {
-                log.error("Could not find ocr/receipt_ocr.py script in workspace.");
+            Path scriptPath = getOrRefreshScriptPath();
+            if (scriptPath == null || !Files.exists(scriptPath)) {
+                log.error("Could not locate or extract receipt_ocr.py on server.");
                 return OcrResult.failed("OCR engine script not found. Please verify ocr/receipt_ocr.py exists.");
             }
 
-            ProcessBuilder pb = new ProcessBuilder(pythonExecutable, scriptPath, tempImage.getAbsolutePath());
+            String pythonExecutable = this.resolvedPythonExecutable != null ? this.resolvedPythonExecutable : detectPythonExecutable();
+            log.info("Running local OCR with Python [{}] on script [{}]", pythonExecutable, scriptPath);
+
+            ProcessBuilder pb = new ProcessBuilder(pythonExecutable, scriptPath.toString(), tempImage.getAbsolutePath());
             pb.redirectErrorStream(true);
 
             Process process = pb.start();
@@ -108,118 +122,135 @@ public class ReceiptOcrService {
                     }
                 } catch (Exception e) {
                     log.warn("Could not delete cached temporary receipt image: {}", e.getMessage());
-                    try {
-                        tempImage.delete();
-                    } catch (Exception ignored) {
-                    }
                 }
             }
         }
     }
 
-    private String resolvePythonExecutable() {
-        List<String> candidates = new ArrayList<>();
-        // 1. Check workspace venvs
-        Path[] venvPaths = {
-                Paths.get("ocr/venv/bin/python"),
-                Paths.get("ocr/venv/bin/python3"),
-                Paths.get("../ocr/venv/bin/python"),
-                Paths.get("../ocr/venv/bin/python3")
-        };
-        for (Path p : venvPaths) {
-            if (Files.isExecutable(p)) {
-                candidates.add(p.toAbsolutePath().toString());
-            }
+    private synchronized Path getOrRefreshScriptPath() {
+        if (this.resolvedScriptPath != null && Files.isRegularFile(this.resolvedScriptPath)) {
+            return this.resolvedScriptPath;
         }
-
-        // 2. Add system candidates
-        candidates.add("python3");
-        candidates.add("/Library/Frameworks/Python.framework/Versions/3.14/bin/python3");
-        candidates.add("/opt/homebrew/bin/python3");
-        candidates.add("/usr/local/bin/python3");
-        candidates.add("/usr/bin/python3");
-
-        for (String c : candidates) {
-            try {
-                Process p = new ProcessBuilder(c, "-c", "import pytesseract, cv2, PIL; print('OK')")
-                        .redirectErrorStream(true)
-                        .start();
-                boolean finished = p.waitFor(3, TimeUnit.SECONDS);
-                if (finished && p.exitValue() == 0) {
-                    return c;
-                }
-            } catch (Exception ignored) {
-            }
-        }
-        return "python3";
+        this.resolvedScriptPath = detectAndExtractScript();
+        return this.resolvedScriptPath;
     }
 
-    private String resolveScriptPath() {
-        // 1. Check explicit environment variable
+    private synchronized Path detectAndExtractScript() {
+        // 1. Check explicit environment variable (e.g. OCR_SCRIPT_PATH)
         String envPath = System.getenv("DIVIDO_OCR_SCRIPT_PATH");
         if (envPath == null || envPath.isBlank()) {
             envPath = System.getenv("OCR_SCRIPT_PATH");
         }
         if (envPath != null && !envPath.isBlank()) {
             Path p = Paths.get(envPath.trim());
-            if (Files.exists(p)) {
-                return p.toAbsolutePath().toString();
+            if (Files.isRegularFile(p)) {
+                log.info("Using OCR script from environment variable: {}", p.toAbsolutePath());
+                return p.toAbsolutePath();
             }
         }
 
-        // 2. Direct candidate paths from working directory
-        Path[] directCandidates = {
-                Paths.get("backend/ocr/receipt_ocr.py"),
-                Paths.get("ocr/receipt_ocr.py"),
-                Paths.get("../ocr/receipt_ocr.py"),
-                Paths.get("../../ocr/receipt_ocr.py"),
-                Paths.get("receipt_ocr.py")
-        };
-        for (Path p : directCandidates) {
-            if (Files.exists(p)) {
-                return p.toAbsolutePath().toString();
+        // 2. Check filesystem candidate paths relative to current working directory and common deployment roots
+        List<Path> candidates = List.of(
+                Paths.get("/app/ocr", SCRIPT_FILENAME),
+                Paths.get("/app", SCRIPT_FILENAME),
+                Paths.get("backend/ocr", SCRIPT_FILENAME),
+                Paths.get("ocr", SCRIPT_FILENAME),
+                Paths.get("../ocr", SCRIPT_FILENAME),
+                Paths.get("../../ocr", SCRIPT_FILENAME),
+                Paths.get(SCRIPT_FILENAME)
+        );
+        for (Path c : candidates) {
+            if (Files.isRegularFile(c)) {
+                log.info("Found OCR script on filesystem: {}", c.toAbsolutePath());
+                return c.toAbsolutePath();
             }
         }
 
-        // 3. Search parent directories from working directory
+        // 3. Search upward from working directory (up to 5 directory levels)
         try {
             Path current = Paths.get("").toAbsolutePath();
             for (int i = 0; i < 5 && current != null; i++) {
-                Path check1 = current.resolve("ocr/receipt_ocr.py");
-                if (Files.exists(check1)) return check1.toAbsolutePath().toString();
-                Path check2 = current.resolve("backend/ocr/receipt_ocr.py");
-                if (Files.exists(check2)) return check2.toAbsolutePath().toString();
+                Path check1 = current.resolve("ocr").resolve(SCRIPT_FILENAME);
+                if (Files.isRegularFile(check1)) return check1.toAbsolutePath();
+                Path check2 = current.resolve("backend/ocr").resolve(SCRIPT_FILENAME);
+                if (Files.isRegularFile(check2)) return check2.toAbsolutePath();
                 current = current.getParent();
             }
         } catch (Exception ignored) {
         }
 
-        // 4. Guaranteed Fallback: extract bundled script from classpath resource
-        InputStream in = getClass().getResourceAsStream("/ocr/receipt_ocr.py");
-        if (in == null) {
-            in = getClass().getClassLoader().getResourceAsStream("ocr/receipt_ocr.py");
-        }
-        if (in == null) {
-            in = Thread.currentThread().getContextClassLoader().getResourceAsStream("ocr/receipt_ocr.py");
-        }
-        if (in != null) {
-            try {
-                File tempScript = File.createTempFile("divido_receipt_ocr_", ".py");
-                tempScript.deleteOnExit();
-                Files.copy(in, tempScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                boolean ignored = tempScript.setExecutable(true, false);
-                return tempScript.getAbsolutePath();
-            } catch (Exception e) {
-                log.warn("Could not extract receipt_ocr.py from classpath: {}", e.getMessage());
-            } finally {
-                try {
-                    in.close();
-                } catch (Exception ignored) {
-                }
+        // 4. Guaranteed Spring Classpath Extraction
+        // Reads from classpath (e.g. src/main/resources/ocr/receipt_ocr.py or inside the packaged JAR)
+        try {
+            ClassPathResource resource = new ClassPathResource("ocr/" + SCRIPT_FILENAME);
+            if (!resource.exists()) {
+                resource = new ClassPathResource(SCRIPT_FILENAME);
             }
+            if (resource.exists()) {
+                File tempDir = new File(System.getProperty("java.io.tmpdir"), "divido_ocr");
+                if (!tempDir.exists()) {
+                    boolean created = tempDir.mkdirs();
+                }
+                File targetScript = new File(tempDir, SCRIPT_FILENAME);
+                try (InputStream in = resource.getInputStream();
+                     OutputStream out = new FileOutputStream(targetScript)) {
+                    in.transferTo(out);
+                }
+                boolean readable = targetScript.setReadable(true, false);
+                boolean executable = targetScript.setExecutable(true, false);
+                log.info("Successfully extracted classpath OCR script to: {} (size: {} bytes, readable: {})",
+                        targetScript.getAbsolutePath(), targetScript.length(), readable);
+                return targetScript.toPath().toAbsolutePath();
+            } else {
+                log.warn("Spring ClassPathResource ocr/{} not found on classpath.", SCRIPT_FILENAME);
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract OCR script from classpath: {}", e.getMessage(), e);
         }
 
+        log.error("Could not locate or extract {} anywhere on filesystem or classpath.", SCRIPT_FILENAME);
         return null;
+    }
+
+    private String detectPythonExecutable() {
+        // 1. Check environment variable
+        String envPython = System.getenv("DIVIDO_PYTHON_PATH");
+        if (envPython == null || envPython.isBlank()) {
+            envPython = System.getenv("PYTHON_EXECUTABLE");
+        }
+        if (envPython != null && !envPython.isBlank() && testPython(envPython.trim())) {
+            return envPython.trim();
+        }
+
+        // 2. Candidate paths
+        List<String> candidates = List.of(
+                "python3",
+                "/usr/bin/python3",
+                "/usr/local/bin/python3",
+                "/opt/homebrew/bin/python3",
+                "/Library/Frameworks/Python.framework/Versions/3.14/bin/python3",
+                "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
+                "/Library/Frameworks/Python.framework/Versions/3.11/bin/python3",
+                "python"
+        );
+        for (String c : candidates) {
+            if (testPython(c)) {
+                return c;
+            }
+        }
+        return "python3";
+    }
+
+    private boolean testPython(String cmd) {
+        try {
+            Process p = new ProcessBuilder(cmd, "--version")
+                    .redirectErrorStream(true)
+                    .start();
+            boolean ok = p.waitFor(2, TimeUnit.SECONDS);
+            return ok && p.exitValue() == 0;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private OcrResult parseOcrJson(String json) {
@@ -268,8 +299,7 @@ public class ReceiptOcrService {
             );
         } catch (Exception e) {
             log.error("Failed to parse OCR JSON output: {}", e.getMessage());
-            return OcrResult.failed("Failed to parse OCR result format.");
+            return OcrResult.failed("Failed to parse OCR result format: " + e.getMessage());
         }
     }
 }
-

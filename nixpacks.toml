@@ -3,3 +3,4 @@ nixPkgs = ["jdk21", "maven", "python3", "tesseract"]
 
 [phases.install]
 cmds = ["python3 -m pip install pytesseract pillow opencv-python-headless numpy --break-system-packages || true"]
+

@@ -65,32 +65,18 @@ public class ReceiptScanController {
             // Stage 1: Free Local OCR (OpenCV + Tesseract)
             OcrResult ocrResult = ocrService.extractText(imageBytes, mimeType);
 
-            // Cloud / Missing Local Engine Graceful Fallback:
-            // If local OCR engine script or binary is not available on this server host (e.g. Railway minimal container),
-            // gracefully fallback to Gemini Multimodal directly so the user NEVER receives a scanning failure.
-            if (!ocrResult.isSuccess() && ocrResult.error() != null &&
-                    (ocrResult.error().contains("script not found") || ocrResult.error().contains("No such file") || ocrResult.error().contains("Cannot run program"))) {
-                log.warn("Local OCR engine unavailable ({}), falling back to Gemini Multimodal directly.", ocrResult.error());
-                ReceiptScanResponse directResponse = scannerService.scanReceiptDirectImage(user.getId(), imageBytes, mimeType);
-                return ResponseEntity.ok(directResponse);
-            }
-
             // Stage 2: Quality Validation & Token Protection Short-Circuit
-            if (!ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
-                // If OCR unreadable was caused by system execution error, also fall back to Gemini Multimodal
-                if (ocrResult.error() != null && (ocrResult.error().contains("script not found") || ocrResult.error().contains("No such file") || ocrResult.error().contains("Cannot run program") || ocrResult.error().contains("TesseractNotFoundError"))) {
-                    log.warn("Local OCR execution failure ({}), falling back to Gemini Multimodal.", ocrResult.error());
-                    ReceiptScanResponse directResponse = scannerService.scanReceiptDirectImage(user.getId(), imageBytes, mimeType);
-                    return ResponseEntity.ok(directResponse);
-                }
+            // Check if OCR failed, produced empty/short text, or identified no monetary values.
+            // If quality is insufficient, short-circuit immediately without sending anything to Gemini.
+            if (!ocrResult.isSuccess() || !ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
                 log.info("Receipt OCR quality failed or lacks monetary values. Short-circuiting without calling Gemini API.");
                 List<String> warnings = ocrResult.safeWarnings().isEmpty()
-                        ? List.of("Receipt text is unclear or no prices could be identified. Please take a clearer photo.")
+                        ? List.of(ocrResult.error() != null ? ocrResult.error() : "Receipt text is unclear or no prices could be identified. Please take a clearer photo.")
                         : ocrResult.safeWarnings();
                 return ResponseEntity.ok(ReceiptScanResponse.unreadable(warnings, ocrResult.safeRawText()));
             }
 
-            // Stage 3: Semantic Understanding with Gemini API (Pure text only, zero image data sent)
+            // Stage 3: Semantic Understanding with Gemini API (Pure OCR-extracted text only, zero images sent)
             ReceiptScanResponse response = scannerService.scanReceiptText(user.getId(), ocrResult);
             return ResponseEntity.ok(response);
 
@@ -148,32 +134,18 @@ public class ReceiptScanController {
             // Stage 1: Free Local OCR (OpenCV + Tesseract)
             OcrResult ocrResult = ocrService.extractText(imageBytes, mimeType);
 
-            // Cloud / Missing Local Engine Graceful Fallback:
-            // If local OCR engine script or binary is not available on this server host (e.g. Railway minimal container),
-            // gracefully fallback to Gemini Multimodal directly so the user NEVER receives a scanning failure.
-            if (!ocrResult.isSuccess() && ocrResult.error() != null &&
-                    (ocrResult.error().contains("script not found") || ocrResult.error().contains("No such file") || ocrResult.error().contains("Cannot run program"))) {
-                log.warn("Local OCR engine unavailable ({}), falling back to Gemini Multimodal directly.", ocrResult.error());
-                ReceiptScanResponse directResponse = scannerService.scanReceiptDirectImage(user.getId(), imageBytes, mimeType);
-                return ResponseEntity.ok(directResponse);
-            }
-
             // Stage 2: Quality Validation & Token Protection Short-Circuit
-            if (!ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
-                // If OCR unreadable was caused by system execution error, also fall back to Gemini Multimodal
-                if (ocrResult.error() != null && (ocrResult.error().contains("script not found") || ocrResult.error().contains("No such file") || ocrResult.error().contains("Cannot run program") || ocrResult.error().contains("TesseractNotFoundError"))) {
-                    log.warn("Local OCR execution failure ({}), falling back to Gemini Multimodal.", ocrResult.error());
-                    ReceiptScanResponse directResponse = scannerService.scanReceiptDirectImage(user.getId(), imageBytes, mimeType);
-                    return ResponseEntity.ok(directResponse);
-                }
+            // Check if OCR failed, produced empty/short text, or identified no monetary values.
+            // If quality is insufficient, short-circuit immediately without sending anything to Gemini.
+            if (!ocrResult.isSuccess() || !ocrResult.isReadable() || ocrResult.safeRawText().length() < 10 || !ocrResult.hasMonetaryValues()) {
                 log.info("Receipt OCR quality failed or lacks monetary values. Short-circuiting without calling Gemini API.");
                 List<String> warnings = ocrResult.safeWarnings().isEmpty()
-                        ? List.of("Receipt text is unclear or no prices could be identified. Please take a clearer photo.")
+                        ? List.of(ocrResult.error() != null ? ocrResult.error() : "Receipt text is unclear or no prices could be identified. Please take a clearer photo.")
                         : ocrResult.safeWarnings();
                 return ResponseEntity.ok(ReceiptScanResponse.unreadable(warnings, ocrResult.safeRawText()));
             }
 
-            // Stage 3: Semantic Understanding with Gemini API (Pure text only, zero image data sent)
+            // Stage 3: Semantic Understanding with Gemini API (Pure OCR-extracted text only, zero images sent)
             ReceiptScanResponse response = scannerService.scanReceiptText(user.getId(), ocrResult);
             return ResponseEntity.ok(response);
 
