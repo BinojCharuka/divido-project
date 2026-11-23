@@ -50,7 +50,7 @@ export function ReflectionPage({ month, onMonthChange }: { month: string; onMont
       {form.load?.status === "loading" && <LoadingPanel label="Loading your reflection…" />}
       {form.load?.status === "error" && <InlineError message={form.load.message} onRetry={form.retry} />}
       {form.load?.status === "ready" && (
-        <div className="reflection-page">
+        <div className="reflection-page animate-content-reveal">
           <div className="reflection-intro">
             <h2>Looking back on {monthLabel}</h2>
             <p>

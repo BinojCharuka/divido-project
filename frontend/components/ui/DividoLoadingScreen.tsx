@@ -16,16 +16,20 @@ export function DividoLoadingScreen({
   message = "Opening your personal money space…",
   fullscreen = true,
   className = "",
+  role,
   ...props
 }: DividoLoadingScreenProps) {
+  const resolvedRole = role !== undefined ? role : fullscreen ? "status" : undefined;
   return (
     <div
-      role="status"
-      aria-live="polite"
-      aria-label="Loading Divido"
+      role={resolvedRole}
+      aria-live={resolvedRole ? "polite" : undefined}
+      aria-label={resolvedRole ? "Loading Divido" : undefined}
       className={`${
-        fullscreen ? "fixed inset-0 min-h-screen z-[99999]" : "w-full min-h-[400px]"
-      } flex flex-col items-center justify-center bg-[#faf9f5] dark:bg-[#090c0a] text-zinc-900 dark:text-zinc-100 transition-colors duration-200 antialiased relative select-none ${className}`}
+        fullscreen
+          ? "fixed inset-0 min-h-screen z-[99999] bg-[#faf9f5] dark:bg-[#090c0a]"
+          : "w-full min-h-[360px] sm:min-h-[440px] bg-transparent"
+      } flex flex-col items-center justify-center text-zinc-900 dark:text-zinc-100 transition-colors duration-200 antialiased relative select-none ${className}`}
       {...props}
     >
       {/* Background ambient lighting */}
@@ -66,11 +70,13 @@ export function DividoLoadingScreen({
       </div>
 
       {/* Subtle bottom tagline */}
-      <div className="absolute bottom-8 inset-x-0 text-center">
-        <span className="text-[11px] font-medium text-zinc-400/80 dark:text-zinc-600/80 tracking-widest uppercase">
-          A little awareness · A little more possibility
-        </span>
-      </div>
+      {fullscreen && (
+        <div className="absolute bottom-8 inset-x-0 text-center">
+          <span className="text-[11px] font-medium text-zinc-400/80 dark:text-zinc-600/80 tracking-widest uppercase">
+            A little awareness · A little more possibility
+          </span>
+        </div>
+      )}
     </div>
   );
 }

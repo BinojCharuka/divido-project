@@ -57,23 +57,26 @@ export function CategoriesPage() {
 
       {list.status === "loading" && <LoadingPanel label="Loading categories…" />}
       {list.status === "error" && <InlineError message={list.message} onRetry={list.retry} />}
-      {list.status === "ready" && items.length === 0 && (
-        <div className="panel empty-state">
-          <h3>No categories here</h3>
-          <p>Add a category to organise your spending in this group.</p>
+      {list.status === "ready" && (
+        <div className="animate-content-reveal">
+          {items.length === 0 ? (
+            <div className="panel empty-state">
+              <h3>No categories here</h3>
+              <p>Add a category to organise your spending in this group.</p>
+            </div>
+          ) : (
+            <ul className="category-grid">
+              {items.map((c) => (
+                <CategoryCard
+                  key={c.id}
+                  category={c}
+                  onEdit={() => setDialog({ kind: "edit", category: c })}
+                  onDeactivate={() => setDialog({ kind: "deactivate", category: c })}
+                />
+              ))}
+            </ul>
+          )}
         </div>
-      )}
-      {items.length > 0 && (
-        <ul className="category-grid">
-          {items.map((c) => (
-            <CategoryCard
-              key={c.id}
-              category={c}
-              onEdit={() => setDialog({ kind: "edit", category: c })}
-              onDeactivate={() => setDialog({ kind: "deactivate", category: c })}
-            />
-          ))}
-        </ul>
       )}
       <div className="inline-note management-notice">
         <ShieldCheck size={17} aria-hidden="true" />

@@ -57,8 +57,8 @@ export function SessionBoundary({ children }: { children: ReactNode }) {
       );
     };
 
-    // Safety fallback: dismiss loading screen after at most 3.5s so user is never stuck
-    safetyTimer = window.setTimeout(onContentReady, 3500);
+    // Safety fallback: dismiss loading screen after at most 15s so user is never stuck if network halts
+    safetyTimer = window.setTimeout(onContentReady, 15000);
 
     const observeForReady = () => {
       if (typeof MutationObserver !== "undefined" && document.body) {
@@ -87,7 +87,7 @@ export function SessionBoundary({ children }: { children: ReactNode }) {
         } else {
           onContentReady();
         }
-      }, 150);
+      }, 250);
     }
 
     return () => {

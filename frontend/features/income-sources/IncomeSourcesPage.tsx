@@ -54,23 +54,26 @@ export function IncomeSourcesPage() {
 
       {list.status === "loading" && <LoadingPanel label="Loading income sources…" />}
       {list.status === "error" && <InlineError message={list.message} onRetry={list.retry} />}
-      {list.status === "ready" && list.data.length === 0 && (
-        <div className="panel empty-state">
-          <h3>No income sources yet</h3>
-          <p>Income sources are optional. Add one, such as Salary, to label income you record.</p>
+      {list.status === "ready" && (
+        <div className="animate-content-reveal">
+          {list.data.length === 0 ? (
+            <div className="panel empty-state">
+              <h3>No income sources yet</h3>
+              <p>Income sources are optional. Add one, such as Salary, to label income you record.</p>
+            </div>
+          ) : (
+            <ul className="source-grid">
+              {list.data.map((s) => (
+                <IncomeSourceCard
+                  key={s.id}
+                  source={s}
+                  onRename={() => setDialog({ kind: "edit", source: s })}
+                  onDeactivate={() => setDialog({ kind: "deactivate", source: s })}
+                />
+              ))}
+            </ul>
+          )}
         </div>
-      )}
-      {list.status === "ready" && list.data.length > 0 && (
-        <ul className="source-grid">
-          {list.data.map((s) => (
-            <IncomeSourceCard
-              key={s.id}
-              source={s}
-              onRename={() => setDialog({ kind: "edit", source: s })}
-              onDeactivate={() => setDialog({ kind: "deactivate", source: s })}
-            />
-          ))}
-        </ul>
       )}
 
       {dialog?.kind === "edit" && <IncomeSourceFormDialog source={dialog.source} onClose={() => setDialog(null)} onSaved={done} />}

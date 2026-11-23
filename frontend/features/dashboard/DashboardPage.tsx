@@ -70,7 +70,7 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
       {data.status === "loading" && <LoadingPanel label="Loading dashboard…" />}
       {data.status === "error" && <InlineError message={data.message} onRetry={data.retry} />}
       {data.status === "ready" && (
-        <>
+        <div className="animate-content-reveal">
           <FreshMonthNotice dashboard={data.data.dashboard} monthLabel={monthLabel} budgetHref={budgetHref} onAddIncome={() => openAdd("INCOME")} />
           
           {/* Dashboard Header: 2-line greeting on left, MonthSelector & actions on right */}
@@ -207,7 +207,7 @@ export function DashboardPage({ month, onMonthChange }: { month: string; onMonth
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );

@@ -55,7 +55,8 @@ export function BudgetPage({ month, onMonthChange }: { month: string; onMonthCha
       {form.load.status === "loading" && <LoadingPanel label="Loading your plan…" />}
       {form.load.status === "error" && <InlineError message={form.load.message} onRetry={form.retry} />}
       {form.load.status === "ready" && (
-        <form ref={formRef} onSubmit={form.submit} noValidate aria-busy={form.saving}>
+        <div className="animate-content-reveal">
+          <form ref={formRef} onSubmit={form.submit} noValidate aria-busy={form.saving}>
           {form.saveError && <InlineError message={form.saveError} />}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -244,6 +245,7 @@ export function BudgetPage({ month, onMonthChange }: { month: string; onMonthCha
             </div>
           </div>
         </form>
+      </div>
       )}
     </>
   );

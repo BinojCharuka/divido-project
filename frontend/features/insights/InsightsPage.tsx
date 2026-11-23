@@ -69,7 +69,9 @@ export function InsightsPage({ month, onMonthChange }: { month: string; onMonthC
       {!future && data.status === "loading" && <LoadingPanel label="Loading insights…" />}
       {!future && data.status === "error" && <InlineError message={data.message} onRetry={data.retry} />}
       {data.status === "ready" && data.data && (
-        <InsightsContent insights={data.data} onAddExpense={() => openAdd("EXPENSE")} />
+        <div className="animate-content-reveal">
+          <InsightsContent insights={data.data} onAddExpense={() => openAdd("EXPENSE")} />
+        </div>
       )}
     </>
   );

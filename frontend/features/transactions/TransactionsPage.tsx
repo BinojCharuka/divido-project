@@ -134,7 +134,7 @@ export function TransactionsPage({ month, onMonthChange }: { month: string; onMo
         {list.status === "loading" && <LoadingPanel label="Loading transactions…" />}
         {list.status === "error" && <InlineError message={list.message} onRetry={list.retry} />}
         {list.status === "ready" && (
-          <>
+          <div className="animate-content-reveal">
             <TransactionRows
               full
               transactions={list.data.items}
@@ -167,7 +167,7 @@ export function TransactionsPage({ month, onMonthChange }: { month: string; onMo
               }
             />
             <Pagination page={list.data.page} totalPages={list.data.totalPages} label="Transaction pages" onPageChange={setPage} />
-          </>
+          </div>
         )}
       </section>
       {clearDialogOpen && (
