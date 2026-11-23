@@ -1051,12 +1051,6 @@ export function TransactionFormDialog({
                   : undefined
               }
             />
-            <span
-              className="absolute right-3.5 top-[38px] text-zinc-400 pointer-events-none flex items-center"
-              aria-hidden="true"
-            >
-              <CalendarIcon size={17} />
-            </span>
             {/* Quick date chips in header */}
             <div className="absolute top-0 right-0 flex items-center gap-1.5">
               <button
