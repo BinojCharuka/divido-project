@@ -211,6 +211,94 @@ describe("recording transactions (TXN-001, TXN-002)", () => {
     // Calendar closes and date input is updated
     expect(within(dialog).queryByRole("grid", { name: "Calendar dates" })).not.toBeInTheDocument();
   });
+
+  it("opens custom in-app category selection panel and selects category from Kakeibo groups without system dropdowns", async () => {
+    const user = userEvent.setup();
+    renderInShell(<Harness />);
+    await user.click((await screen.findAllByRole("button", { name: "Add transaction" }))[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /Add expense/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Record an expense" });
+
+    // Click Category trigger button
+    const categoryTrigger = dialog.querySelector("#category-trigger") as HTMLButtonElement;
+    expect(categoryTrigger).toBeInTheDocument();
+    await user.click(categoryTrigger);
+
+    // Verify in-app panel opened with Kakeibo groups
+    const panel = within(dialog).getByRole("region", { name: "Category selection panel" });
+    expect(panel).toBeInTheDocument();
+    expect(within(panel).getByText("Needs")).toBeInTheDocument();
+    expect(within(panel).getByText("Wants")).toBeInTheDocument();
+
+    // Select "Groceries" tile inside the panel
+    const groceriesBtn = within(panel).getByRole("button", { name: /Groceries/ });
+    await user.click(groceriesBtn);
+
+    // Panel closes and category trigger shows Groceries
+    expect(within(dialog).queryByRole("region", { name: "Category selection panel" })).not.toBeInTheDocument();
+    expect(categoryTrigger).toHaveTextContent("Groceries");
+
+    // Accessible select is updated as well
+    const select = within(dialog).getByLabelText(/^Category/);
+    expect(select).toHaveValue("cat-1");
+  });
+
+  it("opens custom in-app payment method panel and selects method", async () => {
+    const user = userEvent.setup();
+    renderInShell(<Harness />);
+    await user.click((await screen.findAllByRole("button", { name: "Add transaction" }))[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /Add expense/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Record an expense" });
+
+    // Click Payment method trigger
+    const paymentTrigger = dialog.querySelector("#payment-method-trigger") as HTMLButtonElement;
+    expect(paymentTrigger).toBeInTheDocument();
+    await user.click(paymentTrigger);
+
+    // Verify in-app panel opened
+    const panel = within(dialog).getByRole("region", { name: "Payment method selection panel" });
+    expect(panel).toBeInTheDocument();
+
+    // Click "Credit card" option
+    await user.click(within(panel).getByRole("button", { name: "Credit card" }));
+
+    // Panel closes and trigger displays Credit card
+    expect(within(dialog).queryByRole("region", { name: "Payment method selection panel" })).not.toBeInTheDocument();
+    expect(paymentTrigger).toHaveTextContent("Credit card");
+
+    // Accessible select is updated
+    const select = within(dialog).getByLabelText(/^Payment method/);
+    expect(select).toHaveValue("CREDIT_CARD");
+  });
+
+  it("opens custom in-app income source panel and selects income source", async () => {
+    const user = userEvent.setup();
+    renderInShell(<Harness />);
+    await user.click((await screen.findAllByRole("button", { name: "Add transaction" }))[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /Add income/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Record income" });
+
+    // Click Income source trigger
+    const sourceTrigger = dialog.querySelector("#income-source-trigger") as HTMLButtonElement;
+    expect(sourceTrigger).toBeInTheDocument();
+    await user.click(sourceTrigger);
+
+    // Verify in-app panel opened
+    const panel = within(dialog).getByRole("region", { name: "Income source selection panel" });
+    expect(panel).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: "No income source" })).toBeInTheDocument();
+
+    // Click "Salary"
+    await user.click(within(panel).getByRole("button", { name: /Salary/ }));
+
+    // Panel closes and trigger displays Salary
+    expect(within(dialog).queryByRole("region", { name: "Income source selection panel" })).not.toBeInTheDocument();
+    expect(sourceTrigger).toHaveTextContent("Salary");
+
+    // Accessible select is updated
+    const select = within(dialog).getByLabelText(/^Income source/);
+    expect(select).toHaveValue("src-1");
+  });
 });
 
 describe("viewing, editing and deleting (TXN-004..006)", () => {
