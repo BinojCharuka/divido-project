@@ -27,13 +27,10 @@ input[type="date"] {
   cursor: pointer;
 }
 input[type="date"]::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  filter: invert(0.85);
-  opacity: 0.85;
-  padding: 4px;
-}
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Loading states */
