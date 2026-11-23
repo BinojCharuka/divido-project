@@ -2,7 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { CalendarDays } from "lucide-react";
-import { getCurrentMonth, getTimeGreeting } from "@/lib/formatting/dates";
+import { getTimeGreeting } from "@/lib/formatting/dates";
+import { useMonthParam } from "@/lib/useMonthParam";
 import { locationLabel } from "./navigation";
 
 /**
@@ -24,7 +25,7 @@ export function TopBar({
   onSignOut: () => void;
 }) {
   const pathname = usePathname();
-  const currentMonth = getCurrentMonth();
+  const [activeMonth] = useMonthParam();
 
   const greeting = getTimeGreeting();
 
@@ -59,7 +60,7 @@ export function TopBar({
           {/* Desktop Month Pill */}
           <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#0d1611] border border-white/10 text-xs text-zinc-300 font-medium shadow-xs">
             <CalendarDays size={14} className="text-[#34d399]" />
-            <span>{currentMonth}</span>
+            <span>{activeMonth}</span>
           </div>
         </div>
       </div>

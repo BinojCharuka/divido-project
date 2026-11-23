@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, MoreHorizontal, Target } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, Target } from "lucide-react";
 import { Brand } from "@/components/ui/Brand";
-import { IconButton } from "@/components/ui/IconButton";
 import { NavLink } from "./NavLink";
 import { PRIMARY_NAV, SECONDARY_NAV } from "./navigation";
 
@@ -108,60 +107,72 @@ export function Sidebar({
         ))}
       </nav>
 
-      <div className="sidebar-bottom mt-auto pt-6 flex flex-col gap-3">
+      <div className="sidebar-bottom mt-auto pt-4 pb-4 flex flex-col gap-2">
         {!isRail && (
-          <div className="sidebar-promo-card rounded-2xl bg-[#201d14] border border-[#ca8a04]/25 p-4 text-left shadow-md">
-            <div className="w-8 h-8 rounded-xl bg-[#ca8a04]/20 text-[#facc15] flex items-center justify-center mb-2.5">
-              <Target size={17} strokeWidth={2.4} />
+          <div className="sidebar-promo-card rounded-2xl bg-[#201d14] border border-[#ca8a04]/25 p-3.5 text-left shadow-sm">
+            <div className="w-7 h-7 rounded-lg bg-[#ca8a04]/20 text-[#facc15] flex items-center justify-center mb-2">
+              <Target size={15} strokeWidth={2.4} />
             </div>
             <div className="text-xs font-bold text-white tracking-tight">Build better habits</div>
-            <div className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
+            <div className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
               Track each rupee and make your goals feel closer.
             </div>
           </div>
         )}
 
-        {/* Profile Button - Highlighted in both collapsed rail & expanded states */}
+        {/* Profile Card / Link - Visible in both collapsed rail & expanded */}
         <div
           className={`sidebar-user flex items-center ${
             isRail
-              ? "justify-center p-1"
-              : "gap-3 p-2.5 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/25 hover:border-emerald-500/40 hover:bg-emerald-500/12"
-          } transition-all duration-200`}
+              ? "justify-center p-0"
+              : "p-2 rounded-xl bg-[#0c150f] border border-white/[0.08] hover:border-emerald-500/30 transition-colors"
+          }`}
         >
           <Link
             href="/settings"
             className={`sidebar-profile-badge group relative flex items-center ${
               isRail
-                ? "justify-center w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/35 hover:border-emerald-400 hover:bg-emerald-500/20 hover:shadow-[0_0_16px_rgba(52,211,153,0.35)]"
-                : "gap-3 flex-1 min-w-0"
-            } transition-all duration-200`}
+                ? "justify-center w-10 h-10 rounded-xl hover:bg-white/[0.06] transition-colors"
+                : "gap-2.5 flex-1 min-w-0"
+            }`}
             aria-label={`Profile and settings for ${userName || "user"}`}
             title={`${userName || "User profile"} · Settings`}
             onClick={handleNavClick}
           >
-            <span className="avatar-highlight flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#34d399] via-[#10b981] to-[#059669] text-[#041c10] font-black text-xs tracking-wider shadow-[0_0_12px_rgba(52,211,153,0.35)] ring-2 ring-emerald-400/60 shrink-0 group-hover:scale-105 transition-transform">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#142319] border border-emerald-500/40 text-emerald-300 font-bold text-xs tracking-wide shrink-0">
               {initials}
             </span>
-            <div className={`flex-1 min-w-0 text-left ${isRail ? "hidden" : "block"}`}>
-              <strong className="block text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
-                {userName || "Divido user"}
-              </strong>
-              <span className="block text-[11px] font-medium text-emerald-400/80">
-                Personal account
-              </span>
-            </div>
+            {!isRail && (
+              <div className="flex-1 min-w-0 text-left">
+                <strong className="block text-xs font-semibold text-white truncate group-hover:text-emerald-400 transition-colors">
+                  {userName || "Divido user"}
+                </strong>
+                <span className="block text-[10px] text-zinc-400 font-medium">
+                  Personal account
+                </span>
+              </div>
+            )}
             {isSettingsActive && isRail && (
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#07100b] shadow-[0_0_8px_#34d399]" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-[#07100b]" />
             )}
           </Link>
-          <IconButton
-            icon={MoreHorizontal}
-            label="Sign out"
-            onClick={onSignOut}
-            className={`text-zinc-400 hover:text-white hover:bg-white/[0.08] ${isRail ? "icon-button-rail" : ""}`}
-          />
         </div>
+
+        {/* Dedicated Sign Out Button */}
+        <button
+          type="button"
+          onClick={onSignOut}
+          className={`sidebar-signout-btn flex items-center transition-all cursor-pointer ${
+            isRail
+              ? "justify-center w-10 h-10 mx-auto rounded-xl text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
+              : "gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 text-left"
+          }`}
+          aria-label="Sign out"
+          title="Sign out of Divido"
+        >
+          <LogOut size={15} className="shrink-0" />
+          {!isRail && <span>Sign out</span>}
+        </button>
       </div>
     </aside>
   );

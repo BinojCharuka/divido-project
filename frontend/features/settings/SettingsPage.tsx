@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, BriefcaseBusiness, Check, Lock, Moon, Settings as SettingsIcon, ShoppingBasket, Sliders, Sun, Trash2, Wallet } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, Lock, Settings as SettingsIcon, ShoppingBasket, Sliders, Trash2, Wallet } from "lucide-react";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { Button } from "@/components/ui/Button";
 import { useAppShell } from "@/components/layout/AppShellContext";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { APP_TIME_ZONE } from "@/lib/formatting/dates";
-import { useDividoTheme } from "@/lib/theme";
 import { DeleteAccountDialog, DisplayNameForm, PasswordForm } from "./AccountForms";
 import { ClearTransactionsDialog } from "@/features/transactions/ClearTransactionsDialog";
 
@@ -19,7 +18,6 @@ import { ClearTransactionsDialog } from "@/features/transactions/ClearTransactio
 export function SettingsPage() {
   const { user } = useAuth();
   const { notify, refreshData } = useAppShell();
-  const { theme, setTheme } = useDividoTheme();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [clearingTransactions, setClearingTransactions] = useState(false);
@@ -200,31 +198,6 @@ export function SettingsPage() {
               <dd>English</dd>
             </div>
           </dl>
-        </section>
-
-        <section className="panel settings-block" aria-labelledby="appearance-heading">
-          <div className="settings-block-heading">
-            <span className="group-icon" aria-hidden="true">
-              {theme === "light" ? <Sun size={20} /> : <Moon size={20} />}
-            </span>
-            <div>
-              <h2 id="appearance-heading">Appearance</h2>
-            </div>
-          </div>
-          <div className="theme-options" role="group" aria-label="Colour theme">
-            {(["light", "dark"] as const).map((mode) => (
-              <Button
-                key={mode}
-                className={`theme-option ${theme === mode ? "selected" : ""}`}
-                aria-pressed={theme === mode}
-                onClick={() => setTheme(mode)}
-              >
-                {mode === "light" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
-                {mode === "light" ? "Light" : "Dark"}
-                {theme === mode && <Check size={16} aria-hidden="true" />}
-              </Button>
-            ))}
-          </div>
         </section>
 
         <section className="panel settings-block danger-zone" aria-labelledby="clear-transactions-heading">

@@ -298,4 +298,12 @@ describe("settings (DIV-022, DIV-035)", () => {
     await waitFor(() => expect(reloadTo).toHaveBeenCalledWith("/sign-in?notice=account-deleted"));
     expect(backend.state.accounts.has(EMAIL)).toBe(false);
   });
+
+  it("does not render light/dark mode appearance switcher in settings", async () => {
+    signedIn();
+    renderSettings();
+    await screen.findByText("Profile & settings");
+    expect(screen.queryByText("Appearance")).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Colour theme" })).not.toBeInTheDocument();
+  });
 });

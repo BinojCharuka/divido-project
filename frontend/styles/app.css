@@ -126,7 +126,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .sidebar-user > a > span { font-size: 10px; color: var(--muted); }
 .sidebar-user > a:hover > strong { color: var(--green); }
 @media (min-width: 768px) {
-  .sidebar-collapsed .sidebar-user > a { display: none !important; }
+  .sidebar-collapsed .sidebar-user > a { display: flex !important; }
 }
 
 /* Insights (DIV-027): observation cards are links, so keep their text styles */
