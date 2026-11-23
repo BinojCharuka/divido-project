@@ -23,6 +23,7 @@ export function renderWithShellStub(page: ReactElement, overrides: Partial<AppSh
     openTransaction: vi.fn(),
     openEdit: vi.fn(),
     dataVersion: 0,
+    refreshData: vi.fn(),
     ...overrides,
   };
   const view = render(

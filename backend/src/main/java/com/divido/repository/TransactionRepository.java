@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -82,4 +83,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
     /** Date of the user's earliest transaction of any type, or {@code null} when there is none. */
     @Query("select min(t.date) from Transaction t where t.userId = :userId")
     LocalDate findFirstTransactionDate(@Param("userId") UUID userId);
+
+    /** Permanent deletion of all transactions belonging to a user. */
+    @Modifying
+    @Query("delete from Transaction t where t.userId = :userId")
+    void deleteAllByUserId(@Param("userId") UUID userId);
 }

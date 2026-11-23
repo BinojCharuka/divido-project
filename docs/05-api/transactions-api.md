@@ -143,6 +143,18 @@ Rules:
 
 *Removed from MVP per DEC-014.* Because the MVP uses hard delete, restoration of deleted transactions is not supported and will not be implemented.
 
+## TX-007 — Clear all transactions (Permanent wipe per user)
+
+`DELETE /api/v1/transactions`
+
+Response: `204 No Content`.
+
+Rules:
+- Hard delete: permanently deletes all transaction records belonging to the authenticated user from the database.
+- Multi-tenant isolation: strictly deletes records where `user_id = current_user_id`. Never affects or deletes other users' transactions.
+- Successful deletion returns HTTP `204 No Content` with an empty body.
+- The user's transaction history, dashboard totals, and monthly aggregates immediately reflect 0 transactions.
+
 ## Shared requirements
 
 - Every operation requires authentication (`DEC-015`, `DEC-027`).

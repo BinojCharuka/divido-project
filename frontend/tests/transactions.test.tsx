@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TransactionsPage } from "@/features/transactions/TransactionsPage";
 import { buildTransactionPatch } from "@/lib/transactions/patch";
 import { getCurrentMonth } from "@/lib/formatting/dates";
+import { clearCsrfToken } from "@/lib/api/client";
 import type { Transaction } from "@/types/transaction";
 import { installFakeBackend } from "./fakeBackend";
 import { renderInShell } from "./shell";
@@ -46,6 +47,7 @@ function Harness() {
 let backend: ReturnType<typeof installFakeBackend>;
 
 beforeEach(() => {
+  clearCsrfToken();
   backend = installFakeBackend();
   backend.state.signedInAs = "user@example.com";
   backend.state.accounts.set("user@example.com", { password: "x" });
@@ -368,3 +370,53 @@ describe("buildTransactionPatch", () => {
     ).toEqual({ incomeSourceId: null });
   });
 });
+
+describe("clearing all transactions", () => {
+  it("opens confirmation dialog and clears all transactions on confirm", async () => {
+    const user = userEvent.setup();
+    seed(backend, { id: "tx-1", type: "EXPENSE", amount: "5000.00" });
+    seed(backend, { id: "tx-2", type: "INCOME", amount: "25000.00" });
+
+    renderInShell(<Harness />);
+
+    const clearBtn = await screen.findByRole("button", { name: "Clear all transactions" });
+    await user.click(clearBtn);
+
+    const dialog = await screen.findByRole("dialog", { name: "Clear all transactions?" });
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText(/This will permanently delete all your recorded transactions/)).toBeInTheDocument();
+
+    const confirmBtn = within(dialog).getByRole("button", { name: "Clear all transactions" });
+    await user.click(confirmBtn);
+
+    await waitFor(() => {
+      const deleteCalls = backend.callsTo("/api/v1/transactions").filter((c) => c.method === "DELETE");
+      expect(deleteCalls).toHaveLength(1);
+    });
+
+    expect(backend.state.transactions.size).toBe(0);
+  });
+
+  it("can cancel the clear confirmation dialog without deleting", async () => {
+    const user = userEvent.setup();
+    seed(backend, { id: "tx-1", type: "EXPENSE", amount: "5000.00" });
+
+    renderInShell(<Harness />);
+
+    const clearBtn = await screen.findByRole("button", { name: "Clear all transactions" });
+    await user.click(clearBtn);
+
+    const dialog = await screen.findByRole("dialog", { name: "Clear all transactions?" });
+    const cancelBtn = within(dialog).getByRole("button", { name: "Cancel" });
+    await user.click(cancelBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: "Clear all transactions?" })).not.toBeInTheDocument();
+    });
+
+    const deleteCalls = backend.callsTo("/api/v1/transactions").filter((c) => c.method === "DELETE");
+    expect(deleteCalls).toHaveLength(0);
+    expect(backend.state.transactions.size).toBe(1);
+  });
+});
+

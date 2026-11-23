@@ -404,6 +404,83 @@ class TransactionIntegrationTest {
     }
 
     @Test
+    void userCanDeleteAllTransactions() {
+        MockHttpSession session = registerAndLogin("alice@example.com");
+
+        UUID groceriesId = jdbc.queryForObject(
+                "SELECT id FROM categories WHERE slug = 'groceries' AND user_id IS NULL", UUID.class);
+
+        postWithCsrf("/api/v1/transactions", """
+                {"type":"EXPENSE","amount":"1200.00","date":"2026-10-01","categoryId":"%s"}
+                """.formatted(groceriesId), session);
+
+        postWithCsrf("/api/v1/transactions", """
+                {"type":"INCOME","amount":"45000.00","date":"2026-10-02"}
+                """, session);
+
+        var listBefore = getWithSession("/api/v1/transactions", session);
+        assertThat(listBefore).hasStatus(HttpStatus.OK);
+        assertThat(listBefore).bodyJson().extractingPath("$.totalItems").isEqualTo(2);
+
+        // Delete all transactions
+        var delResult = deleteWithCsrf("/api/v1/transactions", session);
+        assertThat(delResult).hasStatus(HttpStatus.NO_CONTENT);
+        assertThat(body(delResult)).isEmpty();
+
+        // Verify list is now empty
+        var listAfter = getWithSession("/api/v1/transactions", session);
+        assertThat(listAfter).hasStatus(HttpStatus.OK);
+        assertThat(listAfter).bodyJson().extractingPath("$.totalItems").isEqualTo(0);
+    }
+
+    @Test
+    void deleteAllTransactionsEnforcesCrossUserIsolation() {
+        MockHttpSession aliceSession = registerAndLogin("alice@example.com");
+        MockHttpSession bobSession = registerAndLogin("bob@example.com");
+
+        UUID groceriesId = jdbc.queryForObject(
+                "SELECT id FROM categories WHERE slug = 'groceries' AND user_id IS NULL", UUID.class);
+
+        // Alice creates 2 transactions
+        postWithCsrf("/api/v1/transactions", """
+                {"type":"EXPENSE","amount":"500.00","date":"2026-10-01","categoryId":"%s"}
+                """.formatted(groceriesId), aliceSession);
+        postWithCsrf("/api/v1/transactions", """
+                {"type":"INCOME","amount":"10000.00","date":"2026-10-02"}
+                """, aliceSession);
+
+        // Bob creates 1 transaction
+        postWithCsrf("/api/v1/transactions", """
+                {"type":"EXPENSE","amount":"750.00","date":"2026-10-03","categoryId":"%s"}
+                """.formatted(groceriesId), bobSession);
+
+        // Alice deletes all her transactions
+        var aliceDel = deleteWithCsrf("/api/v1/transactions", aliceSession);
+        assertThat(aliceDel).hasStatus(HttpStatus.NO_CONTENT);
+
+        // Alice has 0 transactions
+        var aliceList = getWithSession("/api/v1/transactions", aliceSession);
+        assertThat(aliceList).hasStatus(HttpStatus.OK);
+        assertThat(aliceList).bodyJson().extractingPath("$.totalItems").isEqualTo(0);
+
+        // Bob still has his 1 transaction intact
+        var bobList = getWithSession("/api/v1/transactions", bobSession);
+        assertThat(bobList).hasStatus(HttpStatus.OK);
+        assertThat(bobList).bodyJson().extractingPath("$.totalItems").isEqualTo(1);
+    }
+
+    @Test
+    void deleteAllTransactionsRequiresCsrf() {
+        MockHttpSession session = registerAndLogin("alice@example.com");
+
+        var delReq = mvc.delete().uri("/api/v1/transactions")
+                .session(session);
+        var delRes = delReq.exchange();
+        assertThat(delRes).hasStatus(HttpStatus.FORBIDDEN);
+        assertThat(delRes).bodyJson().extractingPath("$.code").isEqualTo("CSRF_INVALID");
+    }
+
+    @Test
     void crossUserCategoryAndIncomeSourceIsolationEnforced() {
         MockHttpSession aliceSession = registerAndLogin("alice@example.com");
         MockHttpSession bobSession = registerAndLogin("bob@example.com");

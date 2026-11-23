@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, BriefcaseBusiness, Check, Lock, Moon, Settings as SettingsIcon, ShoppingBasket, Sliders, Sun, Wallet } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, Lock, Moon, Settings as SettingsIcon, ShoppingBasket, Sliders, Sun, Trash2, Wallet } from "lucide-react";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { Button } from "@/components/ui/Button";
+import { useAppShell } from "@/components/layout/AppShellContext";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { APP_TIME_ZONE } from "@/lib/formatting/dates";
 import { useDividoTheme } from "@/lib/theme";
 import { DeleteAccountDialog, DisplayNameForm, PasswordForm } from "./AccountForms";
+import { ClearTransactionsDialog } from "@/features/transactions/ClearTransactionsDialog";
 
 /**
  * Settings (DIV-022, DEC-043): display name and password can change; email, currency,
@@ -16,9 +18,11 @@ import { DeleteAccountDialog, DisplayNameForm, PasswordForm } from "./AccountFor
  */
 export function SettingsPage() {
   const { user } = useAuth();
+  const { notify, refreshData } = useAppShell();
   const { theme, setTheme } = useDividoTheme();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [clearingTransactions, setClearingTransactions] = useState(false);
 
   return (
     <>
@@ -87,21 +91,31 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString() }, null, 2)], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `divido-backup-${new Date().toISOString().slice(0, 10)}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-              className="px-5 py-2.5 rounded-xl bg-[#141f17] hover:bg-[#1b2b20] text-zinc-200 border border-white/10 text-xs font-semibold self-start sm:self-auto cursor-pointer transition-colors shadow-xs"
-            >
-              Export JSON
-            </button>
+            <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setClearingTransactions(true)}
+                className="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold cursor-pointer transition-colors shadow-xs flex items-center gap-1.5"
+              >
+                <Trash2 size={14} aria-hidden="true" />
+                Clear all transactions
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString() }, null, 2)], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `divido-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-[#141f17] hover:bg-[#1b2b20] text-zinc-200 border border-white/10 text-xs font-semibold cursor-pointer transition-colors shadow-xs"
+              >
+                Export JSON
+              </button>
+            </div>
           </div>
         </section>
 
@@ -213,6 +227,16 @@ export function SettingsPage() {
           </div>
         </section>
 
+        <section className="panel settings-block danger-zone" aria-labelledby="clear-transactions-heading">
+          <div>
+            <h2 id="clear-transactions-heading">Clear all transactions</h2>
+            <p>Permanently remove every recorded expense and income entry. Budgets, categories and settings remain intact.</p>
+          </div>
+          <Button variant="destructive" onClick={() => setClearingTransactions(true)}>
+            Clear all transactions
+          </Button>
+        </section>
+
         <section className="panel settings-block danger-zone" aria-labelledby="delete-heading">
           <div>
             <h2 id="delete-heading">Delete account</h2>
@@ -223,6 +247,16 @@ export function SettingsPage() {
           </Button>
         </section>
       </div>
+      {clearingTransactions && (
+        <ClearTransactionsDialog
+          onCancel={() => setClearingTransactions(false)}
+          onDone={(msg) => {
+            setClearingTransactions(false);
+            notify(msg);
+            refreshData?.();
+          }}
+        />
+      )}
       {deleting && <DeleteAccountDialog onClose={() => setDeleting(false)} />}
     </>
   );

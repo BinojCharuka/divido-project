@@ -74,6 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       openTransaction: (transaction: Transaction) => setTransactionDialog({ mode: "detail", transaction }),
       openEdit: (transaction: Transaction) => setTransactionDialog({ mode: "form", type: transaction.type, transaction }),
       dataVersion,
+      refreshData: () => setDataVersion((v) => v + 1),
     }),
     [dataVersion],
   );

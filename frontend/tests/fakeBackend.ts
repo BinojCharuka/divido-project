@@ -352,6 +352,11 @@ export function installFakeBackend() {
         state.transactions.set(id, tx);
         return json(201, tx);
       }
+
+      if (method === "DELETE") {
+        state.transactions.clear();
+        return json(204, null);
+      }
     }
 
     // Single transaction operations: GET, PATCH, DELETE

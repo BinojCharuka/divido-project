@@ -15,6 +15,7 @@ export interface AppShellActions {
   openTransaction: (transaction: Transaction) => void;
   openEdit: (transaction: Transaction) => void;
   dataVersion: number;
+  refreshData: () => void;
 }
 
 export const AppShellContext = createContext<AppShellActions | null>(null);

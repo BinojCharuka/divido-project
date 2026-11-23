@@ -79,4 +79,10 @@ public class TransactionController {
         transactionService.deleteTransaction(user.getId(), transactionId);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAllTransactions(@AuthenticationPrincipal DividoUserDetails user) {
+        transactionService.deleteAllTransactions(user.getId());
+        return ResponseEntity.noContent().build();
+    }
 }

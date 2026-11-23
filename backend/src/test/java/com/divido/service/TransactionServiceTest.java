@@ -20,6 +20,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TransactionServiceTest {
@@ -121,5 +122,11 @@ class TransactionServiceTest {
                     assertThat(fve.getField()).isEqualTo("paymentMethod");
                     assertThat(fve.getMessage()).isEqualTo("Payment method must not exceed 50 characters.");
                 });
+    }
+
+    @Test
+    void deleteAllTransactionsDelegatesToRepository() {
+        service.deleteAllTransactions(userId);
+        verify(transactionRepository).deleteAllByUserId(userId);
     }
 }

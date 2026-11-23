@@ -49,3 +49,9 @@ export async function deleteTransaction(id: string): Promise<void> {
     method: "DELETE",
   });
 }
+
+export async function clearAllTransactions(): Promise<void> {
+  return apiRequest<void>("/api/v1/transactions", {
+    method: "DELETE",
+  });
+}

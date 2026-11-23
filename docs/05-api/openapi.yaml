@@ -576,6 +576,14 @@ paths:
                 $ref: '#/components/schemas/Transaction'
         '400':
           $ref: '#/components/responses/BadRequest'
+    delete:
+      tags: [Transactions]
+      summary: Clear all transactions for the current user
+      responses:
+        '204':
+          description: All transactions permanently cleared
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/transactions/{transactionId}:
     parameters:
       - $ref: '#/components/parameters/TransactionId'

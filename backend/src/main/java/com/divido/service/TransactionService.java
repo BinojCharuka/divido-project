@@ -163,6 +163,10 @@ public class TransactionService {
         transactionRepository.delete(tx);
     }
 
+    public void deleteAllTransactions(UUID userId) {
+        transactionRepository.deleteAllByUserId(userId);
+    }
+
     @Transactional(readOnly = true)
     public TransactionPageResponse listTransactions(
             UUID userId,
