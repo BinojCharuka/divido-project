@@ -8,31 +8,25 @@ export const THEME_STORAGE_KEY = "divido-theme";
 export const THEME_EVENT_NAME = "divido-theme-change";
 
 export function getSystemTheme(): Theme {
-  if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    return "dark";
-  }
-  return "light";
+  return "dark";
 }
 
 export function getStoredTheme(): Theme | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") return "dark";
   try {
     const val = localStorage.getItem(THEME_STORAGE_KEY);
     if (val === "dark" || val === "light") return val;
   } catch {
     // storage unavailable
   }
-  return null;
+  return "dark";
 }
 
 export function getCurrentTheme(): Theme {
-  if (typeof document === "undefined") return "light";
+  if (typeof document === "undefined") return "dark";
   const stored = getStoredTheme();
   if (stored) return stored;
-  if (document.documentElement.classList.contains("dark") || document.documentElement.dataset.theme === "dark") {
-    return "dark";
-  }
-  return getSystemTheme();
+  return "dark";
 }
 
 export function applyTheme(theme: Theme) {
@@ -83,7 +77,7 @@ export function useDividoTheme(): {
   const theme = useSyncExternalStore(
     subscribe,
     getCurrentTheme,
-    () => "light" as Theme,
+    () => "dark" as Theme,
   );
 
   return {

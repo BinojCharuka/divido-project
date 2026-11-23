@@ -69,8 +69,8 @@ export function AuthLayout({ title, subtitle, children, customHeader = false }: 
               <span className="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
                 Available balance
               </span>
-              <div className="w-8 h-8 rounded-xl bg-[#e2d274] flex items-center justify-center shadow-xs">
-                <Wallet size={15} className="text-[#1c1a0e]" strokeWidth={2.4} />
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/35 flex items-center justify-center shadow-xs">
+                <Wallet size={15} className="text-emerald-400" strokeWidth={2.4} />
               </div>
             </div>
             <div className="text-3xl font-bold text-white tracking-tight mb-5 flex items-center gap-2">
@@ -78,7 +78,7 @@ export function AuthLayout({ title, subtitle, children, customHeader = false }: 
               <span className="tracking-widest text-2xl font-black">••••••</span>
             </div>
             <div className="w-full h-1.5 bg-[#14261d] rounded-full overflow-hidden mb-4">
-              <div className="h-full w-[55%] bg-[#5fa88f] rounded-full" />
+              <div className="h-full w-[55%] bg-[#10b981] rounded-full" />
             </div>
             <div className="flex items-center gap-5 text-xs text-zinc-400">
               <span className="flex items-center gap-1.5 font-medium">
@@ -95,22 +95,22 @@ export function AuthLayout({ title, subtitle, children, customHeader = false }: 
 
         {/* Bottom Trust Badge */}
         <div className="relative z-10 flex items-center gap-2 text-xs text-zinc-400">
-          <Check size={14} className="text-[#5fa88f]" strokeWidth={2.5} />
+          <Check size={14} className="text-[#10b981]" strokeWidth={2.5} />
           <span>Private by design. Simple by choice.</span>
         </div>
       </div>
 
       {/* RIGHT PANEL: Form Container */}
-      <div className="w-full lg:w-1/2 min-h-screen flex flex-col justify-between bg-[#080d0a] text-zinc-100 p-6 sm:p-10 lg:p-12 relative">
+      <div className="w-full lg:w-1/2 min-h-screen flex flex-col justify-between bg-[#080d0a] text-zinc-100 px-6 py-8 sm:p-10 lg:p-12 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] relative">
         {/* Soft background ambient radial glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-emerald-950/20 rounded-full blur-[140px] pointer-events-none" />
 
         {/* Form Inner */}
-        <div className="max-w-[420px] w-full mx-auto my-auto py-6 sm:py-8 z-10">
+        <div className="max-w-[420px] w-full mx-auto my-auto py-4 sm:py-8 z-10">
           {!customHeader && title && (
             <div className="mb-6 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-[#fcd34d] flex items-center justify-center shadow-lg shadow-amber-500/10 mx-auto mb-4">
-                <KeyRound size={22} className="text-zinc-950" strokeWidth={2.2} />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-950/40 border border-emerald-500/35 flex items-center justify-center shadow-lg shadow-emerald-950/50 mx-auto mb-4">
+                <KeyRound size={22} className="text-emerald-300" strokeWidth={2.2} />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">{title}</h1>
               {subtitle && <p className="mt-1 text-sm text-zinc-400 leading-relaxed">{subtitle}</p>}

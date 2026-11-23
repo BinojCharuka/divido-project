@@ -6212,23 +6212,24 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
   color: #34d399 !important;
 }
 
-/* Auth Screen Submit Button (Soft mint background with dark green/black text and glow) */
+/* Auth Screen Submit Button (Vibrant Divido Emerald with high-contrast text and glow) */
 .auth-submit-btn,
 button.auth-submit-btn {
-  background: #5fa88f !important;
-  color: #07150e !important;
+  background: #10b981 !important;
+  color: #041c10 !important;
   border: none !important;
   border-radius: 16px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   padding: 14px 20px !important;
-  box-shadow: 0 4px 20px rgba(95, 168, 143, 0.28) !important;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35) !important;
   transition: all 0.2s ease !important;
 }
 
 .auth-submit-btn:hover,
 button.auth-submit-btn:hover {
-  background: #6cb69d !important;
-  box-shadow: 0 6px 24px rgba(95, 168, 143, 0.38) !important;
+  background: #34d399 !important;
+  color: #041c10 !important;
+  box-shadow: 0 6px 24px rgba(52, 211, 153, 0.45) !important;
 }
 
 .auth-submit-btn:active,

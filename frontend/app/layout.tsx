@@ -24,10 +24,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0f0d" },
-  ],
+  colorScheme: "dark",
+  themeColor: "#070b09",
 };
 
 export const metadata: Metadata = {
@@ -44,20 +42,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/webp/Logo-flavicon - 250px.webp", type: "image/webp" },
-      {
-        url: "/webp/logo-icon-dark.webp",
-        type: "image/webp",
-        media: "(prefers-color-scheme: dark)",
-      },
-      { url: "/favicon.ico", sizes: "any" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    shortcut: "/webp/Logo-flavicon - 250px.webp",
+    shortcut: "/icon-192.png",
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-      { url: "/webp/Logo-flavicon - 250px.webp" },
     ],
   },
 };
@@ -66,17 +57,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      data-theme="dark"
+      style={{ colorScheme: "dark" }}
       suppressHydrationWarning
     >
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('divido-theme');var p=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;var d=s==='dark'||(!s&&p);var r=document.documentElement;if(d){r.classList.add('dark');r.dataset.theme='dark';r.style.colorScheme='dark';}else{r.classList.remove('dark');r.dataset.theme='light';r.style.colorScheme='light';}}catch(e){}try{window.addEventListener('wheel',function(e){if(e.ctrlKey){e.preventDefault();}},{passive:false});window.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&(e.key==='+'||e.key==='-'||e.key==='='||e.key==='0')){e.preventDefault();}});document.addEventListener('gesturestart',function(e){e.preventDefault();});document.addEventListener('gesturechange',function(e){e.preventDefault();});document.addEventListener('gestureend',function(e){e.preventDefault();});}catch(e){}})();`,
+            __html: `(function(){try{var r=document.documentElement;r.classList.add('dark');r.dataset.theme='dark';r.style.colorScheme='dark';localStorage.setItem('divido-theme','dark');}catch(e){}try{window.addEventListener('wheel',function(e){if(e.ctrlKey){e.preventDefault();}},{passive:false});window.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&(e.key==='+'||e.key==='-'||e.key==='='||e.key==='0')){e.preventDefault();}});document.addEventListener('gesturestart',function(e){e.preventDefault();});document.addEventListener('gesturechange',function(e){e.preventDefault();});document.addEventListener('gestureend',function(e){e.preventDefault();});}catch(e){}})();`,
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#070b09] text-zinc-100">
         <AuthProvider>
           {children}
           <PageTransition />
