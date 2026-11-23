@@ -52,7 +52,7 @@
   --shadow-card: none;
   --shadow-modal: 0 10px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
   /* Keep desktop content comfortably inset while preserving a readable maximum measure. */
-  --desktop-page-gutter: clamp(32px, 2.5vw, 64px);
+  --desktop-page-gutter: clamp(24px, 2.8vw, 48px);
 }
 :root[data-theme='dark'],
 html[data-theme='dark'],
@@ -113,7 +113,10 @@ html[data-theme='dark'],
   button { color: var(--ink); }
 }
 .app-shell { background: var(--page); }
-.main-shell { margin-left: 248px; }
+.main-shell {
+  min-width: 0;
+  box-sizing: border-box;
+}
 .sidebar { width: 248px; padding: 40px 20px 0; overflow-y: auto; background: var(--sidebar-surface); }
 .sidebar-brand { display: block; padding-left: 14px; text-align: left; }
 .sidebar .workspace-label { font-size: 10px; letter-spacing: 2px; padding-top: 56px; padding-bottom: 20px; }
@@ -133,7 +136,8 @@ html[data-theme='dark'],
   width: 100%;
   max-width: calc(1400px + (var(--desktop-page-gutter) * 2));
   margin-inline: auto;
-  padding: 40px var(--desktop-page-gutter) 0;
+  padding: clamp(28px, 2.5vw, 38px) var(--desktop-page-gutter) 56px;
+  box-sizing: border-box;
 }
 
 /* Page Transition - Smooth Downward Slide */
@@ -395,12 +399,12 @@ html[data-theme='dark'],
   .summary-value { font-size: 30px; }
   .insight-banner > .text-button { margin-left: 47px; }
 }
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   .sidebar,
   .sidebar-collapsed .sidebar { display: none !important; }
   .sidebar-toggle-btn { display: none !important; }
   .main-shell,
-  .sidebar-collapsed .main-shell { margin-left: 0 !important; width: 100% !important; }
+  .sidebar-collapsed .main-shell { margin-left: 0 !important; width: 100% !important; max-width: 100% !important; }
   /* Mobile: TopBar is completely hidden; mobile navigation is handled by bottom dock & slide drawer */
   .topbar {
     display: none !important;

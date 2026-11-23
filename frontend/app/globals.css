@@ -81,11 +81,15 @@ body {
 
 /* Shell width containment without trapping or blocking vertical page scrolling */
 .app-shell,
-.main-shell,
 .main-content,
 .page-transition-host {
   max-width: 100%;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.main-shell {
+  min-width: 0;
   box-sizing: border-box;
 }
 

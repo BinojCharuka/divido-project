@@ -232,7 +232,9 @@ html[data-theme='dark'],
   }
 
   .sidebar-collapsed .main-shell {
-    margin-left: 72px;
+    margin-left: 72px !important;
+    width: calc(100% - 72px) !important;
+    max-width: calc(100% - 72px) !important;
   }
 
   .sidebar-collapsed .sidebar-header-row {
@@ -622,7 +624,13 @@ html[data-theme='dark'],
 
 .main-shell {
   margin-left: 226px;
-  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  width: calc(100% - 226px);
+  max-width: calc(100% - 226px);
+  min-width: 0;
+  box-sizing: border-box;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .topbar {
@@ -634,9 +642,11 @@ html[data-theme='dark'],
     display: flex !important;
     height: 76px;
     border-bottom: 1px solid var(--line);
-    padding: 0 36px;
+    padding: 0 clamp(24px, 3vw, 48px);
     align-items: center;
     justify-content: space-between;
+    box-sizing: border-box;
+    width: 100%;
   }
 }
 
@@ -769,9 +779,11 @@ html[data-theme='dark'],
 }
 
 .main-content {
-  max-width: 1460px;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 35px 36px 0;
+  padding: clamp(28px, 2.5vw, 38px) clamp(24px, 3vw, 48px) 56px;
+  box-sizing: border-box;
 }
 
 /* Page Transition - Smooth Downward Slide */
@@ -4100,6 +4112,8 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
 
   .main-shell {
     margin-left: 204px;
+    width: calc(100% - 204px);
+    max-width: calc(100% - 204px);
   }
 
   .topbar {
@@ -4107,7 +4121,7 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
   }
 
   .main-content {
-    padding: 30px 25px 0;
+    padding: 30px 25px 48px;
   }
 
   .page-heading {
@@ -4302,6 +4316,8 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
 
   .main-shell {
     margin-left: 187px;
+    width: calc(100% - 187px);
+    max-width: calc(100% - 187px);
   }
 
   .brand {
@@ -4336,7 +4352,7 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
   }
 
   .main-content {
-    padding: 27px 22px 0;
+    padding: 27px 22px 40px;
   }
 
   .topbar {
@@ -4620,6 +4636,7 @@ html:not(.dark) .dashboard-reference-frame .budget-card-bottom>strong,
   .sidebar-collapsed .main-shell {
     margin-left: 0 !important;
     width: 100% !important;
+    max-width: 100% !important;
   }
 
   .topbar {
