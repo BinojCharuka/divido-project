@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { PageTransition } from "@/components/transition/PageTransition";
+import { PwaProvider } from "@/components/pwa/PwaManager";
 import "./globals.css";
 import "@/styles/figma-styles.css";
 import "@/styles/design-system.css";
@@ -71,8 +72,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-full flex flex-col bg-[#070b09] text-zinc-100">
         <AuthProvider>
-          {children}
-          <PageTransition />
+          <PwaProvider>
+            {children}
+            <PageTransition />
+          </PwaProvider>
         </AuthProvider>
       </body>
     </html>

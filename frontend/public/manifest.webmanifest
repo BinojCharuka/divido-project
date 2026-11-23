@@ -4,12 +4,31 @@
   "description": "Smart, private personal budgeting and expense tracking.",
   "start_url": "/dashboard",
   "id": "/dashboard",
+  "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#070b09",
   "theme_color": "#070b09",
   "orientation": "portrait-primary",
-  "categories": ["finance", "productivity"],
+  "dir": "ltr",
+  "lang": "en",
+  "categories": [
+    "finance",
+    "productivity",
+    "utilities"
+  ],
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
@@ -20,13 +39,63 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Expense",
+      "short_name": "Expense",
+      "description": "Record a new expense quickly",
+      "url": "/transactions/new-expense",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Add Income",
+      "short_name": "Income",
+      "description": "Record income into your account",
+      "url": "/transactions/new-income",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Budget",
+      "short_name": "Budget",
+      "description": "Check monthly budget allocations",
+      "url": "/budget",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Overview",
+      "description": "View financial summary & balance",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
-

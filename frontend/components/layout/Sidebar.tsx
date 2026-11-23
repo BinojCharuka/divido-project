@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, LogOut, Target } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, LogOut, Target } from "lucide-react";
 import { Brand } from "@/components/ui/Brand";
+import { usePwa } from "@/components/pwa/PwaManager";
 import { NavLink } from "./NavLink";
 import { PRIMARY_NAV, SECONDARY_NAV } from "./navigation";
 
@@ -28,6 +29,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const isSettingsActive = pathname.startsWith("/settings");
+  const { pwa, openInstallDialog } = usePwa();
 
   // Hover expand / contract state
   const [isHovered, setIsHovered] = useState(false);
@@ -118,6 +120,23 @@ export function Sidebar({
               Track each rupee and make your goals feel closer.
             </div>
           </div>
+        )}
+
+        {!pwa.isStandalone && (
+          <button
+            type="button"
+            onClick={openInstallDialog}
+            title="Install Divido App"
+            aria-label="Install Divido App"
+            className={`flex items-center transition-all cursor-pointer ${
+              isRail
+                ? "justify-center w-10 h-10 mx-auto rounded-xl text-zinc-400 hover:text-emerald-300 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/20"
+                : "gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-300 hover:text-emerald-300 bg-[#0c150f] border border-white/[0.06] hover:border-emerald-500/30 hover:bg-emerald-500/10 text-left"
+            }`}
+          >
+            <Download size={15} strokeWidth={2.4} className="text-emerald-400 shrink-0" />
+            {!isRail && <span>Install App</span>}
+          </button>
         )}
 
         {/* Profile Card / Link - Visible in both collapsed rail & expanded */}

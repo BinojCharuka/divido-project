@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, BriefcaseBusiness, Check, Lock, Settings as SettingsIcon, ShoppingBasket, Sliders, Trash2, Wallet } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, Download, Lock, Settings as SettingsIcon, ShoppingBasket, Sliders, Trash2, Wallet } from "lucide-react";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { Button } from "@/components/ui/Button";
 import { useAppShell } from "@/components/layout/AppShellContext";
+import { usePwa } from "@/components/pwa/PwaManager";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { APP_TIME_ZONE } from "@/lib/formatting/dates";
 import { DeleteAccountDialog, DisplayNameForm, PasswordForm } from "./AccountForms";
@@ -18,6 +19,7 @@ import { ClearTransactionsDialog } from "@/features/transactions/ClearTransactio
 export function SettingsPage() {
   const { user } = useAuth();
   const { notify, refreshData } = useAppShell();
+  const { pwa, openInstallDialog } = usePwa();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [clearingTransactions, setClearingTransactions] = useState(false);
@@ -172,6 +174,46 @@ export function SettingsPage() {
               </div>
             </Link>
           </div>
+        </section>
+
+        {/* Card: Install App */}
+        <section className="panel settings-block bg-[#0d1611] border border-white/[0.07] rounded-3xl p-6 sm:p-7 shadow-lg" aria-labelledby="app-install-heading">
+          <div className="flex items-start gap-3.5 mb-4">
+            <div className="w-10 h-10 rounded-2xl bg-[#13271c] border border-emerald-500/20 text-[#34d399] flex items-center justify-center shrink-0">
+              <Download size={20} strokeWidth={2.2} />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2.5">
+                <h2 id="app-install-heading" className="text-base font-semibold text-white">App & Installation</h2>
+                {pwa.isStandalone && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    <Check size={11} strokeWidth={2.8} /> Installed
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                {pwa.isStandalone
+                  ? "Divido is running in standalone mode on this device with full offline capabilities."
+                  : "Install Divido on your iPhone, Android, or Desktop for full-screen view and quick home screen access."}
+              </p>
+            </div>
+          </div>
+
+          {!pwa.isStandalone && (
+            <div className="pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="text-xs text-zinc-400">
+                {pwa.isIos ? "Compatible with iOS Safari (Add to Home Screen)" : "Available for Android, Chrome, Edge, and macOS"}
+              </div>
+              <button
+                type="button"
+                onClick={openInstallDialog}
+                className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-bold cursor-pointer transition-colors shadow-xs flex items-center justify-center gap-2 self-start sm:self-auto"
+              >
+                <Download size={14} strokeWidth={2.5} />
+                <span>Install Divido App</span>
+              </button>
+            </div>
+          )}
         </section>
 
         <section className="panel settings-block" aria-labelledby="preferences-heading">

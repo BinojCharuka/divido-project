@@ -10,6 +10,7 @@ import {
   BookOpen,
   Camera,
   CircleHelp,
+  Download,
   History,
   LayoutGrid,
   LogOut,
@@ -22,6 +23,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { usePwa } from "@/components/pwa/PwaManager";
 import { useIsClient } from "@/lib/useIsClient";
 import type { TransactionType } from "@/types/transaction";
 
@@ -75,6 +77,7 @@ export function MobileDock({
 }: MobileDockProps) {
   const pathname = usePathname();
   const isClient = useIsClient();
+  const { pwa, openInstallDialog } = usePwa();
   const [tappedHref, setTappedHref] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -275,6 +278,30 @@ export function MobileDock({
                   <Settings size={17} strokeWidth={2.2} />
                 </div>
               </Link>
+
+              {/* Install App (when not running in standalone mode) */}
+              {!pwa.isStandalone && (
+                <button
+                  type="button"
+                  className="more-drawer-item group w-full text-left cursor-pointer"
+                  onClick={() => {
+                    closeDrawer();
+                    openInstallDialog();
+                  }}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-white group-hover:text-[#34d399] transition-colors">
+                      Install App
+                    </span>
+                    <span className="text-[11px] text-zinc-400 mt-0.5">
+                      {pwa.isIos ? "Add to iPhone Home Screen" : "Add to home screen or desktop"}
+                    </span>
+                  </div>
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-[#34d399] flex items-center justify-center shrink-0 shadow-xs">
+                    <Download size={17} strokeWidth={2.2} />
+                  </div>
+                </button>
+              )}
 
               {/* Monthly Reflection */}
               <Link
